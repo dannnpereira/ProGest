@@ -87,3 +87,271 @@
 
   </div>
 </section>
+
+<!-- SEÇÃO DO CONFIGURADOR INTELIGENTE -->
+<section class="configurator-section">
+  <div class="configurator-container">
+    
+    <!-- TÍTULO E SUBTÍTULO DA SEÇÃO -->
+    <div class="section-header">
+      <span class="badge-sub">SIMULAÇÃO EM TEMPO REAL</span>
+      <h2>CONFIGURADOR INTELIGENTE DE ALAMBRADO</h2>
+      <p>Personalize as especificações técnicas da sua cerca e receba a precificação em tempo real. Os cálculos consideram a resistência estrutural ideal, dimensionamento de acessórios e frete especializado para seu CEP.</p>
+    </div>
+
+    <!-- INDICADOR VISUAL DE PASSO A PASSO (STEPPER) -->
+    <div class="stepper">
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">1. APLICAÇÃO</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">2. MATÉRIA-PRIMA</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">3. DIMENSÕES</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">4. ACESSÓRIOS</span>
+      </div>
+      <div class="step active">
+        <span class="step-number">5</span>
+        <span class="step-label">5. ORÇAMENTO</span>
+      </div>
+    </div>
+
+    <!-- GRID PRINCIPAL (FORMULÁRIO NA ESQUERDA + RESUMO NA DIREITA) -->
+    <div class="configurator-grid">
+      
+      <!-- COLUNA DA ESQUERDA: CAMPOS DE SELEÇÃO -->
+      <div class="config-options">
+        
+        <!-- OPÇÃO 01: BITOLA DO ARAME -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>01</span> BITOLA DO ARAME (ESPESSURA)</h3>
+            <span class="info-link">🛈 Tabela de fios</span>
+          </div>
+          <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra impactos na sua cerca.</p>
+          
+          <div class="cards-select">
+            <!-- Card Fio 12 -->
+            <div class="select-card active">
+              <div class="card-radio"></div>
+              <div class="card-body">
+                <div class="card-title-row">
+                  <strong>Fio 12 (2,77 mm)</strong>
+                  <span class="badge-recommended">RECOMENDADO / MAIS VENDIDO</span>
+                </div>
+                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas, propriedades rurais e perímetros de alta segurança.</p>
+                <div class="card-footer-info">
+                  <span class="tag-outline">Carga de Ruptura: ++</span>
+                  <span class="tag-outline">Vida útil: Superior</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Fio 14 -->
+            <div class="select-card">
+              <div class="card-radio"></div>
+              <div class="card-body">
+                <div class="card-title-row">
+                  <strong>Fio 14 (2,10 mm)</strong>
+                </div>
+                <p>Economia para fechamentos residenciais, áreas internas ou de menor impacto visual, mantendo a proteção galvanizada contra intempéries.</p>
+                <div class="card-footer-info">
+                  <span class="tag-outline">Carga de Ruptura: +</span>
+                  <span class="tag-outline">Uso Residencial</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 02: MALHA / ABERTURA DO LOSANGO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>02</span> MALHA / ABERTURA DO LOSANGO</h3>
+            <span class="info-link">🛈 Entenda a malha</span>
+          </div>
+          <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de pequenos animais e objetos.</p>
+
+          <div class="cards-grid-2">
+            <div class="select-card">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Malha 2" (50 mm)</strong>
+                <p>Ideal para quadras de tênis, futebol, galpões e segurança reforçada.</p>
+              </div>
+            </div>
+
+            <div class="select-card active">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Malha 3" (75 mm)</strong>
+                <span class="badge-recommended">PADRÃO INDUSTRIAL</span>
+                <p>Ideal para grandes perímetros, chácaras e cercamentos extensos com excelente custo-benefício.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 03: MEDIDAS DO PROJETO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>03</span> MEDIDAS DO PROJETO</h3>
+          </div>
+
+          <div class="inputs-inline">
+            <div class="input-group">
+              <label>ALTURA DA TELA (METROS)</label>
+              <div class="input-number">
+                <input type="number" value="2.00" step="0.1" />
+                <span class="unit">METROS</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>METRAGEM LINEAR (COMPRIMENTO)</label>
+              <div class="input-counter">
+                <button>-</button>
+                <input type="number" value="120" />
+                <span class="unit">M.L.</span>
+                <button>+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RESUMO RÁPIDO DAS MEDIDAS -->
+          <div class="measures-summary">
+            <div class="summary-box">
+              <small>ÁREA TOTAL DE TELA</small>
+              <strong>240 m² de tela</strong>
+            </div>
+            <div class="summary-box">
+              <small>ESTIMATIVA DE EMBALAGEM</small>
+              <strong>8 rolos de 15 metros</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 04: TRATAMENTO ANTICORROSIVO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>04</span> TRATAMENTO ANTICORROSIVO</h3>
+          </div>
+
+          <div class="cards-grid-2">
+            <div class="select-card active">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Galvanizada a Fogo</strong>
+                <span class="badge-recommended">MAIOR DURABILIDADE</span>
+                <p>Proteção anticorrosiva pesada de zinco para atmosferas urbanas e industriais.</p>
+              </div>
+            </div>
+
+            <div class="select-card">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Revestida em PVC</strong>
+                <p>Camada extra de polímero com alta imunidade à névoa salina de regiões litorâneas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 05: LOCALIZAÇÃO E FRETE TÉCNICO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+          </div>
+
+          <div class="cep-group">
+            <input type="text" placeholder="18000-000" class="cep-input" />
+            <button class="btn-cep">CALCULAR POR CEP</button>
+          </div>
+
+          <div class="freight-options">
+            <label class="freight-card active">
+              <input type="radio" name="freight" checked />
+              <div>
+                <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
+                <small>Carga paletizada com desembarque seguro</small>
+              </div>
+            </label>
+
+            <label class="freight-card">
+              <input type="radio" name="freight" />
+              <div>
+                <strong>RETIRADA NA FÁBRICA</strong>
+                <small>Retire em nossa fábrica sem custo</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA DA DIREITA: CARD DE RESUMO DO ORÇAMENTO -->
+      <div class="config-summary-sidebar">
+        <div class="summary-card">
+          <div class="summary-card-header">
+            <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
+            <h3>RESUMO TÉCNICO DA CERCA</h3>
+            <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
+          </div>
+
+          <div class="summary-specs">
+            <span>Fio 12 (2,77mm)</span> • <span>Malha 3" (75mm)</span> • <span>120m x 2,00m</span>
+          </div>
+
+          <!-- ITENS DE PREÇO -->
+          <div class="price-breakdown">
+            <div class="price-row">
+              <span>Valor da Matéria-Prima e Tela:</span>
+              <strong>R$ 4.680,00</strong>
+            </div>
+
+            <div class="price-row">
+              <span>Acessórios de Fixação Homologados:</span>
+              <strong>R$ 340,00</strong>
+            </div>
+
+            <div class="price-row">
+              <span>Frete Técnico Especializado:</span>
+              <strong>R$ 180,00</strong>
+            </div>
+
+            <div class="price-row discount">
+              <span>Desconto Comercial A vista (5%):</span>
+              <strong>- R$ 234,00</strong>
+            </div>
+          </div>
+
+          <!-- TOTAL -->
+          <div class="total-box">
+            <small>INVESTIMENTO TOTAL</small>
+            <div class="total-value">R$ 4.966,00</div>
+            <span>Ou em 10x de R$ 520,00 no cartão</span>
+          </div>
+
+          <!-- AÇÕES -->
+          <div class="summary-actions">
+            <button class="btn-checkout">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+            <button class="btn-pdf">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
+          </div>
+
+          <div class="summary-footer-note">
+            🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
