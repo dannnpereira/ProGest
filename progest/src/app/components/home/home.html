@@ -13,7 +13,8 @@
 <header class="main-header">
   <div class="header-container">
     <div class="logo-area">
-      <div class="logo-box">AMARAL ALAMBRADOS</div>
+      <div class="logo-box">AMARAL</div>
+      <div class="logo-subtext">CERCAMENTOS<br>METÁLICOS</div>
     </div>
 
     <nav class="nav-menu">
@@ -62,7 +63,7 @@
 
       <!-- Botões de Ação -->
       <div class="hero-buttons">
-        <button class="btn-primary">
+        <button class="btn-primary" type="button">
           <span>INICIAR SIMULAÇÃO DE ORÇAMENTO</span>
         </button>
       </div>
@@ -92,11 +93,10 @@
 <section class="configurator-section">
   <div class="configurator-container">
     
-    <!-- TÍTULO E SUBTÍTULO DA SEÇÃO -->
     <div class="section-header">
       <span class="badge-sub">SIMULAÇÃO EM TEMPO REAL</span>
       <h2>CONFIGURADOR INTELIGENTE DE ALAMBRADO</h2>
-      <p>Personalize as especificações técnicas da sua cerca e receba a precificação em tempo real. Os cálculos consideram a resistência estrutural ideal, dimensionamento de acessórios e frete especializado para seu CEP.</p>
+      <p>Personalize as especificações técnicas da sua cerca e receba a precificação em tempo real.</p>
     </div>
 
     <!-- INDICADOR VISUAL DE PASSO A PASSO (STEPPER) -->
@@ -123,13 +123,13 @@
       </div>
     </div>
 
-    <!-- GRID PRINCIPAL (FORMULÁRIO NA ESQUERDA + RESUMO NA DIREITA) -->
+    <!-- GRID PRINCIPAL -->
     <div class="configurator-grid">
       
-      <!-- COLUNA DA ESQUERDA: CAMPOS DE SELEÇÃO -->
+      <!-- COLUNA DA ESQUERDA: OPÇÕES DE SELEÇÃO -->
       <div class="config-options">
         
-        <!-- OPÇÃO 01: BITOLA DO ARAME -->
+        <!-- 01: BITOLA DO ARAME -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>01</span> BITOLA DO ARAME (ESPESSURA)</h3>
@@ -138,15 +138,17 @@
           <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra impactos na sua cerca.</p>
           
           <div class="cards-select">
-            <!-- Card Fio 12 -->
-            <div class="select-card active">
+            <!-- Fio 12 -->
+            <div class="select-card" 
+                 [class.active]="bitolaSelecionada === 'fio12'" 
+                 (click)="bitolaSelecionada = 'fio12'">
               <div class="card-radio"></div>
               <div class="card-body">
                 <div class="card-title-row">
                   <strong>Fio 12 (2,77 mm)</strong>
                   <span class="badge-recommended">RECOMENDADO / MAIS VENDIDO</span>
                 </div>
-                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas, propriedades rurais e perímetros de alta segurança.</p>
+                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas e perímetros de alta segurança.</p>
                 <div class="card-footer-info">
                   <span class="tag-outline">Carga de Ruptura: ++</span>
                   <span class="tag-outline">Vida útil: Superior</span>
@@ -154,14 +156,16 @@
               </div>
             </div>
 
-            <!-- Card Fio 14 -->
-            <div class="select-card">
+            <!-- Fio 14 -->
+            <div class="select-card" 
+                 [class.active]="bitolaSelecionada === 'fio14'" 
+                 (click)="bitolaSelecionada = 'fio14'">
               <div class="card-radio"></div>
               <div class="card-body">
                 <div class="card-title-row">
                   <strong>Fio 14 (2,10 mm)</strong>
                 </div>
-                <p>Economia para fechamentos residenciais, áreas internas ou de menor impacto visual, mantendo a proteção galvanizada contra intempéries.</p>
+                <p>Economia para fechamentos residenciais, áreas internas ou de menor impacto visual.</p>
                 <div class="card-footer-info">
                   <span class="tag-outline">Carga de Ruptura: +</span>
                   <span class="tag-outline">Uso Residencial</span>
@@ -171,7 +175,7 @@
           </div>
         </div>
 
-        <!-- OPÇÃO 02: MALHA / ABERTURA DO LOSANGO -->
+        <!-- 02: MALHA -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>02</span> MALHA / ABERTURA DO LOSANGO</h3>
@@ -180,7 +184,9 @@
           <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de pequenos animais e objetos.</p>
 
           <div class="cards-grid-2">
-            <div class="select-card">
+            <div class="select-card" 
+                 [class.active]="malhaSelecionada === 'malha2'" 
+                 (click)="malhaSelecionada = 'malha2'">
               <div class="card-radio"></div>
               <div>
                 <strong>Malha 2" (50 mm)</strong>
@@ -188,18 +194,20 @@
               </div>
             </div>
 
-            <div class="select-card active">
+            <div class="select-card" 
+                 [class.active]="malhaSelecionada === 'malha3'" 
+                 (click)="malhaSelecionada = 'malha3'">
               <div class="card-radio"></div>
               <div>
                 <strong>Malha 3" (75 mm)</strong>
                 <span class="badge-recommended">PADRÃO INDUSTRIAL</span>
-                <p>Ideal para grandes perímetros, chácaras e cercamentos extensos com excelente custo-benefício.</p>
+                <p>Ideal para grandes perímetros, chácaras e cercamentos extensos.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- OPÇÃO 03: MEDIDAS DO PROJETO -->
+       <!-- 03: MEDIDAS DO PROJETO -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>03</span> MEDIDAS DO PROJETO</h3>
@@ -209,7 +217,7 @@
             <div class="input-group">
               <label>ALTURA DA TELA (METROS)</label>
               <div class="input-number">
-                <input type="number" value="2.00" step="0.1" />
+                <input type="number" [value]="alturaMetros" (input)="atualizarAltura($event)" step="0.5" min="1" max="6" />
                 <span class="unit">METROS</span>
               </div>
             </div>
@@ -217,35 +225,36 @@
             <div class="input-group">
               <label>METRAGEM LINEAR (COMPRIMENTO)</label>
               <div class="input-counter">
-                <button>-</button>
-                <input type="number" value="120" />
+                <button type="button" (click)="alterarComprimento(-10)">-</button>
+                <input type="number" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)" step="5" min="10" />
                 <span class="unit">M.L.</span>
-                <button>+</button>
+                <button type="button" (click)="alterarComprimento(10)">+</button>
               </div>
             </div>
           </div>
 
-          <!-- RESUMO RÁPIDO DAS MEDIDAS -->
           <div class="measures-summary">
             <div class="summary-box">
               <small>ÁREA TOTAL DE TELA</small>
-              <strong>240 m² de tela</strong>
+              <strong>{{ areaTotal | number:'1.0-2' }} m² de tela</strong>
             </div>
             <div class="summary-box">
               <small>ESTIMATIVA DE EMBALAGEM</small>
-              <strong>8 rolos de 15 metros</strong>
+              <strong>{{ totalRolos }} rolos de 15 metros</strong>
             </div>
           </div>
         </div>
 
-        <!-- OPÇÃO 04: TRATAMENTO ANTICORROSIVO -->
+        <!-- 04: TRATAMENTO ANTICORROSIVO -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>04</span> TRATAMENTO ANTICORROSIVO</h3>
           </div>
 
           <div class="cards-grid-2">
-            <div class="select-card active">
+            <div class="select-card" 
+                 [class.active]="tratamentoSelecionado === 'galvanizado'" 
+                 (click)="tratamentoSelecionado = 'galvanizado'">
               <div class="card-radio"></div>
               <div>
                 <strong>Galvanizada a Fogo</strong>
@@ -254,38 +263,44 @@
               </div>
             </div>
 
-            <div class="select-card">
+            <div class="select-card" 
+                 [class.active]="tratamentoSelecionado === 'pvc'" 
+                 (click)="tratamentoSelecionado = 'pvc'">
               <div class="card-radio"></div>
               <div>
                 <strong>Revestida em PVC</strong>
-                <p>Camada extra de polímero com alta imunidade à névoa salina de regiões litorâneas.</p>
+                <p>Camada extra de polímero com alta imunidade à névoa salina.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- OPÇÃO 05: LOCALIZAÇÃO E FRETE TÉCNICO -->
+        <!-- 05: LOCALIZAÇÃO E FRETE -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
           </div>
 
           <div class="cep-group">
-            <input type="text" placeholder="18000-000" class="cep-input" />
-            <button class="btn-cep">CALCULAR POR CEP</button>
+            <input type="text" placeholder="18000-000" class="cep-input" [value]="cep" (input)="atualizarCep($event)" />
+            <button class="btn-cep" type="button">CALCULAR POR CEP</button>
           </div>
 
           <div class="freight-options">
-            <label class="freight-card active">
-              <input type="radio" name="freight" checked />
+            <label class="freight-card" 
+                   [class.active]="tipoFrete === 'entrega'" 
+                   (click)="tipoFrete = 'entrega'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
               <div>
                 <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
                 <small>Carga paletizada com desembarque seguro</small>
               </div>
             </label>
 
-            <label class="freight-card">
-              <input type="radio" name="freight" />
+            <label class="freight-card" 
+                   [class.active]="tipoFrete === 'retirada'" 
+                   (click)="tipoFrete = 'retirada'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
               <div>
                 <strong>RETIRADA NA FÁBRICA</strong>
                 <small>Retire em nossa fábrica sem custo</small>
@@ -294,9 +309,9 @@
           </div>
         </div>
 
-      </div>
+      </div> <!-- /config-options -->
 
-      <!-- COLUNA DA DIREITA: CARD DE RESUMO DO ORÇAMENTO -->
+      <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA -->
       <div class="config-summary-sidebar">
         <div class="summary-card">
           <div class="summary-card-header">
@@ -306,52 +321,51 @@
           </div>
 
           <div class="summary-specs">
-            <span>Fio 12 (2,77mm)</span> • <span>Malha 3" (75mm)</span> • <span>120m x 2,00m</span>
+            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
+            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
+            <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
           </div>
 
-          <!-- ITENS DE PREÇO -->
           <div class="price-breakdown">
             <div class="price-row">
-              <span>Valor da Matéria-Prima e Tela:</span>
-              <strong>R$ 4.680,00</strong>
+              <span>Valor da Matéria-Prima:</span>
+              <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
 
             <div class="price-row">
-              <span>Acessórios de Fixação Homologados:</span>
-              <strong>R$ 340,00</strong>
+              <span>Acessórios Homologados:</span>
+              <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
 
             <div class="price-row">
-              <span>Frete Técnico Especializado:</span>
-              <strong>R$ 180,00</strong>
+              <span>Frete Técnico:</span>
+              <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
 
             <div class="price-row discount">
-              <span>Desconto Comercial A vista (5%):</span>
-              <strong>- R$ 234,00</strong>
+              <span>Desconto Comercial À Vista (5%):</span>
+              <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
           </div>
 
-          <!-- TOTAL -->
           <div class="total-box">
             <small>INVESTIMENTO TOTAL</small>
-            <div class="total-value">R$ 4.966,00</div>
-            <span>Ou em 10x de R$ 520,00 no cartão</span>
+            <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
+            <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
           </div>
 
-          <!-- AÇÕES -->
           <div class="summary-actions">
-            <button class="btn-checkout">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
-            <button class="btn-pdf">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
+            <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+            <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
           </div>
 
           <div class="summary-footer-note">
             🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
           </div>
         </div>
-      </div>
+      </div> <!-- /config-summary-sidebar -->
 
-    </div>
+    </div> <!-- /configurator-grid -->
 
-  </div>
-</section>
+  </div> <!-- /configurator-container -->
+</section> 
