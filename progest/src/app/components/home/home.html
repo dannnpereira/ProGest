@@ -14,7 +14,6 @@
   <div class="header-container">
     <div class="logo-area">
       <div class="logo-box">AMARAL ALAMBRADOS</div>
-      <div class="logo-subtext">CERCAMENTOS<br>METÁLICOS</div>
     </div>
 
     <nav class="nav-menu">
@@ -309,6 +308,28 @@
           </div>
         </div>
 
+        <!-- Seção de Localização e Frete Dinâmico -->
+        <div class="option-block">
+          <h2>CÁLCULO DE DISTÂNCIA E COMBUSTÍVEL</h2>
+          <div class="form-grupo">
+            <label for="distancia">Distância da Fábrica até a Obra (Km):</label>
+            <input 
+              type="number" 
+              id="distancia" 
+              [(ngModel)]="distanciaInput" 
+              (input)="atualizarCalculoFrete()" 
+              class="input-distancia"
+              min="1"
+            >
+          </div>
+          
+          <div *ngIf="resultadoFrete" class="detalhes-frete">
+            <p>⛽ Combustível estimado: <strong>R$ {{ resultadoFrete.custoCombustivel }}</strong></p>
+            <p>🛣️ Pedágios proporcionais: <strong>R$ {{ resultadoFrete.pedagios }}</strong></p>
+            <p class="frete-destaque">🚚 Frete Técnico Calculado: <strong>R$ {{ resultadoFrete.custoTotal }}</strong></p>
+          </div>
+        </div>
+
       </div> <!-- /config-options -->
 
       <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA -->
@@ -368,4 +389,4 @@
     </div> <!-- /configurator-grid -->
 
   </div> <!-- /configurator-container -->
-</section> 
+</section>

@@ -844,3 +844,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+.form-grupo {
+  margin-bottom: 15px;
+}
+
+.form-grupo label {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.input-distancia {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.detalhes-frete {
+  background: #f1f3f5;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+}
+
+.detalhes-frete p {
+  margin: 5px 0;
+}
+
+.frete-destaque {
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+  padding-top: 8px;
+  font-size: 13px;
+  color: #000;
+}
