@@ -281,8 +281,8 @@
           </div>
 
           <div class="cep-group">
-            <input type="text" placeholder="18000-000" class="cep-input" [value]="cep" (input)="atualizarCep($event)" />
-            <button class="btn-cep" type="button">CALCULAR POR CEP</button>
+            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
+            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
           </div>
 
           <div class="freight-options">

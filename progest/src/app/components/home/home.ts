@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FreteService } from '../../services/frete.service';
+import { CepService } from '../../services/cep'; // <-- Ajustado para './cep'
 
 @Component({
   selector: 'app-home',
@@ -26,7 +27,10 @@ export class HomeComponent {
   distanciaInput: number = 45;
   resultadoFrete: any;
 
-  constructor(private freteService: FreteService) {
+  constructor(
+    private freteService: FreteService,
+    private cepService: CepService
+  ) {
     this.atualizarCalculoFrete();
   }
 
@@ -48,7 +52,35 @@ export class HomeComponent {
   }
 
   atualizarCalculoFrete() {
-    this.resultadoFrete = this.freteService.calcularFrete(this.distanciaInput);
+    this.resultadoFrete = this.freteService.calcularFreteComDistancia(this.distanciaInput);
+  }
+
+  // Método para consultar o CEP e atualizar a distância automaticamente
+buscarEnderecoPorCep() {
+    if (!this.cep || this.cep.length < 8) {
+      alert('Por favor, digite um CEP válido.');
+      return;
+    }
+
+    this.cepService.consultarCep(this.cep).subscribe({
+      next: (dados: any) => { // <-- Adicionado o tipo ': any'
+        if (dados && !dados.erro) {
+          if (dados.localidade && dados.localidade.toLowerCase() === 'sorocaba') {
+            this.distanciaInput = 15;
+          } else {
+            this.distanciaInput = 120;
+          }
+          this.atualizarCalculoFrete();
+          alert(`Endereço: ${dados.logradouro || ''}, ${dados.bairro || ''} - ${dados.localidade}/${dados.uf}\nDistância estimada calculada automaticamente!`);
+        } else {
+          alert('CEP não encontrado.');
+        }
+      },
+      error: (err: any) => {
+        console.log('Erro ao buscar CEP', err);
+        alert('Erro ao consultar o CEP.');
+      }
+    });
   }
 
   // Getters para cálculos reativos do orçamento

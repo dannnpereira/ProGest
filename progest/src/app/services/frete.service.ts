@@ -4,39 +4,36 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class FreteService {
-
-  // Dados base para o cálculo (você pode ajustar conforme os valores reais)
-  private readonly precoLitroGasolina = 5.80; // R$ por litro
-  private readonly consumoKmPorLitro = 8;     // Caminhão/Veículo faz 8 km/L
-  private readonly custoPedagioPor100Km = 45.00; // Média de pedágios
+  private readonly precoLitroGasolina = 5.80; 
+  private readonly consumoKmPorLitro = 8;     
+  private readonly pedagioPor100Km = 45.00; 
 
   constructor() { }
 
   /**
-   * Calcula o custo de frete com base na distância em quilômetros
-   * @param distanciaKm Distância de ida e volta ou apenas ida
+   * Calcula o frete com base na distância real em quilômetros obtida do Google Maps
    */
-  calcularFrete(distanciaKm: number) {
+  calcularFreteComDistancia(distanciaKm: number) {
     if (!distanciaKm || distanciaKm <= 0) {
-      return { custoTotal: 0, litrosConsumidos: 0, custoCombustivel: 0, pedagios: 0 };
+      return { custoTotal: 0, litrosConsumidos: 0, custoCombustivel: 0, pedagios: 0, distanciaKm: 0 };
     }
 
-    // Litros gastos na viagem (considerando ida e volta)
+    // Considera ida e volta para a entrega técnica da fábrica
     const distanciaTotal = distanciaKm * 2;
     const litrosConsumidos = distanciaTotal / this.consumoKmPorLitro;
     const custoCombustivel = litrosConsumidos * this.precoLitroGasolina;
-
-    // Estimativa de pedágios proporcional à distância
-    const pedagios = (distanciaTotal / 100) * this.custoPedagioPor100Km;
-
-    // Custo total do frete técnico
+    const pedagios = (distanciaTotal / 100) * this.pedagioPor100Km;
     const custoTotal = custoCombustivel + pedagios;
 
     return {
       custoTotal: Number(custoTotal.toFixed(2)),
       litrosConsumidos: Number(litrosConsumidos.toFixed(2)),
       custoCombustivel: Number(custoCombustivel.toFixed(2)),
-      pedagios: Number(pedagios.toFixed(2))
+      pedagios: Number(pedagios.toFixed(2)),
+      distanciaKm: Number(distanciaKm.toFixed(1))
     };
+  
   }
+
 }
+
