@@ -275,118 +275,106 @@
         </div>
 
         <!-- 05: LOCALIZAÇÃO E FRETE -->
-        <div class="option-block">
-          <div class="option-header">
-            <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+      <div class="option-block">
+        <div class="option-header">
+          <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+        </div>
+
+        <div class="cep-group">
+          <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
+          <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
+        </div>
+
+        <div class="freight-options">
+          <label class="freight-card" 
+                 [class.active]="tipoFrete === 'entrega'" 
+                 (click)="tipoFrete = 'entrega'">
+            <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
+            <div>
+              <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
+              <small>Carga paletizada com desembarque seguro</small>
+            </div>
+          </label>
+
+          <label class="freight-card" 
+                 [class.active]="tipoFrete === 'retirada'" 
+                 (click)="tipoFrete = 'retirada'">
+            <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
+            <div>
+              <strong>RETIRADA NA FÁBRICA</strong>
+              <small>Retire em nossa fábrica sem custo</small>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- CÁLCULO DE DISTÂNCIA E FRETE TÉCNICO AUTOMÁTICO -->
+      <div class="option-block" *ngIf="resultadoFrete">
+        <h2>CÁLCULO DE DISTÂNCIA E COMBUSTÍVEL</h2>
+        <div class="detalhes-frete">
+          <p>📍 Origem (Fábrica Sorocaba): <strong>18090390</strong></p>
+          <p>⛽ Combustível estimado: <strong>R$ {{ resultadoFrete.custoCombustivel }}</strong></p>
+          <p>🛣️ Pedágios proporcionais: <strong>R$ {{ resultadoFrete.pedagios }}</strong></p>
+          <p class="frete-destaque">🚚 Frete Técnico Calculado: <strong>R$ {{ resultadoFrete.custoTotal }}</strong></p>
+        </div>
+      </div>
+
+    </div> <!-- /config-options (Fecha a coluna da esquerda) -->
+
+    <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA (O CARD LATERAL) -->
+    <div class="config-summary-sidebar">
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
+          <h3>RESUMO TÉCNICO DA CERCA</h3>
+          <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
+        </div>
+
+        <div class="summary-specs">
+          <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
+          <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
+          <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
+        </div>
+
+        <div class="price-breakdown">
+          <div class="price-row">
+            <span>Valor da Matéria-Prima:</span>
+            <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
           </div>
 
-          <div class="cep-group">
-            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
-            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
+          <div class="price-row">
+            <span>Acessórios Homologados:</span>
+            <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
           </div>
 
-          <div class="freight-options">
-            <label class="freight-card" 
-                   [class.active]="tipoFrete === 'entrega'" 
-                   (click)="tipoFrete = 'entrega'">
-              <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
-              <div>
-                <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
-                <small>Carga paletizada com desembarque seguro</small>
-              </div>
-            </label>
+          <div class="price-row">
+            <span>Frete Técnico:</span>
+            <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          </div>
 
-            <label class="freight-card" 
-                   [class.active]="tipoFrete === 'retirada'" 
-                   (click)="tipoFrete = 'retirada'">
-              <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
-              <div>
-                <strong>RETIRADA NA FÁBRICA</strong>
-                <small>Retire em nossa fábrica sem custo</small>
-              </div>
-            </label>
+          <div class="price-row discount">
+            <span>Desconto Comercial À Vista (5%):</span>
+            <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
           </div>
         </div>
 
-        <!-- Seção de Localização e Frete Dinâmico -->
-        <div class="option-block">
-          <h2>CÁLCULO DE DISTÂNCIA E COMBUSTÍVEL</h2>
-          <div class="form-grupo">
-            <label for="distancia">Distância da Fábrica até a Obra (Km):</label>
-            <input 
-              type="number" 
-              id="distancia" 
-              [(ngModel)]="distanciaInput" 
-              (input)="atualizarCalculoFrete()" 
-              class="input-distancia"
-              min="1"
-            >
-          </div>
-          
-          <div *ngIf="resultadoFrete" class="detalhes-frete">
-            <p>⛽ Combustível estimado: <strong>R$ {{ resultadoFrete.custoCombustivel }}</strong></p>
-            <p>🛣️ Pedágios proporcionais: <strong>R$ {{ resultadoFrete.pedagios }}</strong></p>
-            <p class="frete-destaque">🚚 Frete Técnico Calculado: <strong>R$ {{ resultadoFrete.custoTotal }}</strong></p>
-          </div>
+        <div class="total-box">
+          <small>INVESTIMENTO TOTAL</small>
+          <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
+          <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
         </div>
 
-      </div> <!-- /config-options -->
-
-      <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA -->
-      <div class="config-summary-sidebar">
-        <div class="summary-card">
-          <div class="summary-card-header">
-            <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
-            <h3>RESUMO TÉCNICO DA CERCA</h3>
-            <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
-          </div>
-
-          <div class="summary-specs">
-            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
-            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
-            <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
-          </div>
-
-          <div class="price-breakdown">
-            <div class="price-row">
-              <span>Valor da Matéria-Prima:</span>
-              <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
-            </div>
-
-            <div class="price-row">
-              <span>Acessórios Homologados:</span>
-              <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
-            </div>
-
-            <div class="price-row">
-              <span>Frete Técnico:</span>
-              <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
-            </div>
-
-            <div class="price-row discount">
-              <span>Desconto Comercial À Vista (5%):</span>
-              <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
-            </div>
-          </div>
-
-          <div class="total-box">
-            <small>INVESTIMENTO TOTAL</small>
-            <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
-            <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
-          </div>
-
-          <div class="summary-actions">
-            <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
-            <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
-          </div>
-
-          <div class="summary-footer-note">
-            🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
-          </div>
+        <div class="summary-actions">
+          <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+          <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
         </div>
-      </div> <!-- /config-summary-sidebar -->
 
-    </div> <!-- /configurator-grid -->
+        <div class="summary-footer-note">
+          🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
+        </div>
+      </div>
+    </div> <!-- /config-summary-sidebar -->
 
-  </div> <!-- /configurator-container -->
-</section>
+  </div> <!-- /configurator-grid (Fecha a grelha que une as duas colunas) -->
+
+</div> <!-- /configurator-container -->

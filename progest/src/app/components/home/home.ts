@@ -5,12 +5,13 @@ import { FreteService } from '../../services/frete.service';
 import { CepService } from '../../services/cep'; // <-- Ajustado para './cep'
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-root',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
+
 export class HomeComponent {
   // Variáveis de Seleção do Configurador
   bitolaSelecionada: string = 'fio12';
@@ -56,22 +57,32 @@ export class HomeComponent {
   }
 
   // Método para consultar o CEP e atualizar a distância automaticamente
-buscarEnderecoPorCep() {
+  buscarEnderecoPorCep() {
     if (!this.cep || this.cep.length < 8) {
       alert('Por favor, digite um CEP válido.');
       return;
     }
 
+    // 1. Consulta o ViaCEP para obter o endereço detalhado
     this.cepService.consultarCep(this.cep).subscribe({
-      next: (dados: any) => { // <-- Adicionado o tipo ': any'
+      next: (dados: any) => {
         if (dados && !dados.erro) {
-          if (dados.localidade && dados.localidade.toLowerCase() === 'sorocaba') {
-            this.distanciaInput = 15;
-          } else {
-            this.distanciaInput = 120;
-          }
-          this.atualizarCalculoFrete();
-          alert(`Endereço: ${dados.logradouro || ''}, ${dados.bairro || ''} - ${dados.localidade}/${dados.uf}\nDistância estimada calculada automaticamente!`);
+          const enderecoCompleto = `${dados.logradouro || ''}, ${dados.bairro || ''}, ${dados.localidade} - ${dados.uf}`;
+          
+          // 2. Aciona o Google Maps Distance Matrix através do serviço de frete
+          this.freteService.calcularDistanciaGoogleMaps(enderecoCompleto).subscribe({
+            next: (distanciaKmReal) => {
+              this.distanciaInput = distanciaKmReal;
+              this.atualizarCalculoFrete();
+              
+              alert(`Endereço: ${enderecoCompleto}\nDistância calculada: ${distanciaKmReal} Km\nFrete técnico atualizado com sucesso!`);
+            },
+            error: (err) => {
+              console.error('Erro na integração com Google Maps:', err);
+              this.atualizarCalculoFrete();
+            }
+          });
+
         } else {
           alert('CEP não encontrado.');
         }
