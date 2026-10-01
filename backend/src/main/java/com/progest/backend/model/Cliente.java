@@ -7,26 +7,27 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Cliente {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
+
     private String nome;
 
-    public Cliente(int id, String nome) {
-        this.id = id;
+    public Cliente() {
+    }
+
+    public Cliente(String nome) {
         this.nome = nome;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
     public String getNome() {
         return nome;
     }
-     public void setId(int id) {
-        this.id = id;
-}
 
     public void setNome(String nome) {
         this.nome = nome;
