@@ -1,13 +1,13 @@
-package com.progest.backend;
+package com.progest.Backend_api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BackendApplication {
+public class BackendApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BackendApplication.class, args);
+		SpringApplication.run(BackendApiApplication.class, args);
 	}
 
 }
