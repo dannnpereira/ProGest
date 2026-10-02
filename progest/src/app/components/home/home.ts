@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FreteService } from '../../services/frete.service';
-import { CepService } from '../../services/cep'; // <-- Ajustado para './cep'
+import { CepService } from '../../services/cep';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +11,6 @@ import { CepService } from '../../services/cep'; // <-- Ajustado para './cep'
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
-
 export class HomeComponent {
   // Variáveis de Seleção do Configurador
   bitolaSelecionada: string = 'fio12';
@@ -25,15 +24,13 @@ export class HomeComponent {
 
   // Localização e Frete Dinâmico
   cep: string = '';
-  distanciaInput: number = 45;
-  resultadoFrete: any;
+  resultadoFrete: any = null;
+  enderecoCliente: any = null;
 
   constructor(
     private freteService: FreteService,
     private cepService: CepService
-  ) {
-    this.atualizarCalculoFrete();
-  }
+  ) {}
 
   // Métodos de manipulação de medidas
   atualizarAltura(event: any) {
@@ -52,43 +49,32 @@ export class HomeComponent {
     this.cep = event.target.value;
   }
 
-  atualizarCalculoFrete() {
-    this.resultadoFrete = this.freteService.calcularFreteComDistancia(this.distanciaInput);
-  }
-
-  // Método para consultar o CEP e atualizar a distância automaticamente
+  // Método para consultar o CEP e calcular o frete automaticamente
   buscarEnderecoPorCep() {
     if (!this.cep || this.cep.length < 8) {
       alert('Por favor, digite um CEP válido.');
       return;
     }
 
+    this.enderecoCliente = null;
+    this.resultadoFrete = null;
+
     // 1. Consulta o ViaCEP para obter o endereço detalhado
     this.cepService.consultarCep(this.cep).subscribe({
       next: (dados: any) => {
         if (dados && !dados.erro) {
-          const enderecoCompleto = `${dados.logradouro || ''}, ${dados.bairro || ''}, ${dados.localidade} - ${dados.uf}`;
+          this.enderecoCliente = dados;
           
-          // 2. Aciona o Google Maps Distance Matrix através do serviço de frete
-          this.freteService.calcularDistanciaGoogleMaps(enderecoCompleto).subscribe({
-            next: (distanciaKmReal) => {
-              this.distanciaInput = distanciaKmReal;
-              this.atualizarCalculoFrete();
-              
-              alert(`Endereço: ${enderecoCompleto}\nDistância calculada: ${distanciaKmReal} Km\nFrete técnico atualizado com sucesso!`);
-            },
-            error: (err) => {
-              console.error('Erro na integração com Google Maps:', err);
-              this.atualizarCalculoFrete();
-            }
+          // 2. Calcula o frete com o Observable retornado pelo FreteService
+          this.freteService.calcularFretePorCep(this.cep).subscribe(resultado => {
+            this.resultadoFrete = resultado;
           });
-
         } else {
           alert('CEP não encontrado.');
         }
       },
       error: (err: any) => {
-        console.log('Erro ao buscar CEP', err);
+        console.error('Erro ao consultar CEP', err);
         alert('Erro ao consultar o CEP.');
       }
     });
@@ -114,7 +100,7 @@ export class HomeComponent {
   }
 
   get valorFrete(): number {
-    return this.resultadoFrete ? this.resultadoFrete.custoTotal : 180.00;
+    return this.resultadoFrete ? this.resultadoFrete.custoTotal : 0.00;
   }
 
   get valorDesconto(): number {

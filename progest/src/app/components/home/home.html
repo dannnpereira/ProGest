@@ -34,7 +34,7 @@
 <!-- HERO SECTION -->
 <section class="hero-section">
   <div class="hero-container">
-    
+
     <!-- Coluna Esquerda: Textos e Informações -->
     <div class="hero-content">
 
@@ -43,7 +43,8 @@
       </h1>
 
       <p class="hero-description">
-        Fabricação sob medida com arames galvanizados ou revestidos. Engenharia de ponta que alia durabilidade extrema, conformidade técnico-operacional e integração logística para todo o país.
+        Fabricação sob medida com arames galvanizados ou revestidos. Engenharia de ponta que alia durabilidade extrema,
+        conformidade técnico-operacional e integração logística para todo o país.
       </p>
 
       <!-- Cards Destaques Técnicos -->
@@ -72,7 +73,8 @@
     <!-- Coluna Direita: Imagem do Produto -->
     <div class="hero-media">
       <div class="media-card">
-        <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80" alt="Produção de Tela Metalica">
+        <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80"
+          alt="Produção de Tela Metalica">
         <div class="media-overlay">
           <div>
             <span class="product-tag">PRODUTO MAIS CONFIGURADO</span>
@@ -91,7 +93,7 @@
 <!-- SEÇÃO DO CONFIGURADOR INTELIGENTE -->
 <section class="configurator-section">
   <div class="configurator-container">
-    
+
     <div class="section-header">
       <span class="badge-sub">SIMULAÇÃO EM TEMPO REAL</span>
       <h2>CONFIGURADOR INTELIGENTE DE ALAMBRADO</h2>
@@ -124,30 +126,31 @@
 
     <!-- GRID PRINCIPAL -->
     <div class="configurator-grid">
-      
+
       <!-- COLUNA DA ESQUERDA: OPÇÕES DE SELEÇÃO -->
       <div class="config-options">
-        
+
         <!-- 01: BITOLA DO ARAME -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>01</span> BITOLA DO ARAME (ESPESSURA)</h3>
             <span class="info-link">🛈 Tabela de fios</span>
           </div>
-          <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra impactos na sua cerca.</p>
-          
+          <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra
+            impactos na sua cerca.</p>
+
           <div class="cards-select">
             <!-- Fio 12 -->
-            <div class="select-card" 
-                 [class.active]="bitolaSelecionada === 'fio12'" 
-                 (click)="bitolaSelecionada = 'fio12'">
+            <div class="select-card" [class.active]="bitolaSelecionada === 'fio12'"
+              (click)="bitolaSelecionada = 'fio12'">
               <div class="card-radio"></div>
               <div class="card-body">
                 <div class="card-title-row">
                   <strong>Fio 12 (2,77 mm)</strong>
                   <span class="badge-recommended">RECOMENDADO / MAIS VENDIDO</span>
                 </div>
-                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas e perímetros de alta segurança.</p>
+                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas e
+                  perímetros de alta segurança.</p>
                 <div class="card-footer-info">
                   <span class="tag-outline">Carga de Ruptura: ++</span>
                   <span class="tag-outline">Vida útil: Superior</span>
@@ -156,9 +159,8 @@
             </div>
 
             <!-- Fio 14 -->
-            <div class="select-card" 
-                 [class.active]="bitolaSelecionada === 'fio14'" 
-                 (click)="bitolaSelecionada = 'fio14'">
+            <div class="select-card" [class.active]="bitolaSelecionada === 'fio14'"
+              (click)="bitolaSelecionada = 'fio14'">
               <div class="card-radio"></div>
               <div class="card-body">
                 <div class="card-title-row">
@@ -180,12 +182,12 @@
             <h3><span>02</span> MALHA / ABERTURA DO LOSANGO</h3>
             <span class="info-link">🛈 Entenda a malha</span>
           </div>
-          <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de pequenos animais e objetos.</p>
+          <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de
+            pequenos animais e objetos.</p>
 
           <div class="cards-grid-2">
-            <div class="select-card" 
-                 [class.active]="malhaSelecionada === 'malha2'" 
-                 (click)="malhaSelecionada = 'malha2'">
+            <div class="select-card" [class.active]="malhaSelecionada === 'malha2'"
+              (click)="malhaSelecionada = 'malha2'">
               <div class="card-radio"></div>
               <div>
                 <strong>Malha 2" (50 mm)</strong>
@@ -193,9 +195,8 @@
               </div>
             </div>
 
-            <div class="select-card" 
-                 [class.active]="malhaSelecionada === 'malha3'" 
-                 (click)="malhaSelecionada = 'malha3'">
+            <div class="select-card" [class.active]="malhaSelecionada === 'malha3'"
+              (click)="malhaSelecionada = 'malha3'">
               <div class="card-radio"></div>
               <div>
                 <strong>Malha 3" (75 mm)</strong>
@@ -206,7 +207,7 @@
           </div>
         </div>
 
-       <!-- 03: MEDIDAS DO PROJETO -->
+        <!-- 03: MEDIDAS DO PROJETO -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>03</span> MEDIDAS DO PROJETO</h3>
@@ -216,7 +217,8 @@
             <div class="input-group">
               <label>ALTURA DA TELA (METROS)</label>
               <div class="input-number">
-                <input type="number" [value]="alturaMetros" (input)="atualizarAltura($event)" step="0.5" min="1" max="6" />
+                <input type="number" [value]="alturaMetros" (input)="atualizarAltura($event)" step="0.5" min="1"
+                  max="6" />
                 <span class="unit">METROS</span>
               </div>
             </div>
@@ -225,7 +227,8 @@
               <label>METRAGEM LINEAR (COMPRIMENTO)</label>
               <div class="input-counter">
                 <button type="button" (click)="alterarComprimento(-10)">-</button>
-                <input type="number" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)" step="5" min="10" />
+                <input type="number" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)" step="5"
+                  min="10" />
                 <span class="unit">M.L.</span>
                 <button type="button" (click)="alterarComprimento(10)">+</button>
               </div>
@@ -251,9 +254,8 @@
           </div>
 
           <div class="cards-grid-2">
-            <div class="select-card" 
-                 [class.active]="tratamentoSelecionado === 'galvanizado'" 
-                 (click)="tratamentoSelecionado = 'galvanizado'">
+            <div class="select-card" [class.active]="tratamentoSelecionado === 'galvanizado'"
+              (click)="tratamentoSelecionado = 'galvanizado'">
               <div class="card-radio"></div>
               <div>
                 <strong>Galvanizada a Fogo</strong>
@@ -262,9 +264,8 @@
               </div>
             </div>
 
-            <div class="select-card" 
-                 [class.active]="tratamentoSelecionado === 'pvc'" 
-                 (click)="tratamentoSelecionado = 'pvc'">
+            <div class="select-card" [class.active]="tratamentoSelecionado === 'pvc'"
+              (click)="tratamentoSelecionado = 'pvc'">
               <div class="card-radio"></div>
               <div>
                 <strong>Revestida em PVC</strong>
@@ -274,107 +275,125 @@
           </div>
         </div>
 
-        <!-- 05: LOCALIZAÇÃO E FRETE -->
-      <div class="option-block">
-        <div class="option-header">
-          <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+      <!-- 05: LOCALIZAÇÃO E FRETE -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+          </div>
+
+          <div class="cep-group">
+            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
+            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
+          </div>
+
+          <div class="freight-options">
+            <!-- ENTREGA TÉCNICA PRÓPRIA -->
+            <label class="freight-card" 
+                   [class.active]="tipoFrete === 'entrega'" 
+                   (click)="tipoFrete = 'entrega'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
+              <div class="freight-card-content" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
+                  </div>
+                  <div *ngIf="resultadoFrete && tipoFrete === 'entrega'" style="font-weight: bold; color: #f59e0b; font-size: 1.1rem;">
+                    {{ resultadoFrete.custoTotal | currency:'BRL':'symbol':'1.2-2' }}
+                  </div>
+                </div>
+
+                <!-- Detalhes do local de entrega logo abaixo dentro do card -->
+                <div *ngIf="enderecoCliente && tipoFrete === 'entrega'" class="detalhes-frete-interno" style="margin-top: 10px; font-size: 0.9rem; border-top: 1px dashed #ddd; padding-top: 8px; color: #333;">
+                  <p style="margin: 4px 0;">
+                  <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} - {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
+                  </p>
+                  <p style="margin: 4px 0; color: #666; font-size: 0.85rem;">
+                    📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios | number:'1.2-2' }}
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            <!-- RETIRADA NA FÁBRICA -->
+            <label class="freight-card" 
+                   [class.active]="tipoFrete === 'retirada'" 
+                   (click)="tipoFrete = 'retirada'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                  <strong>RETIRADA NA FÁBRICA</strong>
+                  <small>Retire em nossa fábrica em Sorocaba sem custo</small>
+                </div>
+                <div style="font-weight: bold; color: #10b981; font-size: 1.1rem;">
+                  GRÁTIS
+                </div>
+              </div>
+            </label>
+          </div>
         </div>
 
-        <div class="cep-group">
-          <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
-          <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
-        </div>
+      </div> <!-- /config-options (Fecha a coluna da esquerda) -->
 
-        <div class="freight-options">
-          <label class="freight-card" 
-                 [class.active]="tipoFrete === 'entrega'" 
-                 (click)="tipoFrete = 'entrega'">
-            <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
-            <div>
-              <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
-              <small>Carga paletizada com desembarque seguro</small>
+      <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA (O CARD LATERAL AZUL/ESCURO) -->
+      <div class="config-summary-sidebar">
+        <div class="summary-card">
+          <div class="summary-card-header">
+            <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
+            <h3>RESUMO TÉCNICO DA CERCA</h3>
+            <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
+          </div>
+
+          <div class="summary-specs">
+            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
+            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
+            <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
+          </div>
+
+          <div class="price-breakdown">
+            <div class="price-row">
+              <span>Valor da Matéria-Prima:</span>
+              <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
-          </label>
 
-          <label class="freight-card" 
-                 [class.active]="tipoFrete === 'retirada'" 
-                 (click)="tipoFrete = 'retirada'">
-            <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
-            <div>
-              <strong>RETIRADA NA FÁBRICA</strong>
-              <small>Retire em nossa fábrica sem custo</small>
+            <div class="price-row">
+              <span>Acessórios Homologados:</span>
+              <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
             </div>
-          </label>
-        </div>
-      </div>
 
-      <!-- CÁLCULO DE DISTÂNCIA E FRETE TÉCNICO AUTOMÁTICO -->
-      <div class="option-block" *ngIf="resultadoFrete">
-        <h2>CÁLCULO DE DISTÂNCIA E COMBUSTÍVEL</h2>
-        <div class="detalhes-frete">
-          <p>📍 Origem (Fábrica Sorocaba): <strong>18090390</strong></p>
-          <p>⛽ Combustível estimado: <strong>R$ {{ resultadoFrete.custoCombustivel }}</strong></p>
-          <p>🛣️ Pedágios proporcionais: <strong>R$ {{ resultadoFrete.pedagios }}</strong></p>
-          <p class="frete-destaque">🚚 Frete Técnico Calculado: <strong>R$ {{ resultadoFrete.custoTotal }}</strong></p>
-        </div>
-      </div>
+            <div class="price-row" *ngIf="tipoFrete === 'entrega'">
+              <span>Frete Técnico:</span>
+              <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
 
-    </div> <!-- /config-options (Fecha a coluna da esquerda) -->
+            <div class="price-row" *ngIf="tipoFrete === 'retirada'">
+              <span>Retirada na Fábrica (Sorocaba):</span>
+              <strong>R$ 0,00</strong>
+            </div>
 
-    <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA (O CARD LATERAL) -->
-    <div class="config-summary-sidebar">
-      <div class="summary-card">
-        <div class="summary-card-header">
-          <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
-          <h3>RESUMO TÉCNICO DA CERCA</h3>
-          <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
-        </div>
-
-        <div class="summary-specs">
-          <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
-          <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
-          <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
-        </div>
-
-        <div class="price-breakdown">
-          <div class="price-row">
-            <span>Valor da Matéria-Prima:</span>
-            <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            <div class="price-row discount">
+              <span>Desconto Comercial À Vista (5%):</span>
+              <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
           </div>
 
-          <div class="price-row">
-            <span>Acessórios Homologados:</span>
-            <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <div class="total-box">
+            <small>INVESTIMENTO TOTAL</small>
+            <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
+            <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
           </div>
 
-          <div class="price-row">
-            <span>Frete Técnico:</span>
-            <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <div class="summary-actions">
+            <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+            <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
           </div>
 
-          <div class="price-row discount">
-            <span>Desconto Comercial À Vista (5%):</span>
-            <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <div class="summary-footer-note">
+            🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
           </div>
         </div>
+      </div> <!-- /config-summary-sidebar -->
 
-        <div class="total-box">
-          <small>INVESTIMENTO TOTAL</small>
-          <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
-          <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
-        </div>
+    </div> <!-- /configurator-grid -->
 
-        <div class="summary-actions">
-          <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
-          <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
-        </div>
-
-        <div class="summary-footer-note">
-          🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
-        </div>
-      </div>
-    </div> <!-- /config-summary-sidebar -->
-
-  </div> <!-- /configurator-grid (Fecha a grelha que une as duas colunas) -->
-
-</div> <!-- /configurator-container -->
+  </div> <!-- /configurator-container -->
+</section>

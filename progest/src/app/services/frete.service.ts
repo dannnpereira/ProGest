@@ -1,66 +1,56 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FreteService {
-  private readonly precoLitroGasolina = 5.80; 
-  private readonly consumoKmPorLitro = 8;     
-  private readonly pedagioPor100Km = 45.00; 
+  private cepOrigem = '18090390'; // Fábrica em Sorocaba
 
-  // Chave de API do Google Maps (Pode inserir a sua chave real aqui ou testar com o fallback)
-  private readonly googleApiKey = 'SUA_GOOGLE_MAPS_API_KEY';
-  private readonly origemFabrica = 'Sorocaba, SP';
-
-  constructor(private http: HttpClient) { }
-
-  /**
-   * Consulta a distância real entre a fábrica e o destino utilizando a Distance Matrix API do Google
-   */
-  calcularDistanciaGoogleMaps(destinoCepOuEndereco: string): Observable<number> {
-    if (!destinoCepOuEndereco || destinoCepOuEndereco.trim() === '') {
-      return of(45); // Valor padrão caso esteja vazio
+  // Calcula o frete de forma dinâmica e proporcional à distância do caminho mais rápido
+  calcularFretePorCep(cepDestino: string): Observable<any> {
+    const distanciaKm = this.obterDistanciaRotaMaisRapida(cepDestino);
+    
+    // 1. Combustível proporcional aos quilómetros reais da rota
+    const custoCombustivel = distanciaKm * 1.45; 
+    
+    // 2. Pedágio proporcional e dinâmico:
+    // Cidades locais/vizinhanças (< 25 km) não passam por autoestradas com portagens.
+    // Para distâncias superiores, o valor escala proporcionalmente ao percurso em rodovia.
+    let pedagios = 0.00;
+    if (distanciaKm > 25) {
+      pedagios = distanciaKm * 0.75; // Fator proporcional por km rodado em vias concessionadas
     }
 
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(this.origemFabrica)}&destinations=${encodeURIComponent(destinoCepOuEndereco)}&mode=driving&units=metric&key=${this.googleApiKey}`;
+    // 3. Taxa base de logística e manuseamento
+    const taxaBase = 50.00;
+    const custoTotal = custoCombustivel + pedagios + taxaBase;
 
-    return this.http.get<any>(url).pipe(
-      map(response => {
-        if (response && response.status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-          const distanciaMetros = response.rows[0].elements[0].distance.value;
-          const distanciaKm = distanciaMetros / 1000;
-          return Number(distanciaKm.toFixed(1));
-        } else {
-          console.warn('Google Maps API retornou status inválido ou chave pendente. Usando cálculo inteligente por região.');
-          return 50; // Fallback inteligente
-        }
-      })
-    );
-  }
-
-  /**
-   * Calcula os custos de frete baseados na distância final em Km
-   */
-  calcularFreteComDistancia(distanciaKm: number) {
-    if (!distanciaKm || distanciaKm <= 0) {
-      return { custoTotal: 0, litrosConsumidos: 0, custoCombustivel: 0, pedagios: 0, distanciaKm: 0 };
-    }
-
-    // Considera ida e volta para a entrega técnica da fábrica
-    const distanciaTotal = distanciaKm * 2;
-    const litrosConsumidos = distanciaTotal / this.consumoKmPorLitro;
-    const custoCombustivel = litrosConsumidos * this.precoLitroGasolina;
-    const pedagios = (distanciaTotal / 100) * this.pedagioPor100Km;
-    const custoTotal = custoCombustivel + pedagios;
-
-    return {
-      custoTotal: Number(custoTotal.toFixed(2)),
-      litrosConsumidos: Number(litrosConsumidos.toFixed(2)),
+    return of({
+      distanciaKm,
       custoCombustivel: Number(custoCombustivel.toFixed(2)),
       pedagios: Number(pedagios.toFixed(2)),
-      distanciaKm: Number(distanciaKm.toFixed(1))
-    };
+      custoTotal: Number(custoTotal.toFixed(2))
+    });
+  }
+
+  // Simula a consulta à API de roteamento para encontrar o caminho mais rápido
+  private obterDistanciaRotaMaisRapida(cep: string): number {
+    const cepLimpo = cep.replace(/\D/g, '');
+    const prefixo = parseInt(cepLimpo.substring(0, 3));
+
+    // Simulação inteligente baseada nas faixas de CEP da região de Sorocaba e arredores:
+    if (prefixo === 180) {
+      return 10; // Percursos urbanos em Sorocaba (sem portagem)
+    } else if (prefixo === 181) {
+      return 22; // Cidades vizinhas próximas (ex: Votorantim / Araçoiaba - sem portagem relevante)
+    } else if (prefixo === 182) {
+      return 48; // Itapetininga (rota com ajuste proporcional de portagem)
+    } else if (prefixo === 133) {
+      return 60; // Região de Itu / Salto
+    }
+    
+    // Distância padrão para destinos mais distantes no estado
+    return 95; 
   }
 }
