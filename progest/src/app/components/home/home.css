@@ -883,3 +883,187 @@
   font-size: 13px;
   color: #000;
 }
+
+/* ==========================================
+   RODAPÉ DA PÁGINA (FOOTER PRETO)
+========================================== */
+.main-footer {
+  background-color: #0b0d10;
+  color: #d1d5db;
+  border-top: 1px solid #1f2937;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 56px 24px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.1fr 1.1fr;
+  gap: 40px;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-col .logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.brand-col .logo-box {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 900;
+  font-size: 18px;
+  padding: 6px 10px;
+  letter-spacing: 1px;
+}
+
+.brand-col .logo-subtext {
+  font-size: 9px;
+  font-weight: 700;
+  color: #9ca3af;
+  line-height: 1.1;
+}
+
+.brand-desc {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tech-badge {
+  background: #1f2937;
+  color: #e5e7eb;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #374151;
+}
+
+.col-title {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links a {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+}
+
+.contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.quality-desc {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.warranty-card {
+  background: #111827;
+  border: 1px solid #374151;
+  padding: 14px;
+  border-radius: 6px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.warranty-card strong {
+  display: block;
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.warranty-card small {
+  color: #9ca3af;
+  font-size: 10px;
+  line-height: 1.3;
+  display: block;
+}
+
+.footer-bottom {
+  background: #050608;
+  border-top: 1px solid #1f2937;
+  padding: 20px 24px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.bottom-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legal-links {
+  display: flex;
+  gap: 20px;
+}
+
+.legal-links a {
+  color: #6b7280;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .bottom-container {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}

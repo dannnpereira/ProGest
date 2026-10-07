@@ -9,6 +9,7 @@
   </div>
 </div>
 
+
 <!-- HEADER / NAVEGAÇÃO PRINCIPAL -->
 <header class="main-header">
   <div class="header-container">
@@ -275,49 +276,51 @@
           </div>
         </div>
 
-      <!-- 05: LOCALIZAÇÃO E FRETE -->
+        <!-- 05: LOCALIZAÇÃO E FRETE -->
         <div class="option-block">
           <div class="option-header">
             <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
           </div>
 
           <div class="cep-group">
-            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep" (input)="atualizarCep($event)" maxlength="9" />
+            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep"
+              (input)="atualizarCep($event)" maxlength="9" />
             <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
           </div>
 
           <div class="freight-options">
             <!-- ENTREGA TÉCNICA PRÓPRIA -->
-            <label class="freight-card" 
-                   [class.active]="tipoFrete === 'entrega'" 
-                   (click)="tipoFrete = 'entrega'">
+            <label class="freight-card" [class.active]="tipoFrete === 'entrega'" (click)="tipoFrete = 'entrega'">
               <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
               <div class="freight-card-content" style="width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div>
                     <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
                   </div>
-                  <div *ngIf="resultadoFrete && tipoFrete === 'entrega'" style="font-weight: bold; color: #f59e0b; font-size: 1.1rem;">
+                  <div *ngIf="resultadoFrete && tipoFrete === 'entrega'"
+                    style="font-weight: bold; color: #f59e0b; font-size: 1.1rem;">
                     {{ resultadoFrete.custoTotal | currency:'BRL':'symbol':'1.2-2' }}
                   </div>
                 </div>
 
                 <!-- Detalhes do local de entrega logo abaixo dentro do card -->
-                <div *ngIf="enderecoCliente && tipoFrete === 'entrega'" class="detalhes-frete-interno" style="margin-top: 10px; font-size: 0.9rem; border-top: 1px dashed #ddd; padding-top: 8px; color: #333;">
+                <div *ngIf="enderecoCliente && tipoFrete === 'entrega'" class="detalhes-frete-interno"
+                  style="margin-top: 10px; font-size: 0.9rem; border-top: 1px dashed #ddd; padding-top: 8px; color: #333;">
                   <p style="margin: 4px 0;">
-                  <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} - {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
+                    <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} -
+                    {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
                   </p>
-                  <p style="margin: 4px 0; color: #666; font-size: 0.85rem;">
-                    📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios | number:'1.2-2' }}
+                  <p style="margin: 4px 0; color: 
+                  #666; font-size: 0.85rem;">
+                    📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios |
+                    number:'1.2-2' }}
                   </p>
                 </div>
               </div>
             </label>
 
             <!-- RETIRADA NA FÁBRICA -->
-            <label class="freight-card" 
-                   [class.active]="tipoFrete === 'retirada'" 
-                   (click)="tipoFrete = 'retirada'">
+            <label class="freight-card" [class.active]="tipoFrete === 'retirada'" (click)="tipoFrete = 'retirada'">
               <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
               <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
@@ -344,8 +347,8 @@
           </div>
 
           <div class="summary-specs">
-            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> • 
-            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> • 
+            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> •
+            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> •
             <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
           </div>
 
@@ -384,7 +387,8 @@
 
           <div class="summary-actions">
             <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
-            <button class="btn-pdf" type="button">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM PDF</button>
+            <button class="btn-pdf" type="button" (click)="baixarPdfOrcamento()">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM
+              PDF</button>
           </div>
 
           <div class="summary-footer-note">
@@ -397,3 +401,55 @@
 
   </div> <!-- /configurator-container -->
 </section>
+
+<!-- RODAPÉ DA PÁGINA (FOOTER) -->
+<footer class="main-footer">
+  <div class="footer-container">
+    
+    <!-- Coluna 1: Sobre & Institucional -->
+    <div class="footer-col brand-col">
+      <div class="logo-area">
+        <div class="logo-box">AMARAL ALAMBRADOS</div>
+      </div>
+      <p class="brand-desc">
+        Engenharia em cercamentos de alta resistência, telas de alambrado galvanizadas e telas onduladas para segurança patrimonial e industrial.
+      </p>
+    </div>
+
+    <!-- Coluna 3: Central de Atendimento -->
+    <div class="footer-col">
+      <h4 class="col-title">ATENDIMENTO</h4>
+      <ul class="contact-list">
+        <li>
+          <span class="icon">📍</span>
+          <span>Rua Vasco da Gama, 109 - Vila Progresso - Sorocaba, SP - CEP 18090-390</span>
+        </li>
+        <li>
+          <span class="icon">📞</span>
+          <span>(15) 3231-4537</span>
+        </li>
+        <li>
+          <span class="icon">✉️</span>
+          <span>amaralambrados109@gmail.com</span>
+        </li>
+        <li>
+          <span class="icon">🕒</span>
+          <span>Seg a Sex: 08h às 18h</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Barra Inferior de Copyright -->
+  <div class="footer-bottom">
+    <div class="bottom-container">
+      <p>© 2026 Amaral Alambrados Indústria e Comércio LTDA. CNPJ: 06.866.364.0001-35.</p>
+      <div class="legal-links">
+        <a href="#">Normas Técnicas</a>
+        <a href="#">Política de Privacidade</a>
+        <a href="#">Termos de Fornecimento</a>
+      </div>
+    </div>
+  </div>
+</footer>

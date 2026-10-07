@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FreteService } from '../../services/frete.service';
 import { CepService } from '../../services/cep';
+import { PdfService } from '../../services/pdf.service';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +30,8 @@ export class HomeComponent {
 
   constructor(
     private freteService: FreteService,
-    private cepService: CepService
+    private cepService: CepService,
+    private pdfService: PdfService
   ) {}
 
   // Métodos de manipulação de medidas
@@ -80,6 +82,36 @@ export class HomeComponent {
     });
   }
 
+  // Método para disparar a geração da ficha técnica e orçamento em PDF
+  baixarPdfOrcamento() {
+    const dados = {
+      configuracao: {
+        bitola: this.bitolaSelecionada,
+        malha: this.malhaSelecionada,
+        tratamento: this.tratamentoSelecionado
+      },
+      medidas: {
+        altura: this.alturaMetros,
+        comprimento: this.comprimentoMetros,
+        area: this.areaTotal,
+        rolos: this.totalRolos
+      },
+      precos: {
+        materiaPrima: this.valorMateriaPrima,
+        acessorios: this.valorAcessorios,
+        frete: this.valorFrete,
+        desconto: this.valorDesconto,
+        total: this.valorTotal,
+        parcela: this.valorParcela
+      },
+      frete: this.resultadoFrete,
+      endereco: this.enderecoCliente,
+      tipoFrete: this.tipoFrete
+    };
+
+    this.pdfService.gerarOrcamentoPdf(dados);
+  }
+
   // Getters para cálculos reativos do orçamento
   get areaTotal(): number {
     return this.alturaMetros * this.comprimentoMetros;
@@ -104,12 +136,13 @@ export class HomeComponent {
   }
 
   get valorDesconto(): number {
-    const subtotal = this.valorMateriaPrima + this.valorAcessorios + this.valorFrete;
+    const subtotal = this.valorMateriaPrima + this.valorAcessorios + (this.tipoFrete === 'entrega' ? this.valorFrete : 0);
     return Number((subtotal * 0.05).toFixed(2));
   }
 
   get valorTotal(): number {
-    const subtotal = this.valorMateriaPrima + this.valorAcessorios + this.valorFrete;
+    const freteAplicado = this.tipoFrete === 'entrega' ? this.valorFrete : 0;
+    const subtotal = this.valorMateriaPrima + this.valorAcessorios + freteAplicado;
     return Number((subtotal - this.valorDesconto).toFixed(2));
   }
 
