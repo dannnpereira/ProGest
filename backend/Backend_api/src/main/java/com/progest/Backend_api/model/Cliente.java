@@ -9,15 +9,17 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private Long cpf;
+    private Long telefone;
     private String nome;
-
     private String email;
 
     public Cliente() {
     }
 
-    public Cliente(String nome, String email) {
+    public Cliente(Long cpf, Long telefone, String nome, String email) {
+        this.cpf = cpf;
+        this.telefone = telefone;
         this.nome = nome;
         this.email = email;
     }
