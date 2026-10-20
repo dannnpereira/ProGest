@@ -1,5 +1,9 @@
 package com.progest.Backend_api.model; 
 
+import java.util.Random;
+
+import com.progest.Backend_api.repository.ClienteRepository;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -14,15 +18,12 @@ public class Cliente {
     private String nome;
     private String email;
 
-    public Cliente() {
-    }
-
     public Cliente(Long cpf, Long telefone, String nome, String email) {
         this.cpf = cpf;
         this.telefone = telefone;
         this.nome = nome;
         this.email = email;
-    }
+    }   
 
     public Long getId() {
         return id;
