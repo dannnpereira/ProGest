@@ -43,4 +43,16 @@ public class Cliente {
     public void setEmail(String email) {
         this.email = email;
     }
+    public Long getCpf() {
+        return cpf;
+    }
+    public void setCpf(Long cpf) {
+        this.cpf = cpf;
+    }
+    public Long getTelefone() {
+        return telefone;
+    }
+    public void setTelefone(Long telefone) {
+        this.telefone = telefone;
+    }
 }
