@@ -18,19 +18,19 @@
     </div>
 
     <nav class="nav-menu">
-      <a href="#">Home</a>
-      <a href="#">Nossos Produtos</a>
-      <a href="#">Simule seu Configurador</a>
-      <a href="#">Rastrear Pedido</a>
-      <a href="#">Contato</a>
+      <a routerLink="/">Home</a>
+      <a routerLink="/produtos">Nossos Produtos</a>
+      <a routerLink="/configurador">Simule seu Configurador</a>
+      <a routerLink="/rastrear">Rastrear Pedido</a>
+      <a routerLink="/contato">Contato</a>
     </nav>
 
     <div class="header-actions">
       <button class="btn-cart">🛒 STD SHOP - R$ 0,00</button>
-      <button class="btn-login">👤 Entrar / Cadastrar</button>
-    </div>
-  </div>
-</header>
+      <button class="btn-login" routerLink="/login">👤 Entrar / Cadastrar</button>
+    </div> <!-- Fechamento da div header-actions que estava faltando -->
+  </div> <!-- Fechamento da div header-container -->
+</header> <!-- Fechamento correto do header principal -->
 
 <!-- HERO SECTION -->
 <section class="hero-section">
