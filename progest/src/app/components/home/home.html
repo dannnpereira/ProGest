@@ -1,71 +1,455 @@
-<div class="configurador-container">
-  <!-- Topo / Cabeçalho da Seção -->
-  <header class="topo-secao">
-    <span class="tag-sistema">SISTEMA MODULAR DE CERGAMENTO PERIMETRAL</span>
-    <h1>CERCAMENTOS METÁLICOS DE ALTA RESISTÊNCIA PARA O SEU PROJETO</h1>
-    <p>Fabricação sob medida com arames galvanizados ou plastificados. Engenharia de ponta que alia durabilidade primária, conformidade técnica e cálculo autenticado com integração logística para todo o país.</p>
-  </header>
+<!-- BANNER SUPERIOR DE AVISO -->
+<div class="top-bar">
+  <div class="top-bar-left">
+  </div>
+  <div class="top-bar-right">
+    <span>📞 Rastrear Pedido</span>
+    <span>🚚 Entrega Técnica Própria</span>
+    <span>💬 Mensagem no Whats</span>
+  </div>
+</div>
 
-  <!-- Área Principal dividida em duas colunas (Esquerda: Opções / Direita: Resumo Orçamento) -->
-  <div class="conteudo-principal">
-    
-    <!-- Coluna da Esquerda: Passos de Configuração -->
-    <div class="painel-opcoes">
-      
-      <!-- Seção 1: Bitola do Arame -->
-      <section class="bloco-opcao">
-        <h2>01. BITOLA DO ARAME (ESPESSURA)</h2>
-        <div class="opcoes-grid">
-          <div class="opcao-card selecionado">
-            <h3>Fio 12 (2,77 mm)</h3>
-            <p>Alta resistência para perímetros exigentes.</p>
-          </div>
-          <div class="opcao-card">
-            <h3>Fio 14 (2,10 mm)</h3>
-            <p>Ideal para divisas residenciais e condomínios.</p>
-          </div>
-        </div>
-      </section>
 
-      <!-- Seção 2: Malha / Abertura -->
-      <section class="bloco-opcao">
-        <h2>02. MALHA / ABERTURA DO LOSANGO</h2>
-        <div class="opcoes-grid">
-          <div class="opcao-card selecionado">
-            <h3>Malha 2" (50 mm)</h3>
-            <p>Padrão de alta segurança e durabilidade.</p>
-          </div>
-          <div class="opcao-card">
-            <h3>Malha 3" (76 mm)</h3>
-            <p>Excelente custo-benefício para grandes extensões.</p>
-          </div>
+<!-- HEADER / NAVEGAÇÃO PRINCIPAL -->
+<header class="main-header">
+  <div class="header-container">
+    <div class="logo-area">
+      <div class="logo-box">AMARAL ALAMBRADOS</div>
+    </div>
+
+    <nav class="nav-menu">
+      <a routerLink="/">Home</a>
+      <a routerLink="/produtos">Nossos Produtos</a>
+      <a routerLink="/configurador">Simule seu Configurador</a>
+      <a routerLink="/rastrear">Rastrear Pedido</a>
+      <a routerLink="/contato">Contato</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn-cart">🛒 STD SHOP - R$ 0,00</button>
+      <button class="btn-login" routerLink="/login">👤 Entrar / Cadastrar</button>
+    </div> <!-- Fechamento da div header-actions que estava faltando -->
+  </div> <!-- Fechamento da div header-container -->
+</header> <!-- Fechamento correto do header principal -->
+
+<!-- HERO SECTION -->
+<section class="hero-section">
+  <div class="hero-container">
+
+    <!-- Coluna Esquerda: Textos e Informações -->
+    <div class="hero-content">
+
+      <h1 class="hero-title">
+        TELAS PARA ALAMBRADO DE ALTA QUALIDADE
+      </h1>
+
+      <p class="hero-description">
+        Fabricação sob medida com arames galvanizados ou revestidos. Engenharia de ponta que alia durabilidade extrema,
+        conformidade técnico-operacional e integração logística para todo o país.
+      </p>
+
+      <!-- Cards Destaques Técnicos -->
+      <div class="tech-card-container">
+        <div class="tech-card">
+          <strong>Padrão Técnico</strong>
+          <small>Resistência ao Tempo</small>
         </div>
-      </section>
+
+        <div class="tech-card">
+          <span class="tech-tag">FRETE TÉCNICO</span>
+          <strong>Com Carga Segura</strong>
+          <small>Entrega Todo Brasil</small>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="hero-buttons">
+        <button class="btn-primary" type="button">
+          <span>INICIAR SIMULAÇÃO DE ORÇAMENTO</span>
+        </button>
+      </div>
 
     </div>
 
-    <!-- Coluna da Direita: Resumo Técnico (Orçamento) -->
-    <aside class="painel-resumo">
-      <div class="card-resumo-interno">
-        <h3>RESUMO TÉCNICO DA CERCA</h3>
-        <p class="sub-resumo">Orçamento preliminar para funcionamento básico (40m)</p>
-        
-        <ul class="lista-valores">
-          <li><span>Valor da Matéria-Prima (40m):</span> <strong>R$ 4.680,00</strong></li>
-          <li><span>Acrescentar Fio Fixação + Acessórios:</span> <strong>R$ 340,00</strong></li>
-          <li><span>Frete Técnico Especializado:</span> <strong>R$ 180,00</strong></li>
-          <li><span>Descontos Comerciais e ICMS:</span> <strong class="negativo">- R$ 234,00</strong></li>
-        </ul>
-
-        <div class="total-geral">
-          <span>INVESTIMENTO TOTAL</span>
-          <h2>R$ 4.966,00</h2>
-          <small>Val. de 30 dias s/ impostos</small>
+    <!-- Coluna Direita: Imagem do Produto -->
+    <div class="hero-media">
+      <div class="media-card">
+        <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80"
+          alt="Produção de Tela Metalica">
+        <div class="media-overlay">
+          <div>
+            <span class="product-tag">PRODUTO MAIS CONFIGURADO</span>
+            <h3>Tela para Alambrado</h3>
+          </div>
+          <div class="product-spec">
+            <span class="spec-value">2,77 mm</span>
+          </div>
         </div>
-
-        <button class="btn-acao">FAZER CADASTRO / LOGIN PARA CONTINUAR</button>
       </div>
-    </aside>
+    </div>
 
   </div>
-</div>
+</section>
+
+<!-- SEÇÃO DO CONFIGURADOR INTELIGENTE -->
+<section class="configurator-section">
+  <div class="configurator-container">
+
+    <div class="section-header">
+      <span class="badge-sub">SIMULAÇÃO EM TEMPO REAL</span>
+      <h2>CONFIGURADOR INTELIGENTE DE ALAMBRADO</h2>
+      <p>Personalize as especificações técnicas da sua cerca e receba a precificação em tempo real.</p>
+    </div>
+
+    <!-- INDICADOR VISUAL DE PASSO A PASSO (STEPPER) -->
+    <div class="stepper">
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">1. APLICAÇÃO</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">2. MATÉRIA-PRIMA</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">3. DIMENSÕES</span>
+      </div>
+      <div class="step completed">
+        <span class="step-check">✓</span>
+        <span class="step-label">4. ACESSÓRIOS</span>
+      </div>
+      <div class="step active">
+        <span class="step-number">5</span>
+        <span class="step-label">5. ORÇAMENTO</span>
+      </div>
+    </div>
+
+    <!-- GRID PRINCIPAL -->
+    <div class="configurator-grid">
+
+      <!-- COLUNA DA ESQUERDA: OPÇÕES DE SELEÇÃO -->
+      <div class="config-options">
+
+        <!-- 01: BITOLA DO ARAME -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>01</span> BITOLA DO ARAME (ESPESSURA)</h3>
+            <span class="info-link">🛈 Tabela de fios</span>
+          </div>
+          <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra
+            impactos na sua cerca.</p>
+
+          <div class="cards-select">
+            <!-- Fio 12 -->
+            <div class="select-card" [class.active]="bitolaSelecionada === 'fio12'"
+              (click)="bitolaSelecionada = 'fio12'">
+              <div class="card-radio"></div>
+              <div class="card-body">
+                <div class="card-title-row">
+                  <strong>Fio 12 (2,77 mm)</strong>
+                  <span class="badge-recommended">RECOMENDADO / MAIS VENDIDO</span>
+                </div>
+                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas e
+                  perímetros de alta segurança.</p>
+                <div class="card-footer-info">
+                  <span class="tag-outline">Carga de Ruptura: ++</span>
+                  <span class="tag-outline">Vida útil: Superior</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fio 14 -->
+            <div class="select-card" [class.active]="bitolaSelecionada === 'fio14'"
+              (click)="bitolaSelecionada = 'fio14'">
+              <div class="card-radio"></div>
+              <div class="card-body">
+                <div class="card-title-row">
+                  <strong>Fio 14 (2,10 mm)</strong>
+                </div>
+                <p>Economia para fechamentos residenciais, áreas internas ou de menor impacto visual.</p>
+                <div class="card-footer-info">
+                  <span class="tag-outline">Carga de Ruptura: +</span>
+                  <span class="tag-outline">Uso Residencial</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02: MALHA -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>02</span> MALHA / ABERTURA DO LOSANGO</h3>
+            <span class="info-link">🛈 Entenda a malha</span>
+          </div>
+          <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de
+            pequenos animais e objetos.</p>
+
+          <div class="cards-grid-2">
+            <div class="select-card" [class.active]="malhaSelecionada === 'malha2'"
+              (click)="malhaSelecionada = 'malha2'">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Malha 2" (50 mm)</strong>
+                <p>Ideal para quadras de tênis, futebol, galpões e segurança reforçada.</p>
+              </div>
+            </div>
+
+            <div class="select-card" [class.active]="malhaSelecionada === 'malha3'"
+              (click)="malhaSelecionada = 'malha3'">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Malha 3" (75 mm)</strong>
+                <span class="badge-recommended">PADRÃO INDUSTRIAL</span>
+                <p>Ideal para grandes perímetros, chácaras e cercamentos extensos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03: MEDIDAS DO PROJETO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>03</span> MEDIDAS DO PROJETO</h3>
+          </div>
+
+          <div class="inputs-inline">
+            <div class="input-group">
+              <label>ALTURA DA TELA (METROS)</label>
+              <div class="input-number">
+                <input type="number" [value]="alturaMetros" (input)="atualizarAltura($event)" step="0.5" min="1"
+                  max="6" />
+                <span class="unit">METROS</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>METRAGEM LINEAR (COMPRIMENTO)</label>
+              <div class="input-counter">
+                <button type="button" (click)="alterarComprimento(-10)">-</button>
+                <input type="number" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)" step="5"
+                  min="10" />
+                <span class="unit">M.L.</span>
+                <button type="button" (click)="alterarComprimento(10)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="measures-summary">
+            <div class="summary-box">
+              <small>ÁREA TOTAL DE TELA</small>
+              <strong>{{ areaTotal | number:'1.0-2' }} m² de tela</strong>
+            </div>
+            <div class="summary-box">
+              <small>ESTIMATIVA DE EMBALAGEM</small>
+              <strong>{{ totalRolos }} rolos de 15 metros</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04: TRATAMENTO ANTICORROSIVO -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>04</span> TRATAMENTO ANTICORROSIVO</h3>
+          </div>
+
+          <div class="cards-grid-2">
+            <div class="select-card" [class.active]="tratamentoSelecionado === 'galvanizado'"
+              (click)="tratamentoSelecionado = 'galvanizado'">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Galvanizada a Fogo</strong>
+                <span class="badge-recommended">MAIOR DURABILIDADE</span>
+                <p>Proteção anticorrosiva pesada de zinco para atmosferas urbanas e industriais.</p>
+              </div>
+            </div>
+
+            <div class="select-card" [class.active]="tratamentoSelecionado === 'pvc'"
+              (click)="tratamentoSelecionado = 'pvc'">
+              <div class="card-radio"></div>
+              <div>
+                <strong>Revestida em PVC</strong>
+                <p>Camada extra de polímero com alta imunidade à névoa salina.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05: LOCALIZAÇÃO E FRETE -->
+        <div class="option-block">
+          <div class="option-header">
+            <h3><span>05</span> LOCALIZAÇÃO E FRETE TÉCNICO</h3>
+          </div>
+
+          <div class="cep-group">
+            <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep"
+              (input)="atualizarCep($event)" maxlength="9" />
+            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
+          </div>
+
+          <div class="freight-options">
+            <!-- ENTREGA TÉCNICA PRÓPRIA -->
+            <label class="freight-card" [class.active]="tipoFrete === 'entrega'" (click)="tipoFrete = 'entrega'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
+              <div class="freight-card-content" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>ENTREGA TÉCNICA PRÓPRIA</strong>
+                  </div>
+                  <div *ngIf="resultadoFrete && tipoFrete === 'entrega'"
+                    style="font-weight: bold; color: #f59e0b; font-size: 1.1rem;">
+                    {{ resultadoFrete.custoTotal | currency:'BRL':'symbol':'1.2-2' }}
+                  </div>
+                </div>
+
+                <!-- Detalhes do local de entrega logo abaixo dentro do card -->
+                <div *ngIf="enderecoCliente && tipoFrete === 'entrega'" class="detalhes-frete-interno"
+                  style="margin-top: 10px; font-size: 0.9rem; border-top: 1px dashed #ddd; padding-top: 8px; color: #333;">
+                  <p style="margin: 4px 0;">
+                    <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} -
+                    {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
+                  </p>
+                  <p style="margin: 4px 0; color: 
+                  #666; font-size: 0.85rem;">
+                    📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios |
+                    number:'1.2-2' }}
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            <!-- RETIRADA NA FÁBRICA -->
+            <label class="freight-card" [class.active]="tipoFrete === 'retirada'" (click)="tipoFrete = 'retirada'">
+              <input type="radio" name="freight" [checked]="tipoFrete === 'retirada'" />
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                  <strong>RETIRADA NA FÁBRICA</strong>
+                  <small>Retire em nossa fábrica em Sorocaba sem custo</small>
+                </div>
+                <div style="font-weight: bold; color: #10b981; font-size: 1.1rem;">
+                  GRÁTIS
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div> <!-- /config-options (Fecha a coluna da esquerda) -->
+
+      <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA (O CARD LATERAL AZUL/ESCURO) -->
+      <div class="config-summary-sidebar">
+        <div class="summary-card">
+          <div class="summary-card-header">
+            <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
+            <h3>RESUMO TÉCNICO DA CERCA</h3>
+            <p>Precificação em tempo real considerando todos os parâmetros selecionados.</p>
+          </div>
+
+          <div class="summary-specs">
+            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> •
+            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> •
+            <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
+          </div>
+
+          <div class="price-breakdown">
+            <div class="price-row">
+              <span>Valor da Matéria-Prima:</span>
+              <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
+
+            <div class="price-row">
+              <span>Acessórios Homologados:</span>
+              <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
+
+            <div class="price-row" *ngIf="tipoFrete === 'entrega'">
+              <span>Frete Técnico:</span>
+              <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
+
+            <div class="price-row" *ngIf="tipoFrete === 'retirada'">
+              <span>Retirada na Fábrica (Sorocaba):</span>
+              <strong>R$ 0,00</strong>
+            </div>
+
+            <div class="price-row discount">
+              <span>Desconto Comercial À Vista (5%):</span>
+              <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="total-box">
+            <small>INVESTIMENTO TOTAL</small>
+            <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
+            <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
+          </div>
+
+          <div class="summary-actions">
+            <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+            <button class="btn-pdf" type="button" (click)="baixarPdfOrcamento()">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM
+              PDF</button>
+          </div>
+
+          <div class="summary-footer-note">
+            🔒 Condições de pagamento válidas por 7 dias e com limite de estoque de matéria-prima.
+          </div>
+        </div>
+      </div> <!-- /config-summary-sidebar -->
+
+    </div> <!-- /configurator-grid -->
+
+  </div> <!-- /configurator-container -->
+</section>
+
+<!-- RODAPÉ DA PÁGINA (FOOTER) -->
+<footer class="main-footer">
+  <div class="footer-container">
+    
+    <!-- Coluna 1: Sobre & Institucional -->
+    <div class="footer-col brand-col">
+      <div class="logo-area">
+        <div class="logo-box">AMARAL ALAMBRADOS</div>
+      </div>
+      <p class="brand-desc">
+        Engenharia em cercamentos de alta resistência, telas de alambrado galvanizadas e telas onduladas para segurança patrimonial e industrial.
+      </p>
+    </div>
+
+    <!-- Coluna 3: Central de Atendimento -->
+    <div class="footer-col">
+      <h4 class="col-title">ATENDIMENTO</h4>
+      <ul class="contact-list">
+        <li>
+          <span class="icon">📍</span>
+          <span>Rua Vasco da Gama, 109 - Vila Progresso - Sorocaba, SP - CEP 18090-390</span>
+        </li>
+        <li>
+          <span class="icon">📞</span>
+          <span>(15) 3231-4537</span>
+        </li>
+        <li>
+          <span class="icon">✉️</span>
+          <span>amaralambrados109@gmail.com</span>
+        </li>
+        <li>
+          <span class="icon">🕒</span>
+          <span>Seg a Sex: 08h às 18h</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Barra Inferior de Copyright -->
+  <div class="footer-bottom">
+    <div class="bottom-container">
+      <p>© 2026 Amaral Alambrados Indústria e Comércio LTDA. CNPJ: 06.866.364.0001-35.</p>
+      <div class="legal-links">
+        <a href="#">Normas Técnicas</a>
+        <a href="#">Política de Privacidade</a>
+        <a href="#">Termos de Fornecimento</a>
+      </div>
+    </div>
+  </div>
+</footer>
