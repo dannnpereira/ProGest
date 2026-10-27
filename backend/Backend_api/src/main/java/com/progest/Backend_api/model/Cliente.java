@@ -1,5 +1,7 @@
 package com.progest.Backend_api.model; 
 
+import java.util.Random;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -9,7 +11,7 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long cpf;
+    private String cpf;
     private Long telefone;
     private String nome;
     private String email;
@@ -17,13 +19,13 @@ public class Cliente {
     public Cliente() {
     }
 
-    public Cliente(Long cpf, Long telefone, String nome, String email) {
+    public Cliente(String cpf, Long id, Long telefone, String nome, String email) {
         this.cpf = cpf;
+        this.id = id;
         this.telefone = telefone;
         this.nome = nome;
         this.email = email;
     }
-
     public Long getId() {
         return id;
     }
