@@ -1,0 +1,32 @@
+== 5b6dc9f | liviaghirardi | 2026-10-22 | fix: configura deploy no Vercel (vercel.json) e remove duplicados da raiz
+
+backend/Backend_api/.dockerignore
+backend/Backend_api/.gitattributes
+backend/Backend_api/.gitignore
+backend/Backend_api/.mvn/wrapper/maven-wrapper.properties
+backend/Backend_api/Dockerfile
+backend/Backend_api/mvnw
+backend/Backend_api/mvnw.cmd
+backend/Backend_api/pom.xml
+backend/Backend_api/src/main/java/com/progest/Backend_api/BackendApiApplication.java
+backend/Backend_api/src/main/java/com/progest/Backend_api/controller/ClienteController.java
+backend/Backend_api/src/main/java/com/progest/Backend_api/model/Cliente.java
+backend/Backend_api/src/main/java/com/progest/Backend_api/repository/ClienteRepository.java
+backend/Backend_api/src/main/resources/application.properties
+backend/Backend_api/src/test/java/com/progest/Backend_api/BackendApiApplicationTests.java
+backend/data/banco.mv.db
+== a442c80 | liviaghirardi | 2026-10-19 | feat(homepage): finaliza desenvolvimento completo da homepage e configurador
+
+backend/.gitattributes
+backend/.gitignore
+backend/.mvn/wrapper/maven-wrapper.properties
+backend/aplication.properties
+backend/mvnw
+backend/mvnw.cmd
+backend/pom.xml
+backend/src/main/java/com/progest/backend/BackendApplication.java
+backend/src/main/java/com/progest/backend/controller/ClienteController.java
+backend/src/main/java/com/progest/backend/model/Cliente.java
+== 4b537bb | Danilo | 2026-10-06 | feat: Switch database (Postgres -> H2)
+
+backend/Backend_api/src/main/java/com/progest/Backend_api/controller/TestController.java
