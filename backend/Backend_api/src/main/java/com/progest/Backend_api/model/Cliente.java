@@ -45,4 +45,14 @@ public class Cliente {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public void setCpf(String cpf2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setCpf'");
+    }
+
+    public void setTelefone(Long telefone2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setTelefone'");
+    }
 }
