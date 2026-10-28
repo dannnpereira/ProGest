@@ -8,7 +8,7 @@ public class Pedidos {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long op;;
+    private Long op;
     private Long fio;
     private Long malha;
     private String dataentrega;
@@ -21,7 +21,5 @@ public class Pedidos {
         this.fio = fio;
         this.malha = malha;
         this.dataentrega = dataentrega;
-    } {
-    
-}
+    }
 }

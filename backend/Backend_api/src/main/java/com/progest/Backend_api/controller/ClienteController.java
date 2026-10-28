@@ -29,7 +29,19 @@ public Cliente buscarPorId(@PathVariable Long id) {
     }
 
     @PostMapping
-    public Object cadastrar(@RequestBody Cliente cliente) {
+    public Object cadastrar(@RequestBody Cliente cliente, @RequestParam String cpf, @RequestParam Long telefone, @RequestParam String nome, @RequestParam String email) {
+        cliente.setCpf(cpf);
+        cliente.setTelefone(telefone);
+        cliente.setNome(nome);
+        cliente.setEmail(email);
         return repository.save(cliente);
     }
+    @PostMapping("/buscar-ou-adicionar")
+    public Cliente buscarOuAdicionar(
+        @RequestParam String cpf,
+        @RequestParam String nome,
+        @RequestParam String email,
+        @RequestParam Long telefone) {
+    return clienteService.buscarOuAdicionarCliente(null, cpf, nome, email, telefone);
+}
 }
