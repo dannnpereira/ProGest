@@ -217,3 +217,12 @@
 }
 .home-link a { color: var(--ink); text-decoration: none; }
 .home-link a:hover { color: var(--accent); }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .field-row { grid-template-columns: 1fr; }
+}
