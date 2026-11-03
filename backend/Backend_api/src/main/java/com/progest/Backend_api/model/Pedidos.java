@@ -2,6 +2,7 @@
 package com.progest.Backend_api.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -12,16 +13,18 @@ public class Pedidos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long op;
 
-    private Long fio;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal fio;
 
-    private Long malha;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal malha;
 
     private LocalDate dataentrega;
 
     public Pedidos() {
     }
 
-    public Pedidos(Long fio, Long malha, LocalDate dataentrega) {
+    public Pedidos(BigDecimal fio, BigDecimal malha, LocalDate dataentrega) {
         this.fio = fio;
         this.malha = malha;
         this.dataentrega = dataentrega;
@@ -31,19 +34,19 @@ public class Pedidos {
         return op;
     }
 
-    public Long getFio() {
+    public BigDecimal getFio() {
         return fio;
     }
 
-    public void setFio(Long fio) {
+    public void setFio(BigDecimal fio) {
         this.fio = fio;
     }
 
-    public Long getMalha() {
+    public BigDecimal getMalha() {
         return malha;
     }
 
-    public void setMalha(Long malha) {
+    public void setMalha(BigDecimal malha) {
         this.malha = malha;
     }
 
