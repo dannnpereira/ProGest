@@ -6,6 +6,7 @@ import java.time.LocalDate;
 public record TransacaoRequest(
     Long op,
     String descricao,
+    String fornecedores,
     BigDecimal valor,
     LocalDate dataMovimentacao
 ) {

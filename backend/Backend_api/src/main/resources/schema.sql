@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS transacoes_financeiras (
     op BIGINT,
     tipo VARCHAR(10) NOT NULL,
     descricao VARCHAR(255) NOT NULL,
+    fornecedores VARCHAR(255),
     valor DECIMAL(10,2) NOT NULL,
     data_movimentacao DATE NOT NULL,
 

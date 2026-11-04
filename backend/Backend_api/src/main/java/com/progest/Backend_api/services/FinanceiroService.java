@@ -60,10 +60,11 @@ public class FinanceiroService {
         }
 
         TransacaoFinanceira transacao =
-                new TransacaoFinanceira();
+        new TransacaoFinanceira();
 
         transacao.setTipo(tipo);
         transacao.setDescricao(request.descricao().trim());
+        transacao.setFornecedores(request.fornecedores());
         transacao.setValor(request.valor());
         transacao.setDataMovimentacao(
                 request.dataMovimentacao()
@@ -210,19 +211,21 @@ public class FinanceiroService {
     }
 
     private TransacaoResponse converterResposta(
-            TransacaoFinanceira transacao) {
+        TransacaoFinanceira transacao
+) {
 
-        Long op = transacao.getPedido() == null
-                ? null
-                : transacao.getPedido().getOp();
+    Long op = transacao.getPedido() == null
+            ? null
+            : transacao.getPedido().getOp();
 
-        return new TransacaoResponse(
-                transacao.getId(),
-                op,
-                transacao.getTipo(),
-                transacao.getDescricao(),
-                transacao.getValor(),
-                transacao.getDataMovimentacao()
-        );
-    }
+    return new TransacaoResponse(
+            transacao.getId(),
+            op,
+            transacao.getTipo(),
+            transacao.getDescricao(),
+            transacao.getFornecedores(),
+            transacao.getValor(),
+            transacao.getDataMovimentacao()
+    );
+}
 }

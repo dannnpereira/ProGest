@@ -20,6 +20,9 @@ public class TransacaoFinanceira {
     @Column(nullable = false, length = 10)
     private TipoTransacao tipo;
 
+    @Column(length = 255)
+    private String fornecedores;
+
     @Column(nullable = false)
     private String descricao;
 
@@ -74,5 +77,11 @@ public class TransacaoFinanceira {
 
     public void setDataMovimentacao(LocalDate dataMovimentacao) {
         this.dataMovimentacao = dataMovimentacao;
+    }
+    public String getFornecedores() {
+        return fornecedores;
+    }
+    public void setFornecedores(String fornecedores) {
+        this.fornecedores = fornecedores;
     }
 }
