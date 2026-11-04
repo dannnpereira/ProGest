@@ -1,0 +1,170 @@
+<!-- CABEÇALHO -->
+<header class="rs-header">
+  <div class="rs-header-inner">
+    <a class="rs-logo" routerLink="/" aria-label="Amaral Alambrados, ir para o início">AMARAL ALAMBRADOS</a>
+
+    <nav class="rs-nav" aria-label="Navegação principal">
+      <a routerLink="/">Início</a>
+      <a routerLink="/rastrear" class="ativo" aria-current="page">Rastrear pedido</a>
+    </nav>
+
+    <div class="rs-usuario">
+      <span class="rs-usuario-nome">{{ nomeCompleto }}</span>
+      <button type="button" class="rs-btn-sair" (click)="sair()">Sair</button>
+    </div>
+  </div>
+</header>
+
+<main class="rs-main">
+
+  <!-- TÍTULO DA PÁGINA -->
+  <section class="rs-intro">
+    <div>
+      <h1>Meus pedidos</h1>
+      <p>
+        @if (primeiroNome) {
+          Olá, <strong>{{ primeiroNome }}</strong>.
+        }
+        Acompanhe a aprovação, o pagamento, a produção e a entrega de cada pedido.
+      </p>
+    </div>
+    <a class="rs-btn-novo" routerLink="/">Novo orçamento</a>
+  </section>
+
+  @if (carregando()) {
+    <p class="rs-estado" role="status">Carregando seus pedidos…</p>
+  } @else if (erro()) {
+    <div class="rs-estado rs-estado-erro" role="alert">
+      <p>{{ erro() }}</p>
+      <button type="button" class="rs-btn-secundario" (click)="carregar()">Tentar de novo</button>
+    </div>
+  } @else if (pedidos().length === 0) {
+    <div class="rs-estado">
+      <p>Você ainda não tem pedidos.</p>
+      <a class="rs-btn-novo" routerLink="/">Fazer um orçamento</a>
+    </div>
+  } @else {
+
+    <!-- ANDAMENTO DO PEDIDO SELECIONADO -->
+    @if (pedidoSelecionado(); as p) {
+      <section class="rs-detalhe" id="detalhe-pedido" aria-labelledby="detalhe-titulo">
+
+        <div class="rs-detalhe-topo">
+          <div>
+            <span [class]="'rs-badge ' + classeStatus(p.status)">{{ rotuloStatus(p.status) }}</span>
+            <h2 id="detalhe-titulo">Pedido {{ p.codigo }}</h2>
+            <p class="rs-detalhe-data">Feito em {{ p.criadoEm | date: 'dd/MM/yyyy' }}</p>
+          </div>
+          <div class="rs-valor">
+            <small>Valor total</small>
+            <strong>{{ p.valorTotal | currency: 'BRL' }}</strong>
+          </div>
+        </div>
+
+        <ul class="rs-composicao" aria-label="Especificação do pedido">
+          @for (item of composicao(p); track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+
+        <div class="rs-detalhe-corpo">
+          <h3>Andamento do pedido</h3>
+
+          @if (p.status === 'recusado') {
+            <p class="rs-aviso-recusa" role="alert">
+              <strong>Este pedido não foi aprovado.</strong>
+              {{ p.motivoRecusa }}
+            </p>
+          }
+
+          <ol class="rs-timeline">
+            @for (etapa of etapas(p); track etapa.chave; let i = $index) {
+              <li class="rs-etapa" [attr.data-estado]="etapa.estado"
+                [attr.aria-current]="etapa.estado === 'atual' ? 'step' : null">
+                <span class="rs-marcador" aria-hidden="true">{{ marcador(etapa, i) }}</span>
+                <div class="rs-etapa-texto">
+                  <strong>{{ etapa.titulo }}</strong>
+                  <p>{{ etapa.descricao }}</p>
+                  @if (etapa.data) {
+                    <small>{{ etapa.data | date: 'dd/MM/yyyy HH:mm' }}</small>
+                  } @else if (etapa.estado === 'atual') {
+                    <small>Etapa em andamento</small>
+                  } @else if (etapa.estado === 'pendente') {
+                    <small>Ainda não iniciada</small>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+
+          <div class="rs-entrega">
+            @if (p.tipoFrete === 'entrega') {
+              <strong>Entrega técnica própria</strong>
+              <span>{{ p.enderecoEntrega }}</span>
+            } @else {
+              <strong>Retirada na fábrica</strong>
+              <span>Rua Vasco da Gama, 109 - Vila Progresso, Sorocaba/SP. Seg a Sex, das 08h às 18h.</span>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- HISTÓRICO -->
+    <section class="rs-historico" aria-labelledby="historico-titulo">
+      <div class="rs-historico-topo">
+        <h2 id="historico-titulo">Todos os pedidos</h2>
+        <input type="search" class="rs-busca" placeholder="Buscar por código, medida ou endereço"
+          aria-label="Buscar pedidos" [value]="filtro()" (input)="atualizarFiltro($event)" />
+      </div>
+
+      @if (pedidosFiltrados().length === 0) {
+        <p class="rs-estado">Nenhum pedido encontrado para essa busca.</p>
+      } @else {
+        <table class="rs-tabela">
+          <thead>
+            <tr>
+              <th scope="col">Pedido</th>
+              <th scope="col">Data</th>
+              <th scope="col">Especificação</th>
+              <th scope="col">Entrega</th>
+              <th scope="col">Valor</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="rs-sr">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of pedidosFiltrados(); track p.id) {
+              <tr [class.selecionada]="p.id === selecionadoId()">
+                <td data-label="Pedido"><strong>{{ p.codigo }}</strong></td>
+                <td data-label="Data">{{ p.criadoEm | date: 'dd/MM/yyyy' }}</td>
+                <td data-label="Especificação">{{ resumo(p) }}</td>
+                <td data-label="Entrega">{{ destino(p) }}</td>
+                <td data-label="Valor">{{ p.valorTotal | currency: 'BRL' }}</td>
+                <td data-label="Status">
+                  <span [class]="'rs-badge ' + classeStatus(p.status)">{{ rotuloStatus(p.status) }}</span>
+                </td>
+                <td class="rs-acao">
+                  <button type="button" class="rs-btn-secundario" (click)="selecionar(p)"
+                    [attr.aria-label]="'Ver andamento do pedido ' + p.codigo">
+                    Ver andamento
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  <!-- SUPORTE -->
+  <section class="rs-suporte">
+    <div>
+      <h2>Precisa mudar medidas ou prazo?</h2>
+      <p>Fale com a fábrica de segunda a sexta, das 08h às 18h.</p>
+    </div>
+    <a class="rs-btn-claro" href="tel:+551532314537">Ligar para (15) 3231-4537</a>
+  </section>
+
+</main>
