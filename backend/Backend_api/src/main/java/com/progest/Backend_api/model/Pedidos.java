@@ -17,6 +17,9 @@ public class Pedidos {
     private BigDecimal fio;
 
     @Column(precision = 10, scale = 2)
+    private BigDecimal preco;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal malha;
 
     private LocalDate dataentrega;
@@ -24,7 +27,8 @@ public class Pedidos {
     public Pedidos() {
     }
 
-    public Pedidos(BigDecimal fio, BigDecimal malha, LocalDate dataentrega) {
+    public Pedidos(BigDecimal preco, BigDecimal fio, BigDecimal malha, LocalDate dataentrega) {
+        this.preco = preco;
         this.fio = fio;
         this.malha = malha;
         this.dataentrega = dataentrega;
@@ -32,6 +36,14 @@ public class Pedidos {
 
     public Long getOp() {
         return op;
+    }
+
+    public BigDecimal getPreco() {
+        return preco;
+    }
+
+    public void setPreco(BigDecimal preco) {
+        this.preco = preco;
     }
 
     public BigDecimal getFio() {
