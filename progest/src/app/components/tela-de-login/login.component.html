@@ -1,8 +1,6 @@
-<!-- Reaproveite o mesmo header/topbar da home (ex.: <app-header />) acima desta seção -->
 <main class="auth">
   <div class="auth__inner">
 
-    <!-- Coluna esquerda: mesmo tratamento do hero da home -->
     <section class="auth__intro">
       <p class="kicker">Portal do cliente</p>
       <h1>Acompanhe seus pedidos e orçamentos em um só lugar</h1>
@@ -10,31 +8,56 @@
         Entre para ver o andamento da fabricação, repetir configurações de telas
         e acompanhar a entrega técnica em todo o Brasil.
       </p>
-
-      <div class="info-cards">
-        <div class="info-card">
-          <strong>Rastreio em tempo real</strong>
-          <span>Fabricação, carga e entrega</span>
-        </div>
-        <div class="info-card">
-          <strong>Orçamentos salvos</strong>
-          <span>Repita configurações com um clique</span>
-        </div>
-      </div>
     </section>
 
-    <!-- Coluna direita: card de login -->
     <section class="auth__card" aria-labelledby="auth-title">
       <h2 id="auth-title" class="auth__title">Olá! Bem-vindo(a) à Amaral Alambrados</h2>
 
       <div class="tabs" role="tablist">
         <button type="button" role="tab" class="tab" [class.tab--active]="mode() === 'login'"
-          [attr.aria-selected]="mode() === 'login'" (click)="mode.set('login')">Entrar</button>
+          [attr.aria-selected]="mode() === 'login'" (click)="setMode('login')">Entrar</button>
         <button type="button" role="tab" class="tab" [class.tab--active]="mode() === 'register'"
-          [attr.aria-selected]="mode() === 'register'" (click)="mode.set('register')">Cadastrar</button>
+          [attr.aria-selected]="mode() === 'register'" (click)="setMode('register')">Cadastrar</button>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        @if (mode() === 'register') {
+          <div class="field">
+            <label for="nome">Nome completo</label>
+            <div class="input">
+              <input id="nome" type="text" formControlName="nome" placeholder="Seu nome" autocomplete="name" />
+            </div>
+            @if (form.controls.nome.touched && form.controls.nome.invalid) {
+              <small class="error">Informe seu nome.</small>
+            }
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="cpf">CPF</label>
+              <div class="input">
+                <input id="cpf" type="text" inputmode="numeric" formControlName="cpf"
+                  placeholder="000.000.000-00" (input)="maskCpf($event)" />
+              </div>
+              @if (form.controls.cpf.touched && form.controls.cpf.invalid) {
+                <small class="error">CPF inválido.</small>
+              }
+            </div>
+
+            <div class="field">
+              <label for="telefone">Telefone</label>
+              <div class="input">
+                <input id="telefone" type="tel" formControlName="telefone"
+                  placeholder="(00) 00000-0000" (input)="maskTelefone($event)" autocomplete="tel" />
+              </div>
+              @if (form.controls.telefone.touched && form.controls.telefone.invalid) {
+                <small class="error">Telefone inválido.</small>
+              }
+            </div>
+          </div>
+        }
+
         <div class="field">
           <label for="email">E-mail</label>
           <div class="input">
@@ -46,7 +69,7 @@
               autocomplete="email" />
           </div>
           @if (form.controls.email.touched && form.controls.email.invalid) {
-          <small class="error">Informe um e-mail válido.</small>
+            <small class="error">Informe um e-mail válido.</small>
           }
         </div>
 
@@ -58,7 +81,8 @@
               <path d="M8 11V8a4 4 0 0 1 8 0v3" />
             </svg>
             <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
-              placeholder="Mínimo de 8 caracteres" autocomplete="current-password" />
+              placeholder="Mínimo de 8 caracteres"
+              [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'" />
             <button type="button" class="eye" (click)="showPassword.set(!showPassword())"
               [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -68,17 +92,19 @@
             </button>
           </div>
           @if (form.controls.password.touched && form.controls.password.invalid) {
-          <small class="error">A senha precisa ter pelo menos 8 caracteres.</small>
+            <small class="error">A senha precisa ter pelo menos 8 caracteres.</small>
           }
         </div>
 
-        <div class="row">
-          <label class="check">
-            <input type="checkbox" formControlName="remember" />
-            <span>Lembrar de mim</span>
-          </label>
-          <a href="#" class="link">Esqueceu a senha?</a>
-        </div>
+        @if (mode() === 'login') {
+          <div class="row">
+            <label class="check">
+              <input type="checkbox" formControlName="remember" />
+              <span>Lembrar de mim</span>
+            </label>
+            <a href="#" class="link">Esqueceu a senha?</a>
+          </div>
+        }
 
         <button type="submit" class="btn-primary">
           {{ mode() === 'login' ? 'Entrar' : 'Criar conta' }}
@@ -92,7 +118,6 @@
       <p class="home-link">
         <a routerLink="/" class="link">← Voltar para a página inicial</a>
       </p>
-
     </section>
   </div>
 </main>
