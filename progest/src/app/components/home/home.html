@@ -13,16 +13,63 @@
 <!-- HEADER / NAVEGAÇÃO PRINCIPAL -->
 <header class="main-header">
   <div class="header-container">
+
+    <!-- Só aparece no mobile: abre o menu lateral -->
+    <button class="btn-menu" type="button" aria-label="Abrir menu" (click)="abrirMenu()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+
     <div class="logo-area">
       <div class="logo-box">AMARAL ALAMBRADOS</div>
     </div>
 
+    <!-- Só aparece no desktop -->
     <div class="header-actions">
       <button class="btn-track" routerLink="/rastrear">Rastrear Pedido</button>
       <button class="btn-login" routerLink="/login">Entrar / Cadastrar</button>
     </div>
+
+    <!-- Só aparece no mobile: atalho para login -->
+    <button class="btn-user-icon" type="button" aria-label="Entrar ou cadastrar" routerLink="/login">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+      </svg>
+    </button>
+
   </div> <!-- fecha header-container -->
 </header>
+
+<!-- MENU LATERAL (MOBILE) -->
+<div class="menu-overlay" [class.open]="menuAberto" (click)="fecharMenu()"></div>
+
+<nav class="menu-drawer" [class.open]="menuAberto" aria-label="Menu principal" [attr.aria-hidden]="!menuAberto">
+  <div class="menu-drawer-header">
+    <div class="logo-box">AMARAL ALAMBRADOS</div>
+    <button class="btn-menu-close" type="button" aria-label="Fechar menu" (click)="fecharMenu()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <ul class="menu-links">
+    <li><button type="button" (click)="irParaConfigurador()">🧮 Simular orçamento</button></li>
+    <li><a routerLink="/rastrear" (click)="fecharMenu()">📦 Rastrear pedido</a></li>
+    <li><a routerLink="/login" (click)="fecharMenu()">👤 Entrar / Cadastrar</a></li>
+  </ul>
+
+  <div class="menu-contact">
+    <a href="tel:+551532314537">📞 (15) 3231-4537</a>
+    <a href="mailto:amaralambrados109@gmail.com">✉️ amaralambrados109&#64;gmail.com</a>
+    <span>🕒 Seg a Sex: 08h às 18h</span>
+  </div>
+</nav>
 
 <!-- HERO SECTION -->
 <section class="hero-section">  
@@ -56,7 +103,7 @@
 
       <!-- Botões de Ação -->
       <div class="hero-buttons">
-        <button class="btn-primary" type="button">
+        <button class="btn-primary" type="button" (click)="irParaConfigurador()">
           <span>INICIAR SIMULAÇÃO DE ORÇAMENTO</span>
         </button>
       </div>
@@ -84,7 +131,7 @@
 </section>
 
 <!-- SEÇÃO DO CONFIGURADOR INTELIGENTE -->
-<section class="configurator-section">
+<section class="configurator-section" #configSection>
   <div class="configurator-container">
 
     <div class="section-header">
@@ -302,8 +349,7 @@
                     <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} -
                     {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
                   </p>
-                  <p style="margin: 4px 0; color: 
-                  #666; font-size: 0.85rem;">
+                  <p style="margin: 4px 0; color: #666; font-size: 0.85rem;">
                     📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios |
                     number:'1.2-2' }}
                   </p>
@@ -330,7 +376,7 @@
       </div> <!-- /config-options (Fecha a coluna da esquerda) -->
 
       <!-- COLUNA DA DIREITA: RESUMO REATIVO DA CERCA (O CARD LATERAL AZUL/ESCURO) -->
-      <div class="config-summary-sidebar">
+      <div class="config-summary-sidebar" #resumoCard>
         <div class="summary-card">
           <div class="summary-card-header">
             <span class="tag-engineering">ENGENHARIA & ORÇAMENTO</span>
@@ -394,6 +440,15 @@
   </div> <!-- /configurator-container -->
 </section>
 
+<!-- BARRA FIXA DE TOTAL (MOBILE) — aparece enquanto o configurador está na tela -->
+<div class="barra-total" [class.visivel]="barraVisivel" [attr.aria-hidden]="!barraVisivel">
+  <div class="barra-total-info">
+    <small>INVESTIMENTO TOTAL</small>
+    <strong>{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</strong>
+  </div>
+  <button type="button" (click)="irParaResumo()">VER ORÇAMENTO</button>
+</div>
+
 <!-- RODAPÉ DA PÁGINA (FOOTER) -->
 <footer class="main-footer">
   <div class="footer-container">
@@ -422,7 +477,7 @@
         </li>
         <li>
           <span class="icon">✉️</span>
-          <span>amaralambrados109@gmail.com</span>
+          <span>amaralambrados109&#64;gmail.com</span>
         </li>
         <li>
           <span class="icon">🕒</span>
