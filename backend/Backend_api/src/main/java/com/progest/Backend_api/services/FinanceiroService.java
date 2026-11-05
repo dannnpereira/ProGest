@@ -4,10 +4,11 @@ import com.progest.Backend_api.dto.*;
 import com.progest.Backend_api.model.*;
 import com.progest.Backend_api.repository.*;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -58,11 +59,23 @@ public class FinanceiroService {
                     "A data da movimentação é obrigatória."
             );
         }
+        Pedidos pedido = null;
 
+if (request.op() != null) {
+    pedido = pedidosRepository.findById(request.op())
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Pedido não encontrado."
+            ));
+}   
+    TipoTransacao tipoTransacao = request.op() != null
+        ? TipoTransacao.ENTRADA
+        : TipoTransacao.SAIDA;
         TransacaoFinanceira transacao =
         new TransacaoFinanceira();
 
-        transacao.setTipo(tipo);
+        transacao.setPedido(pedido);
+        transacao.setTipo(tipoTransacao);
         transacao.setDescricao(request.descricao().trim());
         transacao.setFornecedores(request.fornecedores());
         transacao.setValor(request.valor());
@@ -73,7 +86,7 @@ public class FinanceiroService {
         // Relacionamento opcional com a OP
         if (request.op() != null) {
 
-            Pedidos pedido = pedidosRepository.findById(
+            Pedidos pedido1 = pedidosRepository.findById(
                     request.op()
             ).orElseThrow(() ->
                     new ResponseStatusException(
@@ -82,7 +95,7 @@ public class FinanceiroService {
                     )
             );
 
-            transacao.setPedido(pedido);
+            transacao.setPedido(pedido1);
         }
 
         TransacaoFinanceira salva =

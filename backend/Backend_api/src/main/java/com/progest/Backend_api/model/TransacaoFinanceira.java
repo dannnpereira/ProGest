@@ -13,7 +13,7 @@ public class TransacaoFinanceira {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "op")
+    @JoinColumn(nullable = true,name = "op")
     private Pedidos pedido;
 
     @Enumerated(EnumType.STRING)
