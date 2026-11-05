@@ -6,7 +6,6 @@ import com.progest.Backend_api.repository.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -232,13 +231,84 @@ if (request.op() != null) {
             : transacao.getPedido().getOp();
 
     return new TransacaoResponse(
-            transacao.getId(),
-            op,
-            transacao.getTipo(),
-            transacao.getDescricao(),
-            transacao.getFornecedores(),
-            transacao.getValor(),
-            transacao.getDataMovimentacao()
+        transacao.getId(),
+        op,
+        transacao.getTipo(),
+        transacao.getDescricao(),
+        transacao.getFornecedores(),
+        transacao.getValor(),
+        transacao.getDataMovimentacao(),
+        transacao.getTipoDespesa()
     );
+}
+public TransacaoResponse registrarDespesa(DespesaRequest request) {
+
+    if (request.descricao() == null ||
+        request.descricao().isBlank()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "A descrição da despesa é obrigatória."
+        );
+    }
+
+    if (request.valor() == null ||
+        request.valor().compareTo(BigDecimal.ZERO) <= 0) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "O valor da despesa deve ser maior que zero."
+        );
+    }
+
+    if (request.dataMovimentacao() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "A data da despesa é obrigatória."
+        );
+    }
+
+    if (request.tipoDespesa() == null) {
+    throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Selecione uma categoria válida para a despesa."
+    );
+}
+
+    TransacaoFinanceira despesa = new TransacaoFinanceira();
+
+    despesa.setPedido(null);
+    despesa.setTipo(TipoTransacao.SAIDA);
+    despesa.setDescricao(request.descricao().trim());
+    despesa.setFornecedores(request.fornecedores());
+    despesa.setValor(request.valor());
+    despesa.setDataMovimentacao(request.dataMovimentacao());
+    despesa.setTipoDespesa(request.tipoDespesa());
+
+    TransacaoFinanceira salva =
+        transacaoRepository.save(despesa);
+
+    return converterResposta(salva);
+}
+public List<TransacaoResponse> listarDespesas(TipoDespesa tipoDespesa) {
+
+    List<TransacaoFinanceira> despesas;
+
+    if (tipoDespesa == null) {
+        // Busca todas as despesas
+        despesas = transacaoRepository
+                .findByTipoOrderByDataMovimentacaoDescIdDesc(
+                        TipoTransacao.SAIDA
+                );
+    } else {
+        // Busca somente despesas do tipo informado
+        despesas = transacaoRepository
+                .findByTipoAndTipoDespesaOrderByDataMovimentacaoDescIdDesc(
+                        TipoTransacao.SAIDA,
+                        tipoDespesa
+                );
+    }
+
+    return despesas.stream()
+            .map(this::converterResposta)
+            .toList();
 }
 }

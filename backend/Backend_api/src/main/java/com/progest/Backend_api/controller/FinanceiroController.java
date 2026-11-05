@@ -1,6 +1,7 @@
 package com.progest.Backend_api.controller;
 
 import com.progest.Backend_api.dto.*;
+import com.progest.Backend_api.model.TipoDespesa;
 import com.progest.Backend_api.model.TipoTransacao;
 import com.progest.Backend_api.services.FinanceiroService;
 
@@ -91,4 +92,17 @@ public class FinanceiroController {
                 )
         );
     }
+        @PostMapping("/despesas")
+        @ResponseStatus(HttpStatus.CREATED)
+        public TransacaoResponse registrarDespesa(
+                @RequestBody DespesaRequest request
+) {
+    return financeiroService.registrarDespesa(request);
+}
+        @GetMapping("/despesas")
+public List<TransacaoResponse> listarDespesas(
+        @RequestParam(required = false) TipoDespesa tipo
+) {
+    return financeiroService.listarDespesas(tipo);
+}
 }

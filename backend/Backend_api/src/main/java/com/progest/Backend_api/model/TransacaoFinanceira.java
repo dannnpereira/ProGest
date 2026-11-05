@@ -32,6 +32,10 @@ public class TransacaoFinanceira {
     @Column(name = "data_movimentacao", nullable = false)
     private LocalDate dataMovimentacao;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_despesa", length = 20)
+    private TipoDespesa tipoDespesa;
+
     public TransacaoFinanceira() {
     }
 
@@ -84,4 +88,11 @@ public class TransacaoFinanceira {
     public void setFornecedores(String fornecedores) {
         this.fornecedores = fornecedores;
     }
+    public TipoDespesa getTipoDespesa() {
+    return tipoDespesa;
+}
+
+    public void setTipoDespesa(TipoDespesa tipoDespesa) {
+    this.tipoDespesa = tipoDespesa;
+}
 }
