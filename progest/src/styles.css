@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================
+   styles.css GLOBAL (src/styles.css)
+   Reset que o Angular não consegue aplicar no
+   componente por causa do encapsulamento.
+========================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+app-root {
+  display: block;
+  width: 100%;
+}
