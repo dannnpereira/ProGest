@@ -1,4 +1,5 @@
-package com.progest.Backend_api.model; 
+
+package com.progest.Backend_api.model;
 
 import java.util.Random;
 
@@ -13,12 +14,24 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long cpf;
-    private Long telefone;
+
+    @Column(nullable = false, unique = true, length = 11)
+    private String cpf;
+
+    @Column(length = 20)
+    private String telefone;
+
+    @Column(nullable = false, length = 150)
     private String nome;
+
+    @Column(length = 150)
     private String email;
 
-    public Cliente(Long cpf, Long telefone, String nome, String email) {
+    public Cliente() {
+    }
+
+    public Cliente(String cpf, String telefone,
+                   String nome, String email) {
         this.cpf = cpf;
         this.telefone = telefone;
         this.nome = nome;
@@ -27,6 +40,18 @@ public class Cliente {
 
     public Long getId() {
         return id;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public String getTelefone() {
+        return telefone;
     }
 
     public String getNome() {
@@ -44,16 +69,9 @@ public class Cliente {
     public void setEmail(String email) {
         this.email = email;
     }
-    public Long getCpf() {
-        return cpf;
-    }
-    public void setCpf(Long cpf) {
-        this.cpf = cpf;
-    }
-    public Long getTelefone() {
-        return telefone;
-    }
+
     public void setTelefone(Long telefone) {
-        this.telefone = telefone;
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setTelefone'");
     }
 }
