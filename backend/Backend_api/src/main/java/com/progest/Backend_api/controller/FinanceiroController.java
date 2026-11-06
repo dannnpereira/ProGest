@@ -3,6 +3,7 @@ package com.progest.Backend_api.controller;
 import com.progest.Backend_api.dto.*;
 import com.progest.Backend_api.model.TipoDespesa;
 import com.progest.Backend_api.model.TipoTransacao;
+import com.progest.Backend_api.services.CalculoLucroService;
 import com.progest.Backend_api.services.FinanceiroService;
 
 import org.springframework.http.HttpStatus;
@@ -16,12 +17,16 @@ import java.util.List;
 @RequestMapping("/api/financeiro")
 public class FinanceiroController {
 
-    private final FinanceiroService financeiroService;
+private final CalculoLucroService calculoLucroService;
+private final FinanceiroService financeiroService;
 
     public FinanceiroController(
-            FinanceiroService financeiroService) {
-        this.financeiroService = financeiroService;
-    }
+        FinanceiroService financeiroService,
+        CalculoLucroService calculoLucroService
+) {
+    this.financeiroService = financeiroService;
+    this.calculoLucroService = calculoLucroService;
+}
 
     // Registrar entrada
     @PostMapping("/entradas")
@@ -104,5 +109,11 @@ public List<TransacaoResponse> listarDespesas(
         @RequestParam(required = false) TipoDespesa tipo
 ) {
     return financeiroService.listarDespesas(tipo);
+}
+@GetMapping("/lucro")
+public CalculoLucroResponse calcularLucro(
+        @RequestParam YearMonth mes
+) {
+    return calculoLucroService.calcularLucro(mes);
 }
 }
