@@ -1,5 +1,7 @@
 package com.progest.Backend_api.repository;
 
+import com.progest.Backend_api.model.TipoDespesa;
+import com.progest.Backend_api.model.TipoTransacao;
 import com.progest.Backend_api.model.TransacaoFinanceira;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -17,4 +19,12 @@ public interface TransacaoFinanceiraRepository
 
     List<TransacaoFinanceira>
         findAllByOrderByDataMovimentacaoDescIdDesc();
+        List<TransacaoFinanceira> findByTipoOrderByDataMovimentacaoDescIdDesc(
+    TipoTransacao tipo
+);
+
+    List<TransacaoFinanceira> findByTipoAndTipoDespesaOrderByDataMovimentacaoDescIdDesc(
+        TipoTransacao tipo,
+    TipoDespesa tipoDespesa
+);
 }
