@@ -10,6 +10,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CepService } from '../../services/cep';
+import { FreteService } from '../../services/frete.service';
 
 @Component({
   selector: 'app-home',
@@ -45,7 +47,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private configVisivel = false;
   private resumoVisivel = false;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  // Estado da busca de CEP
+  buscandoCep = false;
+  erroCep = '';
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private cepService: CepService,
+    private freteService: FreteService
+  ) {}
 
   // A barra aparece quando o configurador está na tela
   // e some quando o card de resumo já está visível.
@@ -165,22 +175,51 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   buscarEnderecoPorCep() {
-    // Simulação de busca de CEP e cálculo de frete técnico
-    if (this.cep.length >= 8) {
-      this.enderecoCliente = {
-        logradouro: 'Rua Exemplo',
-        bairro: 'Centro',
-        localidade: 'Sorocaba',
-        uf: 'SP',
-        cep: this.cep
-      };
-      this.resultadoFrete = {
-        distanciaKm: 15,
-        pedagios: 0,
-        custoTotal: 120.00
-      };
-      this.tipoFrete = 'entrega';
+    // Busca o endereço real no ViaCEP e calcula o frete técnico até o destino
+    const cepLimpo = this.cep.replace(/\D/g, '');
+    this.erroCep = '';
+
+    if (cepLimpo.length !== 8) {
+      this.erroCep = 'Digite um CEP válido com 8 números.';
+      return;
     }
+
+    this.buscandoCep = true;
+    this.cepService.consultarCep(cepLimpo).subscribe({
+      next: (dados) => {
+        this.buscandoCep = false;
+
+        if (!dados || dados.erro) {
+          this.enderecoCliente = null;
+          this.resultadoFrete = null;
+          this.erroCep = 'CEP não encontrado. Confira o número digitado.';
+          this.cdr.markForCheck();
+          return;
+        }
+
+        // Mantém número e complemento já digitados se o cliente buscar de novo
+        this.enderecoCliente = {
+          logradouro: dados.logradouro,
+          bairro: dados.bairro,
+          localidade: dados.localidade,
+          uf: dados.uf,
+          cep: dados.cep,
+          numero: this.enderecoCliente?.numero ?? '',
+          complemento: this.enderecoCliente?.complemento || dados.complemento || ''
+        };
+
+        this.freteService.calcularFretePorCep(cepLimpo).subscribe((frete) => {
+          this.resultadoFrete = frete;
+          this.tipoFrete = 'entrega';
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.buscandoCep = false;
+        this.erroCep = 'Não foi possível consultar o CEP agora. Tente novamente.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   baixarPdfOrcamento() {
