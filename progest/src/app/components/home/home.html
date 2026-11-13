@@ -324,10 +324,25 @@
           <div class="cep-group">
             <input type="text" placeholder="18000-000" class="cep-input" [(ngModel)]="cep"
               (input)="atualizarCep($event)" maxlength="9" />
-            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()">CALCULAR POR CEP</button>
+            <button class="btn-cep" type="button" (click)="buscarEnderecoPorCep()" [disabled]="buscandoCep">
+              {{ buscandoCep ? 'BUSCANDO...' : 'CALCULAR POR CEP' }}
+            </button>
+          </div>
+          <p *ngIf="erroCep" style="margin: 8px 0 0; color: #dc2626; font-size: 0.85rem;">{{ erroCep }}</p>
+
+          <!-- Campos extras de Número e Complemento que aparecem após buscar o CEP -->
+          <div class="inputs-inline" *ngIf="enderecoCliente" style="margin-top: 12px;">
+            <div class="input-group" style="flex: 1;">
+              <label>NÚMERO</label>
+              <input type="text" placeholder="Ex: 109" class="cep-input" [(ngModel)]="enderecoCliente.numero" />
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <label>COMPLEMENTO (OPCIONAL)</label>
+              <input type="text" placeholder="Ex: Galpão / Bloco" class="cep-input" [(ngModel)]="enderecoCliente.complemento" />
+            </div>
           </div>
 
-          <div class="freight-options">
+          <div class="freight-options" style="margin-top: 15px;">
             <!-- ENTREGA TÉCNICA PRÓPRIA -->
             <label class="freight-card" [class.active]="tipoFrete === 'entrega'" (click)="tipoFrete = 'entrega'">
               <input type="radio" name="freight" [checked]="tipoFrete === 'entrega'" />
@@ -342,12 +357,13 @@
                   </div>
                 </div>
 
-                <!-- Detalhes do local de entrega logo abaixo dentro do card -->
+                <!-- Detalhes do local de entrega com rua, número, complemento, bairro, cidade/UF e CEP -->
                 <div *ngIf="enderecoCliente && tipoFrete === 'entrega'" class="detalhes-frete-interno"
                   style="margin-top: 10px; font-size: 0.9rem; border-top: 1px dashed #ddd; padding-top: 8px; color: #333;">
                   <p style="margin: 4px 0;">
-                    <strong>Local de Entrega:</strong> {{ enderecoCliente.logradouro }}, {{ enderecoCliente.bairro }} -
-                    {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
+                    <strong>Local de Entrega:</strong> 
+                    {{ enderecoCliente.logradouro }}<span *ngIf="enderecoCliente.numero">, nº {{ enderecoCliente.numero }}</span><span *ngIf="enderecoCliente.complemento"> ({{ enderecoCliente.complemento }})</span>, 
+                    {{ enderecoCliente.bairro }} - {{ enderecoCliente.localidade }}/{{ enderecoCliente.uf }} (CEP: {{ enderecoCliente.cep }})
                   </p>
                   <p style="margin: 4px 0; color: #666; font-size: 0.85rem;">
                     📏 Distância: {{ resultadoFrete?.distanciaKm }} km | 🛣️ Pedágio: R$ {{ resultadoFrete?.pedagios |
