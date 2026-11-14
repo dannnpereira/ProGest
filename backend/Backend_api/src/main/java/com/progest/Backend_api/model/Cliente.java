@@ -1,9 +1,6 @@
-
 package com.progest.Backend_api.model;
 
-import java.util.Random;
-
-import com.progest.Backend_api.repository.ClienteRepository;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 
@@ -24,8 +21,13 @@ public class Cliente {
     @Column(nullable = false, length = 150)
     private String nome;
 
-    @Column(length = 150)
+    @Column(unique = true, length = 150)
     private String email;
+
+    // Hash BCrypt da senha. Nunca e enviado nas respostas da API.
+    @JsonIgnore
+    @Column(name = "senha_hash", length = 100)
+    private String senhaHash;
 
     public Cliente() {
     }
@@ -36,7 +38,7 @@ public class Cliente {
         this.telefone = telefone;
         this.nome = nome;
         this.email = email;
-    }   
+    }
 
     public Long getId() {
         return id;
@@ -52,6 +54,10 @@ public class Cliente {
 
     public String getTelefone() {
         return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 
     public String getNome() {
@@ -70,8 +76,11 @@ public class Cliente {
         this.email = email;
     }
 
-    public void setTelefone(Long telefone) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setTelefone'");
+    public String getSenhaHash() {
+        return senhaHash;
+    }
+
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
     }
 }

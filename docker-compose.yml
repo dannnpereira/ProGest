@@ -1,0 +1,31 @@
+# Sobe o projeto inteiro em uma maquina (EC2):
+#   docker compose up -d --build
+# Antes, copie .env.example para .env e defina DB_PASSWORD.
+
+services:
+  backend:
+    build: ./backend/Backend_api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+      # Limita a memoria do Java para caber em uma instancia pequena
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
+    volumes:
+      - progest-data:/app/data
+    # Sem "ports": o backend so e acessivel pelo Nginx
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  # Arquivo do banco H2. Sobrevive a rebuilds e reinicios.
+  # NAO rode "docker compose down -v": o -v apaga o banco.
+  progest-data:

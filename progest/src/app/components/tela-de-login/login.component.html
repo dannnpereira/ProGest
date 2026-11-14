@@ -106,8 +106,16 @@
           </div>
         }
 
-        <button type="submit" class="btn-primary">
-          {{ mode() === 'login' ? 'Entrar' : 'Criar conta' }}
+        @if (erro()) {
+          <p class="form-error" role="alert">{{ erro() }}</p>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+          @if (enviando()) {
+            {{ mode() === 'login' ? 'Entrando…' : 'Criando conta…' }}
+          } @else {
+            {{ mode() === 'login' ? 'Entrar' : 'Criar conta' }}
+          }
         </button>
       </form>
 
