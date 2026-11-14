@@ -1,10 +1,12 @@
 package com.progest.Backend_api.controller;
 
-import com.progest.Backend_api.model.Cliente;
+import com.progest.Backend_api.dto.ClienteResponse;
 import com.progest.Backend_api.repository.ClienteRepository;
 import com.progest.Backend_api.services.ClienteService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,30 +20,37 @@ public class ClienteController {
         this.repository = repository;
         this.clienteService = clienteService;
     }
+
     @GetMapping("/id/{id}")
-public Cliente buscarPorId(@PathVariable Long id) {
-    return clienteService.buscarPorId(id);
-}
+    public ClienteResponse buscarPorId(@PathVariable Long id) {
+        var cliente = clienteService.buscarPorId(id);
+        if (cliente == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado.");
+        }
+        return ClienteResponse.de(cliente);
+    }
 
     @GetMapping
-    public Iterable listar() {
-        return repository.findAll();
+    public List<ClienteResponse> listar() {
+        return repository.findAll().stream().map(ClienteResponse::de).toList();
     }
 
     @PostMapping
-    public Object cadastrar(@RequestBody Cliente cliente, @RequestParam String cpf, @RequestParam Long telefone, @RequestParam String nome, @RequestParam String email) {
-        cliente.setCpf(cpf);
-        cliente.setTelefone(telefone);
-        cliente.setNome(nome);
-        cliente.setEmail(email);
-        return repository.save(cliente);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ClienteResponse cadastrar(
+            @RequestParam String cpf,
+            @RequestParam String telefone,
+            @RequestParam String nome,
+            @RequestParam String email) {
+        return ClienteResponse.de(clienteService.adicionarCliente(cpf, telefone, nome, email));
     }
+
     @PostMapping("/buscar-ou-adicionar")
-    public Cliente buscarOuAdicionar(
-        @RequestParam String cpf,
-        @RequestParam String nome,
-        @RequestParam String email,
-        @RequestParam Long telefone) {
-    return clienteService.buscarOuAdicionarCliente(null, cpf, nome, email, telefone);
-}
+    public ClienteResponse buscarOuAdicionar(
+            @RequestParam String cpf,
+            @RequestParam String nome,
+            @RequestParam String email,
+            @RequestParam String telefone) {
+        return ClienteResponse.de(clienteService.buscarOuAdicionarCliente(cpf, nome, email, telefone));
+    }
 }

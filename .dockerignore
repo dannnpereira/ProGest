@@ -1,0 +1,10 @@
+.git
+.vscode
+.postman
+**/node_modules
+**/dist
+**/.angular
+**/target
+**/data
+*.pdf
+.env

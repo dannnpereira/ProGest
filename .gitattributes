@@ -1,0 +1,5 @@
+# Scripts que rodam no Linux (EC2/Docker) precisam de quebra de linha LF
+*.sh text eol=lf
+*.Dockerfile text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf

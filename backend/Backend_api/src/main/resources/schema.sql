@@ -8,8 +8,12 @@ CREATE TABLE IF NOT EXISTS clientes (
     cpf VARCHAR(11) NOT NULL UNIQUE,
     telefone VARCHAR(20),
     nome VARCHAR(150) NOT NULL,
-    email VARCHAR(150)
+    email VARCHAR(150) UNIQUE,
+    senha_hash VARCHAR(100)
 );
+
+-- Garante a coluna de senha em bancos criados antes do login existir
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS senha_hash VARCHAR(100);
 
 -- =========================================
 -- TABELA: ENDERECOS

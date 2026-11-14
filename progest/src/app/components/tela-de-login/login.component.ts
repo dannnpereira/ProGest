@@ -3,7 +3,9 @@ import {
   AbstractControl, FormBuilder, ReactiveFormsModule,
   ValidationErrors, Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 function cpfValido(c: AbstractControl): ValidationErrors | null {
   const cpf = (c.value ?? '').replace(/\D/g, '');
@@ -26,8 +28,14 @@ function cpfValido(c: AbstractControl): ValidationErrors | null {
 export class LoginComponent {
   private fb = inject(FormBuilder);
 
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   mode = signal<'login' | 'register'>('login');
   showPassword = signal(false);
+  enviando = signal(false);
+  erro = signal('');
 
   form = this.fb.nonNullable.group({
     nome: [''],
@@ -40,6 +48,7 @@ export class LoginComponent {
 
   setMode(mode: 'login' | 'register') {
     this.mode.set(mode);
+    this.erro.set('');
     const { nome, cpf, telefone } = this.form.controls;
     if (mode === 'register') {
       nome.setValidators([Validators.required, Validators.minLength(3)]);
@@ -76,8 +85,54 @@ export class LoginComponent {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.enviando()) return;
+
     const dados = this.form.getRawValue();
-    // TODO: chamar o serviço (login ou cadastro, conforme mode())
     // Não use console.log com CPF/senha: são dados pessoais (LGPD)
+    const requisicao = this.mode() === 'login'
+      ? this.auth.login(dados.email, dados.password, dados.remember)
+      : this.auth.cadastrar({
+          nome: dados.nome,
+          cpf: dados.cpf.replace(/\D/g, ''),
+          telefone: dados.telefone,
+          email: dados.email,
+          senha: dados.password,
+        });
+
+    this.erro.set('');
+    this.enviando.set(true);
+    requisicao.subscribe({
+      next: () => {
+        this.enviando.set(false);
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        // Só aceita rotas internas, para não redirecionar para outro site
+        const destino = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/';
+        this.router.navigateByUrl(destino);
+      },
+      error: (e: HttpErrorResponse) => {
+        this.enviando.set(false);
+        this.erro.set(this.mensagemDeErro(e));
+      },
+    });
+  }
+
+  private mensagemDeErro(e: HttpErrorResponse): string {
+    const doServidor = typeof e.error?.message === 'string' ? e.error.message : '';
+    switch (e.status) {
+      case 0:
+      case 502:
+      case 504:
+        return 'Não foi possível conectar ao servidor. Tente novamente em instantes.';
+      case 401:
+        return 'E-mail ou senha incorretos.';
+      case 409:
+        return doServidor || 'Já existe uma conta com estes dados.';
+      case 429:
+        return 'Muitas tentativas seguidas. Aguarde um minuto e tente novamente.';
+      case 400:
+        return doServidor === 'CPF inválido.' ? doServidor : 'Verifique os dados informados.';
+      default:
+        return 'Algo deu errado. Tente novamente.';
+    }
   }
 }

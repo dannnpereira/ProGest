@@ -1,0 +1,5 @@
+# Segredos do deploy (senha do banco)
+.env
+
+# Backups do banco gerados por deploy/backup.sh
+backups/
