@@ -112,8 +112,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private mensagemDeErro(e: HttpErrorResponse): string {
     const doServidor = typeof e.error?.message === 'string' ? e.error.message : '';
-    if (e.status === 400) return 'Confira a altura e o comprimento informados.';
-    if (e.status === 422 && doServidor) return doServidor;
+    // Só confia no status se a resposta veio do backend (Spring manda "timestamp")
+    const doBackend = !!e.error?.timestamp;
+    if (doBackend && e.status === 400) return 'Confira a altura e o comprimento informados.';
+    if (doBackend && e.status === 422 && doServidor) return doServidor;
     return 'Não foi possível calcular o orçamento agora. Tente novamente em instantes.';
   }
 

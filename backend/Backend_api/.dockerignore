@@ -5,3 +5,4 @@ target/
 .idea/
 *.log
 data/
+src/main/resources/local.properties

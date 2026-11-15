@@ -1,0 +1,3 @@
+# Copie para local.properties (mesma pasta) e defina a senha do administrador do ERP
+# para rodar o backend no seu computador. O local.properties NAO vai para o git.
+progest.admin.senha=troque-esta-senha

@@ -1,15 +1,19 @@
 import { TestBed } from '@angular/core/testing';
-import { Cep } from './cep';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { CepService } from './cep';
 
-describe('Cep', () => {
-  let service: Cep;
+describe('CepService', () => {
+  let service: CepService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Cep);
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(CepService);
   });
 
-  it('should be created', () => {
+  it('é criado', () => {
     expect(service).toBeTruthy();
   });
 });
