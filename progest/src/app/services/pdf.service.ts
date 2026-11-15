@@ -1,137 +1,125 @@
 import { Injectable } from '@angular/core';
+import { Orcamento } from './orcamento.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+export interface DadosFichaTecnica {
+  configuracao: { bitola: 'fio12' | 'fio14'; malha: 'malha2' | 'malha3'; tratamento: 'galvanizado' | 'pvc' };
+  medidas: { altura: number; comprimento: number; area: number; rolos: number };
+  tipoFrete: 'entrega' | 'retirada';
+  endereco: { logradouro?: string; numero?: string; complemento?: string; bairro?: string; localidade?: string; uf?: string; cep?: string } | null;
+  /** Valores calculados pela API (mesmos do resumo na tela) */
+  orcamento: Orcamento;
+  cliente: string | null;
+}
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const NUM = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+
+/** Evita que texto digitado pelo cliente (endereço) vire HTML na ficha */
+function esc(v: unknown): string {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}
+
+/**
+ * Ficha técnica + orçamento: abre uma janela com o documento e chama a impressão,
+ * onde o cliente escolhe "Salvar como PDF". Devolve false se o navegador bloquear a janela.
+ */
+@Injectable({ providedIn: 'root' })
 export class PdfService {
 
-  gerarOrcamentoPdf(dadosOrcamento: {
-    configuracao: any,
-    medidas: any,
-    precos: any,
-    frete: any,
-    endereco: any,
-    tipoFrete: string
-  }) {
-    // Cria uma janela oculta ou elemento temporário para impressão/geração limpa do PDF
-    const janelaPrint = window.open('', '_blank');
-    if (!janelaPrint) {
-      alert('Por favor, permita pop-ups para descarregar o PDF.');
-      return;
-    }
+  gerarOrcamentoPdf(d: DadosFichaTecnica): boolean {
+    const janela = window.open('', '_blank');
+    if (!janela) return false;
 
-    const htmlConteudo = `
-      <!DOCTYPE html>
-      <html lang="pt-BR">
-      <head>
-        <meta charset="UTF-8">
-        <title>Orçamento Técnico - Amaral Alambrados</title>
-        <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; margin: 0; padding: 20px; background: #fff; }
-          .header { border-bottom: 3px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-          .logo { font-size: 24px; font-weight: bold; color: #0f172a; letter-spacing: 1px; }
-          .badge { background: #fef08a; color: #854d0e; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; }
-          h2 { color: #0f172a; font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 14px; }
-          th { background: #f1f5f9; color: #334155; }
-          .total-box { margin-top: 20px; background: #0f172a; color: #fff; padding: 15px; border-radius: 6px; text-align: right; }
-          .total-box h3 { margin: 0; font-size: 22px; color: #38bdf8; }
-          .footer { margin-top: 40px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div>
-            <div class="logo">AMARAL ALAMBRADOS</div>
-            <p style="margin: 2px 0; font-size: 13px; color: #64748b;">Engenharia e Soluções em Cercamentos</p>
-          </div>
-          <div>
-            <span class="badge">ORÇAMENTO VÁLIDO POR 7 DIAS</span>
-            <p style="margin: 5px 0 0 0; font-size: 12px; text-align: right; color: #64748b;">Data: ${new Date().toLocaleDateString('pt-BR')}</p>
-          </div>
-        </div>
+    const o = d.orcamento;
+    const entrega = d.tipoFrete === 'entrega';
+    const e = d.endereco;
+    const enderecoTexto = e
+      ? `${esc(e.logradouro)}${e.numero ? ', nº ' + esc(e.numero) : ''}${e.complemento ? ' (' + esc(e.complemento) + ')' : ''}` +
+        `${e.bairro ? ' - ' + esc(e.bairro) : ''} - ${esc(e.localidade)}/${esc(e.uf)} (CEP ${esc(e.cep)})`
+      : '';
+    const hoje = new Date();
+    const validade = new Date(hoje.getTime() + 7 * 86_400_000);
 
-        <h2>01. ESPECIFICAÇÕES TÉCNICAS DA CERCA</h2>
-        <table>
-          <tr>
-            <th>Parâmetro</th>
-            <th>Detalhe Escolhido</th>
-          </tr>
-          <tr>
-            <td>Bitola do Arame (Espessura)</td>
-            <td>${dadosOrcamento.configuracao.bitola === 'fio12' ? 'Fio 12 (2,77 mm) - Alta Resistência' : 'Fio 14 (2,10 mm) - Residencial'}</td>
-          </tr>
-          <tr>
-            <td>Malha / Abertura</td>
-            <td>${dadosOrcamento.configuracao.malha === 'malha2' ? 'Malha 2" (50 mm)' : 'Malha 3" (75 mm)'}</td>
-          </tr>
-          <tr>
-            <td>Tratamento Anticorrosivo</td>
-            <td>${dadosOrcamento.configuracao.tratamento === 'galvanizado' ? 'Galvanizada a Fogo' : 'Revestida em PVC'}</td>
-          </tr>
-          <tr>
-            <td>Dimensões do Projeto</td>
-            <td>Altura: ${dadosOrcamento.medidas.altura}m | Comprimento: ${dadosOrcamento.medidas.comprimento} metros (${dadosOrcamento.medidas.area} m² totais)</td>
-          </tr>
-          <tr>
-            <td>Estimativa de Embalagem</td>
-            <td>${dadosOrcamento.medidas.rolos} rolos padrão de 15 metros</td>
-          </tr>
-        </table>
+    janela.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ficha técnica e orçamento - Amaral Alambrados</title>
+  <style>
+    @page { size: A4; margin: 16mm; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111827; margin: 0; padding: 24px; background: #fff; }
+    .header { border-bottom: 3px solid #111827; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+    .logo { display: inline-block; background: #111827; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: 1px; padding: 6px 12px; }
+    .sub { margin: 6px 0 0; font-size: 13px; color: #6b7280; }
+    .badge { background: #fef3c7; color: #92400e; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; letter-spacing: .5px; }
+    .meta { margin: 6px 0 0; font-size: 12px; text-align: right; color: #6b7280; }
+    h2 { font-size: 15px; letter-spacing: .5px; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin: 24px 0 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #d1d5db; padding: 9px 10px; text-align: left; font-size: 13px; }
+    th { background: #f3f4f6; color: #374151; width: 38%; }
+    td.valor, th.valor { text-align: right; white-space: nowrap; }
+    .desconto td { color: #047857; font-weight: 700; }
+    .total { margin-top: 18px; background: #111827; color: #fff; padding: 16px 18px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .total strong { font-size: 24px; color: #fbbf24; }
+    .total small { display: block; font-size: 12px; color: #d1d5db; margin-top: 4px; }
+    .nota { font-size: 12px; color: #4b5563; margin-top: 10px; }
+    .footer { margin-top: 32px; font-size: 11px; color: #6b7280; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <span class="logo">AMARAL ALAMBRADOS</span>
+      <p class="sub">Ficha técnica e orçamento${d.cliente ? ' • Cliente: ' + esc(d.cliente) : ''}</p>
+    </div>
+    <div>
+      <span class="badge">VÁLIDO ATÉ ${validade.toLocaleDateString('pt-BR')}</span>
+      <p class="meta">Emitido em ${hoje.toLocaleDateString('pt-BR')}</p>
+    </div>
+  </div>
 
-        <h2>02. LOGÍSTICA E ENTREGA</h2>
-        <p style="font-size: 14px;"><strong>Modalidade:</strong> ${dadosOrcamento.tipoFrete === 'entrega' ? 'Entrega Técnica Própria (Carga paletizada)' : 'Retirada na Fábrica (Sorocaba/SP)'}</p>
-        ${dadosOrcamento.tipoFrete === 'entrega' && dadosOrcamento.endereco ? `
-          <p style="font-size: 14px;"><strong>Endereço de Destino:</strong> ${dadosOrcamento.endereco.logradouro}, ${dadosOrcamento.endereco.bairro} -${dadosOrcamento.endereco.localidade}/${dadosOrcamento.endereco.uf} (CEP:${dadosOrcamento.endereco.cep})</p>
-          <p style="font-size: 13px; color: #475569;">Distância estimada percorrida: ${dadosOrcamento.frete?.distanciaKm || 0} km | Pedágio proporcional: R$ ${dadosOrcamento.frete?.pedagios?.toFixed(2) || '0.00'}</p>
-        ` : ''}
+  <h2>01. Especificação técnica</h2>
+  <table>
+    <tr><th>Bitola do arame</th><td>${d.configuracao.bitola === 'fio12' ? 'Fio 12 (2,77 mm) - alta resistência' : 'Fio 14 (2,10 mm) - padrão comercial'}</td></tr>
+    <tr><th>Malha / abertura</th><td>${d.configuracao.malha === 'malha2' ? 'Malha 2" (50 mm)' : 'Malha 3" (75 mm)'}</td></tr>
+    <tr><th>Tratamento anticorrosivo</th><td>${d.configuracao.tratamento === 'galvanizado' ? 'Galvanizada a fogo' : 'Revestida em PVC'}</td></tr>
+    <tr><th>Altura da tela</th><td>${NUM.format(d.medidas.altura)} m</td></tr>
+    <tr><th>Comprimento (metragem linear)</th><td>${NUM.format(d.medidas.comprimento)} m</td></tr>
+    <tr><th>Área total de tela</th><td>${NUM.format(d.medidas.area)} m²</td></tr>
+    <tr><th>Estimativa de embalagem</th><td>${d.medidas.rolos} rolos de 15 metros</td></tr>
+  </table>
 
-        <h2>03. COMPOSIÇÃO DE VALORES E INVESTIMENTO</h2>
-        <table>
-          <tr>
-            <th>Descrição do Item</th>
-            <th style="text-align: right;">Valor (R$)</th>
-          </tr>
-          <tr>
-            <td>Matéria-Prima e Produção Sob Medida</td>
-            <td style="text-align: right;">R$ ${dadosOrcamento.precos.materiaPrima.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td>Acessórios Homologados</td>
-            <td style="text-align: right;">R$ ${dadosOrcamento.precos.acessorios.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td>${dadosOrcamento.tipoFrete === 'entrega' ? 'Frete Técnico (Logística Própria)' : 'Retirada na Fábrica'}</td>
-            <td style="text-align: right;">R$ ${dadosOrcamento.tipoFrete === 'entrega' ? dadosOrcamento.precos.frete.toFixed(2) : '0,00'}</td>
-          </tr>
-          <tr style="color: #16a34a; font-weight: bold;">
-            <td>Desconto Comercial À Vista (5%)</td>
-            <td style="text-align: right;">- R$ ${dadosOrcamento.precos.desconto.toFixed(2)}</td>
-          </tr>
-        </table>
+  <h2>02. Logística</h2>
+  <table>
+    <tr><th>Modalidade</th><td>${entrega ? 'Entrega técnica própria' : 'Retirada na fábrica (Sorocaba/SP)'}</td></tr>
+    ${entrega && enderecoTexto ? `<tr><th>Endereço da obra</th><td>${enderecoTexto}</td></tr>` : ''}
+    ${entrega && o.frete.distanciaKm != null ? `<tr><th>Distância estimada</th><td>${o.frete.distanciaKm} km${o.frete.pedagios ? ' • pedágio estimado ' + BRL.format(o.frete.pedagios) : ''}</td></tr>` : ''}
+  </table>
 
-        <div class="total-box">
-          <span style="font-size: 13px; letter-spacing: 1px;">INVESTIMENTO TOTAL À VISTA</span>
-          <h3>R$ ${dadosOrcamento.precos.total.toFixed(2)}</h3>
-          <p style="margin: 5px 0 0 0; font-size: 12px; color: #cbd5e1;">Ou em até 10x de R$ ${dadosOrcamento.precos.parcela.toFixed(2)} no cartão</p>
-        </div>
+  <h2>03. Valores</h2>
+  <table>
+    <tr><th>Item</th><th class="valor">Valor</th></tr>
+    <tr><td>Matéria-prima e produção sob medida</td><td class="valor">${BRL.format(o.materiaPrima)}</td></tr>
+    <tr><td>Acessórios homologados (mourões e fixadores)</td><td class="valor">${BRL.format(o.acessorios)}</td></tr>
+    <tr><td>${entrega ? 'Frete técnico' : 'Retirada na fábrica'}</td><td class="valor">${BRL.format(o.frete.valor)}</td></tr>
+    <tr class="desconto"><td>Desconto comercial à vista (${NUM.format(o.descontoPct)}%)</td><td class="valor">- ${BRL.format(o.desconto)}</td></tr>
+  </table>
 
-        <div class="footer">
-          <p>Amaral Alambrados - CNPJ e Dados da Empresa | Fábrica: Sorocaba/SP - CEP 18090-390</p>
-          <p>Documento gerado eletronicamente pelo Configurador Inteligente.</p>
-        </div>
+  <div class="total">
+    <span>INVESTIMENTO TOTAL<small>ou em ${o.parcelas}x de ${BRL.format(o.valorParcela)} no cartão</small></span>
+    <strong>${BRL.format(o.total)}</strong>
+  </div>
+  <p class="nota">Valores sujeitos à confirmação da fábrica no momento do pedido e ao estoque de matéria-prima.</p>
 
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </script>
-      </body>
-      </html>
-    `;
-
-    janelaPrint.document.write(htmlConteudo);
-    janelaPrint.document.close();
+  <div class="footer">
+    Amaral Alambrados • Sorocaba/SP • (15) 3231-4537 • amaralambrados109@gmail.com<br>
+    Documento gerado pelo configurador do site.
+  </div>
+  <script>window.onload = function () { window.focus(); window.print(); };</script>
+</body>
+</html>`);
+    janela.document.close();
+    return true;
   }
 }

@@ -91,7 +91,14 @@
     </div>
   </div>
 
-  @if (!fila().length) {
+  @if (svc.estado() === 'carregando' && !fila().length) {
+    <div class="card empty" role="status">Carregando pedidos do site…</div>
+  } @else if (svc.estado() === 'erro' && !fila().length) {
+    <div class="card empty" role="alert">
+      <strong>Não foi possível carregar os pedidos</strong>
+      <button type="button" class="btn btn--sm" (click)="svc.carregar()">Tentar de novo</button>
+    </div>
+  } @else if (!fila().length) {
     <div class="card empty">
       <strong>Nenhum pedido aguardando aprovação</strong>
       Os novos pedidos feitos pelo site aparecem aqui automaticamente.

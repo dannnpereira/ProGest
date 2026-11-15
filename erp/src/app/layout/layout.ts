@@ -46,6 +46,9 @@ export class Layout {
   protected novosTexto = computed(() => doisDigitos(this.novos()));
 
   constructor() {
+    // Pedidos do site: busca ao abrir o painel (lista do perfil de quem entrou)
+    this.pedidos.carregar();
+
     // Fecha o menu do celular ao trocar de tela
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
       this.menuAberto.set(false);

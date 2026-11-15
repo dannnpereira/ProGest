@@ -28,12 +28,25 @@
 
     <!-- Só aparece no desktop -->
     <div class="header-actions">
-      <button class="btn-track" routerLink="/rastrear">Rastrear Pedido</button>
-      <button class="btn-login" routerLink="/login">Entrar / Cadastrar</button>
+      <button class="btn-track" routerLink="/acompanhar">Acompanhar Pedido</button>
+      @if (auth.estaLogado()) {
+        <a class="btn-track btn-perfil" routerLink="/perfil" title="Meu perfil">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+          </svg>
+          {{ primeiroNome || 'Meu perfil' }}
+        </a>
+        <button class="btn-login" type="button" (click)="sair()">Sair</button>
+      } @else {
+        <button class="btn-login" routerLink="/login">Entrar / Cadastrar</button>
+      }
     </div>
 
-    <!-- Só aparece no mobile: atalho para login -->
-    <button class="btn-user-icon" type="button" aria-label="Entrar ou cadastrar" routerLink="/login">
+    <!-- Só aparece no mobile: atalho para o perfil (logado) ou para o login -->
+    <button class="btn-user-icon" type="button" [attr.aria-label]="auth.estaLogado() ? 'Meu perfil' : 'Entrar ou cadastrar'"
+      [routerLink]="auth.estaLogado() ? '/perfil' : '/login'">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="8" r="4" />
@@ -60,8 +73,13 @@
 
   <ul class="menu-links">
     <li><button type="button" (click)="irParaConfigurador()">🧮 Simular orçamento</button></li>
-    <li><a routerLink="/rastrear" (click)="fecharMenu()">📦 Rastrear pedido</a></li>
-    <li><a routerLink="/login" (click)="fecharMenu()">👤 Entrar / Cadastrar</a></li>
+    <li><a routerLink="/acompanhar" (click)="fecharMenu()">📦 Acompanhar pedido</a></li>
+    @if (auth.estaLogado()) {
+      <li><a routerLink="/perfil" (click)="fecharMenu()">👤 Meu perfil</a></li>
+      <li><button type="button" (click)="sair()">🚪 Sair</button></li>
+    } @else {
+      <li><a routerLink="/login" (click)="fecharMenu()">👤 Entrar / Cadastrar</a></li>
+    }
   </ul>
 
   <div class="menu-contact">
@@ -444,9 +462,19 @@
           </div>
 
           <div class="summary-actions">
-            <button class="btn-checkout" type="button">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
-            <button class="btn-pdf" type="button" (click)="baixarPdfOrcamento()">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM
+            @if (auth.estaLogado()) {
+              <button class="btn-checkout" type="button" (click)="fazerPedido()"
+                [disabled]="enviandoPedido() || calculando() || !orcamento()" [attr.aria-busy]="enviandoPedido()">
+                {{ enviandoPedido() ? 'ENVIANDO PEDIDO…' : 'FAZER PEDIDO →' }}
+              </button>
+            } @else {
+              <button class="btn-checkout" type="button" (click)="irParaLogin()">FAZER CADASTRO / LOGIN PARA CONTINUAR →</button>
+            }
+            <button class="btn-pdf" type="button" (click)="baixarPdfOrcamento()" [disabled]="!orcamento()">📄 BAIXAR FICHA TÉCNICA E ORÇAMENTO EM
               PDF</button>
+            @if (erroPedido()) {
+              <p class="pedido-erro" role="alert">{{ erroPedido() }}</p>
+            }
           </div>
 
           <div class="summary-footer-note">

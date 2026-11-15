@@ -17,8 +17,14 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { CepService } from '../../services/cep';
 import { Orcamento, OrcamentoService, PedidoOrcamento } from '../../services/orcamento.service';
+import { AuthService } from '../../services/auth.service';
+import { ContaService } from '../../services/conta.service';
+import { PdfService } from '../../services/pdf.service';
+import { Router } from '@angular/router';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+/** Configuração guardada ao ir para o login, para o cliente não refazer tudo */
+const CHAVE_RASCUNHO = 'progest_rascunho_orcamento';
 
 @Component({
   selector: 'app-home',
@@ -88,11 +94,27 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   buscandoCep = false;
   erroCep = '';
 
+  // ---------- Pedido ----------
+  readonly enviandoPedido = signal(false);
+  readonly erroPedido = signal('');
+  /** Veio do login com uma configuração guardada: rola até o resumo */
+  private voltouDoLogin = false;
+
+  get primeiroNome(): string {
+    return this.auth.usuarioAtual()?.nome?.split(' ')[0] ?? '';
+  }
+
   constructor(
     private cdr: ChangeDetectorRef,
     private cepService: CepService,
-    private orcamentoService: OrcamentoService
+    private orcamentoService: OrcamentoService,
+    protected auth: AuthService,
+    private conta: ContaService,
+    private pdf: PdfService,
+    private router: Router
   ) {
+    this.voltouDoLogin = this.restaurarRascunho();
+
     // Pede o orçamento à API quando as escolhas mudam (espera 250 ms de calmaria
     // para não mandar uma requisição a cada tecla; uma resposta antiga é descartada).
     toObservable(this.pedido).pipe(
@@ -139,6 +161,114 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this.observer.observe(this.configSection.nativeElement);
     this.observer.observe(this.resumoCard.nativeElement);
+
+    if (this.voltouDoLogin) {
+      setTimeout(() => this.resumoCard.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }
+
+  // ---------- Fazer pedido / login ----------
+
+  /** Sem login: guarda a configuração e vai para o login; depois volta para cá. */
+  irParaLogin(): void {
+    this.guardarRascunho();
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/' } });
+  }
+
+  sair(): void {
+    this.auth.sair();
+    this.fecharMenu();
+  }
+
+  fazerPedido(): void {
+    if (this.enviandoPedido()) return;
+    this.erroPedido.set('');
+
+    const entrega = this.tipoFrete === 'entrega';
+    const end = this.enderecoCliente;
+    if (entrega && (!this.cepFrete() || !end)) {
+      this.erroPedido.set('Para entrega, informe o CEP da obra e clique em "Calcular por CEP" (passo 05).');
+      return;
+    }
+    if (entrega && !String(end.numero ?? '').trim()) {
+      this.erroPedido.set('Informe o número do endereço de entrega (passo 05).');
+      return;
+    }
+    if (!this.orcamento()) {
+      this.erroPedido.set('Aguarde o orçamento ser calculado para fazer o pedido.');
+      return;
+    }
+
+    const p = this.pedido();
+    this.enviandoPedido.set(true);
+    this.conta.fazerPedido({
+      arame: p.arame, malha: p.malha, tratamento: p.tratamento,
+      alturaM: p.alturaM, comprimentoM: p.comprimentoM, entrega,
+      endereco: entrega ? {
+        cep: end.cep, logradouro: end.logradouro || 'Endereço sem logradouro', numero: String(end.numero).trim(),
+        complemento: end.complemento ?? '', bairro: end.bairro ?? '', cidade: end.localidade, uf: end.uf,
+      } : null,
+    }).subscribe({
+      next: criado => {
+        this.enviandoPedido.set(false);
+        this.apagarRascunho();
+        this.router.navigate(['/acompanhar'], { queryParams: { pedido: criado.codigo } });
+      },
+      error: (e: HttpErrorResponse) => {
+        this.enviandoPedido.set(false);
+        // 401: o interceptor já leva para o login. Guarda a configuração para não perder.
+        if (e.status === 401) {
+          this.guardarRascunho();
+          return;
+        }
+        const msg = typeof e.error?.message === 'string' && e.error?.timestamp ? e.error.message : '';
+        this.erroPedido.set(
+          e.status === 422 && msg ? msg
+            : e.status === 400 ? (msg && !msg.startsWith('Validation') ? msg : 'Confira as medidas e o endereço de entrega.')
+            : 'Não foi possível enviar o pedido agora. Tente novamente em instantes.');
+      },
+    });
+  }
+
+  private guardarRascunho(): void {
+    try {
+      sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify({
+        bitola: this.bitolaSelecionada, malha: this.malhaSelecionada, altura: this.alturaMetros,
+        comprimento: this.comprimentoMetros, tratamento: this.tratamentoSelecionado,
+        tipoFrete: this.tipoFrete, cep: this.cep, cepFrete: this.cepFrete(), endereco: this.enderecoCliente,
+      }));
+    } catch {
+      // sem armazenamento: a configuração volta ao padrão
+    }
+  }
+
+  /** Recupera a configuração feita antes do login. Devolve true se havia uma. */
+  private restaurarRascunho(): boolean {
+    try {
+      const bruto = sessionStorage.getItem(CHAVE_RASCUNHO);
+      if (!bruto) return false;
+      const r = JSON.parse(bruto);
+      this.sBitola.set(r.bitola === 'fio14' ? 'fio14' : 'fio12');
+      this.sMalha.set(r.malha === 'malha2' ? 'malha2' : 'malha3');
+      this.sAltura.set(Number(r.altura) || 2);
+      this.sComprimento.set(Number(r.comprimento) || 50);
+      this.sTratamento.set(r.tratamento === 'pvc' ? 'pvc' : 'galvanizado');
+      this.sTipoFrete.set(r.tipoFrete === 'entrega' ? 'entrega' : 'retirada');
+      this.cep = r.cep ?? '';
+      this.cepFrete.set(r.cepFrete ?? null);
+      this.enderecoCliente = r.endereco ?? null;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private apagarRascunho(): void {
+    try {
+      sessionStorage.removeItem(CHAVE_RASCUNHO);
+    } catch {
+      // nada a fazer
+    }
   }
 
   ngOnDestroy(): void {
@@ -281,8 +411,27 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /** Abre a ficha técnica + orçamento pronta para imprimir / salvar em PDF. */
   baixarPdfOrcamento() {
-    console.log('Baixando PDF do orçamento...');
-    alert('Ficha técnica e orçamento gerados com sucesso!');
+    const o = this.orcamento();
+    if (!o) {
+      this.erroPedido.set('Aguarde o orçamento ser calculado para gerar a ficha técnica.');
+      return;
+    }
+    this.erroPedido.set('');
+    const ok = this.pdf.gerarOrcamentoPdf({
+      configuracao: { bitola: this.bitolaSelecionada, malha: this.malhaSelecionada, tratamento: this.tratamentoSelecionado },
+      medidas: {
+        altura: this.alturaMetros, comprimento: this.comprimentoMetros,
+        area: Number(o.areaM2), rolos: this.totalRolos,
+      },
+      tipoFrete: this.tipoFrete,
+      endereco: this.tipoFrete === 'entrega' ? this.enderecoCliente : null,
+      orcamento: o,
+      cliente: this.auth.usuarioAtual()?.nome ?? null,
+    });
+    if (!ok) {
+      this.erroPedido.set('O navegador bloqueou a janela da ficha técnica. Permita pop-ups para este site e tente de novo.');
+    }
   }
 }

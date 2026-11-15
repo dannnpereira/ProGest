@@ -18,6 +18,7 @@ export interface Cliente {
   cidade: string;
   uf: string;
   telefone: string; // só dígitos, com DDD
+  email?: string;
 }
 
 export interface Pedido {
@@ -31,7 +32,7 @@ export interface Pedido {
   malha: Malha;
   alturaM: number;
   metragemM: number;
-  tratamentoId: number; // id do produto da categoria Tratamento
+  tratamento: 'GALVANIZADA' | 'PVC'; // chave do produto da categoria Tratamento
   rolos: string;
 
   frete: { tipo: 'ENTREGA' | 'RETIRADA'; distanciaKm?: number; descricao: string };

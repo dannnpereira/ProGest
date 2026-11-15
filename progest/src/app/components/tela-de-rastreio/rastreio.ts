@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RastreioService } from '../../services/rastreio.service';
 import { Etapa, EstadoEtapa, Pedido, StatusPedido } from '../../services/pedido';
@@ -36,6 +36,10 @@ export class RastreioComponent implements OnInit {
   private auth = inject(AuthService);
   private rastreio = inject(RastreioService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  /** Código do pedido que acabou de ser feito (mostra a mensagem de confirmação) */
+  novoPedido = signal('');
 
   pedidos = signal<Pedido[]>([]);
   carregando = signal(true);
@@ -79,15 +83,20 @@ export class RastreioComponent implements OnInit {
       next: (lista) => {
         const ordenados = [...lista].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
         this.pedidos.set(ordenados);
-        // Abre primeiro o pedido mais recente que ainda está andando
+        // ?pedido=AM-1001 (vindo do "Fazer pedido") abre esse pedido;
+        // senão, o mais recente que ainda está andando
+        const pedido = this.route.snapshot.queryParamMap.get('pedido');
+        const pedidoPedido = pedido ? ordenados.find((p) => p.codigo === pedido) : undefined;
         const emAndamento = ordenados.find(
           (p) => p.status !== 'finalizado' && p.status !== 'recusado'
         );
-        this.selecionadoId.set((emAndamento ?? ordenados[0])?.id ?? null);
+        this.selecionadoId.set((pedidoPedido ?? emAndamento ?? ordenados[0])?.id ?? null);
+        this.novoPedido.set(pedidoPedido?.codigo ?? '');
         this.carregando.set(false);
       },
-      error: () => {
-        this.erro.set('Não foi possível carregar seus pedidos. Tente de novo em instantes.');
+      error: (e: { status?: number }) => {
+        // 401: o auth.interceptor já leva para o login
+        if (e?.status !== 401) this.erro.set('Não foi possível carregar seus pedidos. Tente de novo em instantes.');
         this.carregando.set(false);
       }
     });

@@ -1,0 +1,75 @@
+<!-- CABEÇALHO (mesmo da tela de pedidos) -->
+<header class="rs-header">
+  <div class="rs-header-inner">
+    <a class="rs-logo" routerLink="/" aria-label="Amaral Alambrados, ir para o início">AMARAL ALAMBRADOS</a>
+
+    <nav class="rs-nav" aria-label="Navegação principal">
+      <a routerLink="/">Início</a>
+      <a routerLink="/acompanhar">Acompanhar pedido</a>
+      <a routerLink="/perfil" class="ativo" aria-current="page">Meu perfil</a>
+    </nav>
+
+    <div class="rs-usuario">
+      <span class="rs-usuario-nome">{{ nomeCompleto }}</span>
+      <button type="button" class="rs-btn-sair" (click)="sair()">Sair</button>
+    </div>
+  </div>
+</header>
+
+<main class="rs-main">
+  <section class="rs-intro">
+    <div>
+      <h1>Meu perfil</h1>
+      <p>Dados informados no seu cadastro.</p>
+    </div>
+    <a class="rs-btn-novo" routerLink="/">Novo orçamento</a>
+  </section>
+
+  @if (carregando()) {
+    <p class="rs-estado" role="status">Carregando seus dados…</p>
+  } @else if (erro()) {
+    <div class="rs-estado rs-estado-erro" role="alert">
+      <p>{{ erro() }}</p>
+      <button type="button" class="rs-btn-secundario" (click)="carregar()">Tentar de novo</button>
+    </div>
+  } @else if (perfil(); as p) {
+    <section class="pf-card" aria-labelledby="pf-nome">
+      <div class="pf-topo">
+        <span class="pf-avatar" aria-hidden="true">{{ iniciais }}</span>
+        <div>
+          <h2 id="pf-nome">{{ p.nome }}</h2>
+          <span class="pf-tag">Cliente Amaral Alambrados</span>
+        </div>
+      </div>
+
+      <dl class="pf-dados">
+        <div>
+          <dt>Nome completo</dt>
+          <dd>{{ p.nome }}</dd>
+        </div>
+        <div>
+          <dt>E-mail</dt>
+          <dd>{{ p.email }}</dd>
+        </div>
+        <div>
+          <dt>Telefone</dt>
+          <dd>{{ p.telefone }}</dd>
+        </div>
+        <div>
+          <dt>CPF</dt>
+          <dd>{{ p.cpf }} <small>(parte oculta por segurança)</small></dd>
+        </div>
+      </dl>
+
+      <p class="pf-ajuda">
+        Precisa corrigir algum dado? Fale com a Amaral pelo telefone
+        <a href="tel:+551532314537">(15) 3231-4537</a>.
+      </p>
+
+      <div class="pf-acoes">
+        <a class="rs-btn-novo" routerLink="/acompanhar">Acompanhar meus pedidos</a>
+        <button type="button" class="rs-btn-secundario" (click)="sair()">Sair da conta</button>
+      </div>
+    </section>
+  }
+</main>

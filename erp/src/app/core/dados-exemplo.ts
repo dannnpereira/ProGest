@@ -1,22 +1,9 @@
 // Dados de exemplo baseados na prototipação (Telas 3 a 6).
 // Os horários são gerados em relação a "agora" para a tela parecer viva na apresentação.
-// Quando os endpoints existirem no backend, os serviços passam a buscar daqui -> API.
+// Pedidos e produtos já vêm da API; aqui ficam os valores padrão de produtos e o Financeiro.
 
-import { Compra, Movimentacao, Pedido, Produto, RegrasOrcamento, ResumoMes } from './modelos';
-import { isoDia, isoMes } from './formato';
-
-const minutosAtras = (min: number) => new Date(Date.now() - min * 60000).toISOString();
-const diasAtras = (dias: number, hora = 10) => {
-  const d = new Date();
-  d.setDate(d.getDate() - dias);
-  d.setHours(hora, 0, 0, 0);
-  return d.toISOString();
-};
-const diasAFrente = (dias: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + dias);
-  return isoDia(d);
-};
+import { Compra, Movimentacao, Produto, RegrasOrcamento, ResumoMes } from './modelos';
+import { isoMes } from './formato';
 
 export const PRODUTOS_EXEMPLO = (): Produto[] => [
   { id: 1, categoria: 'ARAME', nome: 'Fio 12 (2,77 mm)', descricao: 'BWG 12 • Alta resistência', unidade: 'M2', valor: 18, ativo: true, chave: 'FIO_12' },
@@ -29,132 +16,6 @@ export const PRODUTOS_EXEMPLO = (): Produto[] => [
 ];
 
 export const REGRAS_EXEMPLO = (): RegrasOrcamento => ({ descontoAVistaPct: 5, parcelasMax: 10 });
-
-export const PEDIDOS_EXEMPLO = (): Pedido[] => [
-  // ---- Fila de aprovação (Tela 3) ----
-  {
-    id: 9410, codigo: 'AM-9410', criadoEm: minutosAtras(28),
-    cliente: { nome: 'Construtora Alfa Engenharia S/A', tipo: 'Pessoa jurídica', documento: 'CNPJ 14.892.401/0001-88', cidade: 'Sorocaba', uf: 'SP', telefone: '15991234567' },
-    destino: 'Canteiro Rod. Raposo Tavares Km 98',
-    fio: 'FIO_12', malha: 'MALHA_2', alturaM: 2, metragemM: 500, tratamentoId: 5, rolos: '50 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 38, descricao: 'Entrega técnica própria • 38 km (Munck)' },
-    valorMaterial: 36420, valorFrete: 2500,
-    observacao: 'Crédito PJ faturado 28 DDL • Análise Serasa: Score 920 (Aprovado)',
-    status: 'AGUARDANDO_APROVACAO',
-  },
-  {
-    id: 9411, codigo: 'AM-9411', criadoEm: minutosAtras(65),
-    cliente: { nome: 'Condomínio Residencial Parque dos Ipês', tipo: 'Condomínio fechado', documento: 'CNPJ 28.114.903/0001-04', cidade: 'Campinas', uf: 'SP', telefone: '19992345678' },
-    destino: 'Portaria 02 - A/C Administração Predial',
-    fio: 'FIO_14', malha: 'MALHA_3', alturaM: 1.8, metragemM: 1200, tratamentoId: 6, rolos: '120 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 74, descricao: 'Entrega técnica própria • 74 km' },
-    valorMaterial: 63900, valorFrete: 4500,
-    observacao: 'Pagamento via boleto bancário 50% sinal confirmado • Acompanha ART de instalação solicitada',
-    status: 'AGUARDANDO_APROVACAO',
-  },
-  {
-    id: 9412, codigo: 'AM-9412', criadoEm: minutosAtras(98),
-    cliente: { nome: 'Marcos Aurélio Silveira', tipo: 'Produtor rural (PF)', documento: 'CPF 122.908.438-19', cidade: 'Votorantim', uf: 'SP', telefone: '15993456789' },
-    destino: 'Sítio Santa Rita - Bairro dos Morros',
-    fio: 'FIO_14', malha: 'MALHA_2', alturaM: 1.5, metragemM: 180, tratamentoId: 5, rolos: '18 rolos x 10m',
-    frete: { tipo: 'RETIRADA', descricao: 'Retirada na fábrica (FOB - veículo próprio)' },
-    valorMaterial: 6880, valorFrete: 0,
-    observacao: 'Pagamento via Pix (comprovante verificado) • Retirada prevista para amanhã após 14h',
-    status: 'AGUARDANDO_APROVACAO',
-  },
-  {
-    id: 9413, codigo: 'AM-9413', criadoEm: minutosAtras(120),
-    cliente: { nome: 'Agropecuária Vale Verde Ltda', tipo: 'Pessoa jurídica', documento: 'CNPJ 03.541.218/0001-90', cidade: 'Itu', uf: 'SP', telefone: '11994567890' },
-    destino: 'Estrada Municipal Itu-Tietê Km 12',
-    fio: 'FIO_12', malha: 'MALHA_3', alturaM: 1.8, metragemM: 320, tratamentoId: 5, rolos: '32 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 42, descricao: 'Entrega técnica própria • 42 km' },
-    valorMaterial: 13450, valorFrete: 1200,
-    observacao: 'Faturamento aprovado 30 dias • Inscrição Estadual ativa (isento de diferencial de alíquota)',
-    status: 'AGUARDANDO_APROVACAO',
-  },
-  {
-    id: 9414, codigo: 'AM-9414', criadoEm: minutosAtras(155),
-    cliente: { nome: 'LogMais Galpões & Armazéns', tipo: 'Logística e intralogística', documento: 'CNPJ 33.782.910/0002-14', cidade: 'Sorocaba', uf: 'SP', telefone: '15995678901' },
-    destino: 'Distrito Industrial - Zona Norte',
-    fio: 'FIO_12', malha: 'MALHA_2', alturaM: 2.2, metragemM: 200, tratamentoId: 5, rolos: '20 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 18, descricao: 'Entrega técnica própria • 18 km' },
-    valorMaterial: 12350, valorFrete: 1650,
-    observacao: 'Cliente com histórico de 6 compras recorrentes • Descarregamento em doca aberta',
-    status: 'AGUARDANDO_APROVACAO',
-  },
-
-  // ---- Já aprovados / em produção / entregues (tela Produção e Entregas) ----
-  {
-    id: 9407, codigo: 'AM-9407', criadoEm: diasAtras(1, 15),
-    cliente: { nome: 'Clube Atlético Sorocabano', tipo: 'Associação esportiva', documento: 'CNPJ 45.120.330/0001-07', cidade: 'Sorocaba', uf: 'SP', telefone: '15996789012' },
-    destino: 'Quadras poliesportivas - Av. Itavuvu, 1200',
-    fio: 'FIO_12', malha: 'MALHA_2', alturaM: 4, metragemM: 160, tratamentoId: 6, rolos: '16 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 9, descricao: 'Entrega técnica própria • 9 km' },
-    valorMaterial: 25900, valorFrete: 800,
-    observacao: 'Pagamento via Pix confirmado',
-    status: 'A_FAZER', aprovadoEm: minutosAtras(70), previsaoEntrega: diasAFrente(6),
-  },
-  {
-    id: 9408, codigo: 'AM-9408', criadoEm: diasAtras(1, 16),
-    cliente: { nome: 'Escola Municipal Prof. Elza Moraes', tipo: 'Órgão público', documento: 'CNPJ 46.634.044/0001-74', cidade: 'Salto de Pirapora', uf: 'SP', telefone: '15997890123' },
-    destino: 'Rua das Acácias, 300 - Centro',
-    fio: 'FIO_14', malha: 'MALHA_2', alturaM: 2, metragemM: 210, tratamentoId: 5, rolos: '21 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 27, descricao: 'Entrega técnica própria • 27 km' },
-    valorMaterial: 13600, valorFrete: 900,
-    observacao: 'Empenho nº 2026/0412 anexado',
-    status: 'A_FAZER', aprovadoEm: minutosAtras(40), previsaoEntrega: diasAFrente(8),
-  },
-  {
-    id: 9401, codigo: 'AM-9401', criadoEm: diasAtras(4),
-    cliente: { nome: 'Haras Bela Vista', tipo: 'Produtor rural (PJ)', documento: 'CNPJ 21.334.876/0001-55', cidade: 'Araçoiaba da Serra', uf: 'SP', telefone: '15998901234' },
-    destino: 'Estrada do Ipanema, Km 4',
-    fio: 'FIO_12', malha: 'MALHA_3', alturaM: 1.8, metragemM: 640, tratamentoId: 5, rolos: '64 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 31, descricao: 'Entrega técnica própria • 31 km' },
-    valorMaterial: 26700, valorFrete: 1800,
-    observacao: 'Boleto 30/60 dias',
-    status: 'EM_PROCESSO', aprovadoEm: diasAtras(3), producaoIniciadaEm: diasAtras(2), previsaoEntrega: diasAFrente(2),
-  },
-  {
-    id: 9402, codigo: 'AM-9402', criadoEm: diasAtras(5),
-    cliente: { nome: 'Transportadora Rota Sul', tipo: 'Pessoa jurídica', documento: 'CNPJ 09.876.543/0001-21', cidade: 'Itapetininga', uf: 'SP', telefone: '15999012345' },
-    destino: 'Pátio de manobras - Rod. SP-270 Km 168',
-    fio: 'FIO_12', malha: 'MALHA_2', alturaM: 2.5, metragemM: 380, tratamentoId: 5, rolos: '38 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 66, descricao: 'Entrega técnica própria • 66 km' },
-    valorMaterial: 34200, valorFrete: 3900,
-    observacao: 'Faturado 28 DDL',
-    status: 'EM_PROCESSO', aprovadoEm: diasAtras(4), producaoIniciadaEm: diasAtras(1), previsaoEntrega: diasAFrente(1),
-  },
-  {
-    id: 9399, codigo: 'AM-9399', criadoEm: diasAtras(9),
-    cliente: { nome: 'Chácara Recanto Feliz', tipo: 'Pessoa física', documento: 'CPF 318.442.108-30', cidade: 'Piedade', uf: 'SP', telefone: '15990123456' },
-    destino: 'Bairro Ribeirão dos Pires',
-    fio: 'FIO_14', malha: 'MALHA_3', alturaM: 1.5, metragemM: 90, tratamentoId: 6, rolos: '9 rolos x 10m',
-    frete: { tipo: 'RETIRADA', descricao: 'Retirada na fábrica (FOB - veículo próprio)' },
-    valorMaterial: 3850, valorFrete: 0,
-    observacao: 'Pix à vista',
-    status: 'EM_PROCESSO', aprovadoEm: diasAtras(8), producaoIniciadaEm: diasAtras(6), previsaoEntrega: diasAFrente(-1),
-  },
-  {
-    id: 9395, codigo: 'AM-9395', criadoEm: diasAtras(12),
-    cliente: { nome: 'Indústria Metalforte', tipo: 'Pessoa jurídica', documento: 'CNPJ 12.555.987/0001-40', cidade: 'Votorantim', uf: 'SP', telefone: '15991112233' },
-    destino: 'Av. Gisele Constantino, 1850',
-    fio: 'FIO_12', malha: 'MALHA_2', alturaM: 2.5, metragemM: 420, tratamentoId: 5, rolos: '42 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 14, descricao: 'Entrega técnica própria • 14 km' },
-    valorMaterial: 37800, valorFrete: 1100,
-    observacao: 'Faturado 28 DDL',
-    status: 'ENTREGUE', aprovadoEm: diasAtras(11), producaoIniciadaEm: diasAtras(9), entregueEm: diasAtras(3), previsaoEntrega: isoDia(new Date(Date.now() - 3 * 864e5)),
-  },
-  {
-    id: 9390, codigo: 'AM-9390', criadoEm: diasAtras(15),
-    cliente: { nome: 'Condomínio Villa Toscana', tipo: 'Condomínio fechado', documento: 'CNPJ 30.221.654/0001-12', cidade: 'Sorocaba', uf: 'SP', telefone: '15992223344' },
-    destino: 'Rua Toscana, 50 - Portaria',
-    fio: 'FIO_14', malha: 'MALHA_2', alturaM: 2, metragemM: 260, tratamentoId: 6, rolos: '26 rolos x 10m',
-    frete: { tipo: 'ENTREGA', distanciaKm: 11, descricao: 'Entrega técnica própria • 11 km' },
-    valorMaterial: 15600, valorFrete: 700,
-    observacao: 'Boleto à vista',
-    status: 'ENTREGUE', aprovadoEm: diasAtras(14), producaoIniciadaEm: diasAtras(12), entregueEm: diasAtras(6), previsaoEntrega: isoDia(new Date(Date.now() - 6 * 864e5)),
-  },
-];
 
 // ---------------- Financeiro ----------------
 

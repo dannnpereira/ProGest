@@ -5,7 +5,8 @@
 
     <nav class="rs-nav" aria-label="Navegação principal">
       <a routerLink="/">Início</a>
-      <a routerLink="/rastrear" class="ativo" aria-current="page">Rastrear pedido</a>
+      <a routerLink="/acompanhar" class="ativo" aria-current="page">Acompanhar pedido</a>
+      <a routerLink="/perfil">Meu perfil</a>
     </nav>
 
     <div class="rs-usuario">
@@ -30,6 +31,13 @@
     </div>
     <a class="rs-btn-novo" routerLink="/">Novo orçamento</a>
   </section>
+
+  @if (novoPedido()) {
+    <p class="rs-confirmacao" role="status">
+      ✓ Pedido <strong>{{ novoPedido() }}</strong> enviado! A Amaral vai conferir as medidas e os materiais
+      e você acompanha cada etapa por aqui.
+    </p>
+  }
 
   @if (carregando()) {
     <p class="rs-estado" role="status">Carregando seus pedidos…</p>
