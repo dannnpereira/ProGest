@@ -1,0 +1,89 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="kicker">Workflow de produção</p>
+      <h1 class="page-title">Produção e Entregas</h1>
+      <p class="page-sub">Acompanhe cada pedido aprovado do tear até a entrega na obra</p>
+    </div>
+    <div class="page-actions">
+      <a routerLink="/aprovacao" class="btn btn--lg">
+        <app-icone nome="aprovacao" /> Ver fila de aprovação
+      </a>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <article class="card kpi">
+      <p class="kpi-label">Na fila do tear <app-icone nome="pacote" [tamanho]="16" /></p>
+      <p class="kpi-value">{{ doisDigitos(porColuna()['A_FAZER'].length) }}</p>
+      <p class="kpi-foot">Pedidos aprovados aguardando início</p>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Em produção <app-icone nome="producao" [tamanho]="16" /></p>
+      <p class="kpi-value">{{ doisDigitos(porColuna()['EM_PROCESSO'].length) }}</p>
+      <p class="kpi-foot">{{ num(metrosEmProducao()) }} m lineares em fabricação</p>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Entregues no mês <app-icone nome="checkCirculo" [tamanho]="16" /></p>
+      <p class="kpi-value">{{ doisDigitos(entreguesMes().length) }}</p>
+      <p class="kpi-foot">Concluídos e entregues ao cliente</p>
+    </article>
+    <article class="card kpi" [class.kpi--alerta]="atrasados().length">
+      <p class="kpi-label">Atrasados <app-icone nome="alerta" [tamanho]="16" /></p>
+      <p class="kpi-value">{{ doisDigitos(atrasados().length) }}</p>
+      <p class="kpi-foot">{{ atrasados().length ? 'Previsão de entrega vencida' : 'Tudo dentro do prazo' }}</p>
+    </article>
+  </div>
+
+  <div class="quadro">
+    @for (c of colunas; track c.status) {
+      <section class="coluna" [attr.aria-labelledby]="'col-' + c.status">
+        <header class="coluna-head">
+          <h2 [id]="'col-' + c.status">{{ c.titulo }}</h2>
+          <span class="tag">{{ porColuna()[c.status].length }}</span>
+          <p>{{ c.descricao }}</p>
+        </header>
+
+        @for (p of porColuna()[c.status]; track p.id) {
+          <article class="card ordem" [class.ordem--atraso]="atrasado(p)" [class.ordem--ok]="c.status === 'ENTREGUE'">
+            <div class="ordem-top">
+              <span class="tag tag--dark">#{{ p.codigo }}</span>
+              @if (c.status === 'ENTREGUE') {
+                <span class="tag tag--ok"><app-icone nome="check" [tamanho]="12" /> Entregue {{ diaMes(p.entregueEm!) }}</span>
+              } @else if (atrasado(p)) {
+                <span class="tag tag--bad"><app-icone nome="alerta" [tamanho]="12" /> {{ prazo(p) }}</span>
+              } @else {
+                <span class="tag"><app-icone nome="calendario" [tamanho]="12" /> {{ prazo(p) }}</span>
+              }
+            </div>
+
+            <h3>{{ p.cliente.nome }}</h3>
+            <p class="ordem-local"><app-icone nome="pino" [tamanho]="14" /> {{ p.cliente.cidade }} / {{ p.cliente.uf }}</p>
+
+            <p class="ordem-spec mono">
+              {{ rotuloFio[p.fio] }} • {{ rotuloMalha[p.malha] }}<br />
+              {{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ tratamento(p) }}
+            </p>
+
+            <div class="ordem-foot">
+              <span class="ordem-frete">
+                <app-icone [nome]="p.frete.tipo === 'ENTREGA' ? 'caminhao' : 'fabrica'" [tamanho]="14" />
+                {{ p.frete.tipo === 'ENTREGA' ? 'Entrega ' + p.frete.distanciaKm + ' km' : 'Retirada' }}
+              </span>
+              <strong class="num">{{ moeda(p.valorMaterial + p.valorFrete) }}</strong>
+            </div>
+
+            @if (c.acao) {
+              <button type="button" class="btn btn--sm ordem-acao" [class.btn--dark]="c.status === 'EM_PROCESSO'"
+                [class.btn--accent]="c.status === 'A_FAZER'" (click)="avancar(p, c)">
+                <app-icone [nome]="c.icone!" [tamanho]="14" /> {{ c.status === 'EM_PROCESSO' && p.frete.tipo === 'RETIRADA' ? 'Marcar como retirado' : c.acao }}
+              </button>
+            }
+          </article>
+        } @empty {
+          <p class="coluna-vazia">Nenhum pedido nesta etapa.</p>
+        }
+      </section>
+    }
+  </div>
+</section>

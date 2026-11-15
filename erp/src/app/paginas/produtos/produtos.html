@@ -1,0 +1,216 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title titulo">Produtos e Valores <span class="tag">Módulo tabela-preço</span></h1>
+      <p class="page-sub">Os valores cadastrados aqui aparecem no orçamento do site</p>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="btn btn--dark btn--lg" (click)="novo()"><app-icone nome="mais" /> Novo produto</button>
+    </div>
+  </header>
+
+  <div class="grade">
+    <!-- Tabela de produtos -->
+    <div class="card tabela-card">
+      <div class="tabela-topo">
+        <div class="abas" role="group" aria-label="Filtrar por categoria">
+          <button type="button" class="aba" [attr.aria-pressed]="!aba()" (click)="aba.set(null)">Todos ({{ svc.produtos().length }})</button>
+          @for (c of categorias; track c) {
+            <button type="button" class="aba" [attr.aria-pressed]="aba() === c" (click)="aba.set(c)">{{ rotuloCategoria[c] }} ({{ contagem()[c] }})</button>
+          }
+        </div>
+        <label class="search tabela-busca">
+          <app-icone nome="busca" [tamanho]="16" />
+          <span class="sr-only">Filtrar produto</span>
+          <input type="search" placeholder="Filtrar produto..." [value]="texto()" (input)="texto.set($any($event.target).value)" />
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Produto</th>
+              <th scope="col">Categoria</th>
+              <th scope="col">Cobrado por</th>
+              <th scope="col" class="right">Valor (R$)</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of lista(); track p.id) {
+              <tr [class.inativo]="!p.ativo" [class.editando]="editandoId() === p.id">
+                <td class="col-produto">
+                  <strong>{{ p.nome }}</strong>
+                  @if (p.descricao) { <small>{{ p.descricao }}</small> }
+                </td>
+                <td>
+                  <span class="tag" [class.tag--dark]="p.categoria === 'ARAME'" [class.tag--accent]="p.categoria === 'ACESSORIOS'">{{ rotuloCategoria[p.categoria] }}</span>
+                </td>
+                <td class="col-unidade">{{ rotuloUnidade[p.unidade] }}</td>
+                <td class="right col-valor">
+                  <strong class="num">{{ moeda(p.valor) }}</strong>
+                  @if (nota(p)) { <small>{{ nota(p) }}</small> }
+                </td>
+                <td>
+                  <label class="switch" [title]="p.ativo ? 'Ativo no simulador' : 'Inativo'">
+                    <input type="checkbox" [checked]="p.ativo" (change)="alternarAtivo(p)"
+                      [attr.aria-label]="(p.ativo ? 'Desativar ' : 'Ativar ') + p.nome" />
+                    <span></span>
+                  </label>
+                </td>
+                <td>
+                  <button type="button" class="btn-icon" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nome">
+                    <app-icone nome="lapis" [tamanho]="16" />
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty">Nenhum produto encontrado.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="tabela-rodape">
+        <span class="ponto" aria-hidden="true"></span>
+        Mostrando {{ lista().length }} de {{ svc.produtos().length }} itens cadastrados
+        <span class="mono versao">Base Sorocaba</span>
+      </p>
+    </div>
+
+    <div class="lateral">
+      <!-- Novo / editar produto -->
+      <form class="card card-pad" (submit)="$event.preventDefault(); salvar()" novalidate>
+        <div class="bloco-head">
+          <app-icone [nome]="editandoId() ? 'lapis' : 'maisQuadrado'" />
+          <h2 class="card-title">{{ editandoId() ? 'Editar produto' : 'Novo produto' }}</h2>
+          <span class="tag">Cadastro rápido</span>
+        </div>
+
+        <div class="field">
+          <label for="p-categoria">Categoria</label>
+          <select id="p-categoria" class="select" [value]="fCategoria()" (change)="fCategoria.set($any($event.target).value)">
+            @for (c of categorias; track c) { <option [value]="c">{{ rotuloCategoria[c] }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label for="p-nome">Nome</label>
+          <input #campoNome id="p-nome" class="input" placeholder="Ex: Fio 16 (1,65 mm)" [value]="fNome()"
+            (input)="fNome.set($any($event.target).value)" [attr.aria-invalid]="tentouSalvar() && nomeInvalido()" />
+          @if (tentouSalvar() && nomeInvalido()) { <span class="error-text">Informe o nome (mínimo 3 letras).</span> }
+        </div>
+        <div class="field">
+          <label for="p-desc">Descrição curta <span class="opcional">(opcional)</span></label>
+          <input id="p-desc" class="input" placeholder="Ex: BWG 16 • Uso leve" [value]="fDescricao()" (input)="fDescricao.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label for="p-unidade">Cobrado por</label>
+          <select id="p-unidade" class="select" [value]="fUnidade()" (change)="fUnidade.set($any($event.target).value)">
+            <option value="M2">m² (metro quadrado)</option>
+            <option value="METRO_LINEAR">Metro linear</option>
+            <option value="UNIDADE">Unidade</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="p-valor">Valor em R$</label>
+          <div class="input-group">
+            <span class="addon">R$</span>
+            <input id="p-valor" class="input num" type="number" min="0" step="0.01" inputmode="decimal"
+              [value]="fValor()" (input)="fValor.set(valorNumero($event))" [attr.aria-invalid]="tentouSalvar() && valorInvalido()" />
+          </div>
+          @if (tentouSalvar() && valorInvalido()) { <span class="error-text">Informe um valor igual ou maior que zero.</span> }
+        </div>
+        <div class="linha-switch">
+          <span class="label" id="p-ativo-label">Ativo no simulador</span>
+          <label class="switch">
+            <input type="checkbox" aria-labelledby="p-ativo-label" [checked]="fAtivo()" (change)="fAtivo.set($any($event.target).checked)" />
+            <span></span>
+          </label>
+        </div>
+        <div class="acoes-form">
+          <button type="submit" class="btn btn--dark btn--lg">Salvar</button>
+          <button type="button" class="btn btn--lg" (click)="novo()">Cancelar</button>
+        </div>
+      </form>
+
+      <!-- Regras do orçamento -->
+      <form class="card card-pad" (submit)="$event.preventDefault(); salvarRegras()" novalidate>
+        <div class="bloco-head">
+          <app-icone nome="porcento" />
+          <h2 class="card-title">Regras do orçamento</h2>
+        </div>
+        <p class="card-sub bloco-sub">Condições comerciais aplicadas no cálculo automático do cliente</p>
+
+        <div class="field">
+          <label for="r-desc">Desconto à vista (%) <span class="destaque">Pix / transferência</span></label>
+          <div class="input-group">
+            <input id="r-desc" class="input num grande" type="number" min="0" max="50" step="0.5"
+              [value]="rDesconto()" (input)="rDesconto.set(valorNumero($event))" />
+            <span class="addon">%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="r-parc">Parcelas máximas no cartão</label>
+          <div class="input-group">
+            <input id="r-parc" class="input num grande" type="number" min="1" max="24" step="1"
+              [value]="rParcelas()" (input)="rParcelas.set(valorNumero($event))" />
+            <span class="addon">x sem juros</span>
+          </div>
+        </div>
+        @if (regrasInvalidas()) { <p class="error-text">Desconto entre 0 e 50% e parcelas entre 1 e 24.</p> }
+        <button type="submit" class="btn btn--dark btn--lg largo" [disabled]="regrasInvalidas()">
+          <app-icone nome="checkCirculo" [tamanho]="16" /> Salvar regras
+        </button>
+      </form>
+
+      <!-- Prévia no orçamento -->
+      <section class="card card-pad" aria-labelledby="previa-titulo">
+        <div class="bloco-head">
+          <app-icone nome="olho" />
+          <h2 class="card-title" id="previa-titulo">Prévia no orçamento</h2>
+          <span class="tag tag--accent tag--dot">Simulador ao vivo</span>
+        </div>
+
+        <div class="sim-campos">
+          <label><span>Arame</span>
+            <select class="select" [value]="sArame()" (change)="sArame.set(+$any($event.target).value)">
+              @for (p of arames(); track p.id) { <option [value]="p.id" [selected]="p.id === sArame()">{{ p.nome }}</option> }
+            </select>
+          </label>
+          <label><span>Malha</span>
+            <select class="select" [value]="sMalha()" (change)="sMalha.set(+$any($event.target).value)">
+              @for (p of malhas(); track p.id) { <option [value]="p.id" [selected]="p.id === sMalha()">{{ p.nome }}</option> }
+            </select>
+          </label>
+          <label><span>Tratamento</span>
+            <select class="select" [value]="sTratamento()" (change)="sTratamento.set(+$any($event.target).value)">
+              @for (p of tratamentos(); track p.id) { <option [value]="p.id" [selected]="p.id === sTratamento()">{{ p.nome }}</option> }
+            </select>
+          </label>
+          <label><span>Comprimento (m)</span>
+            <input class="input num" type="number" min="0" step="1" [value]="sComprimento()" (input)="sComprimento.set(valorNumero($event))" />
+          </label>
+          <label><span>Altura (m)</span>
+            <input class="input num" type="number" min="0" step="0.1" [value]="sAltura()" (input)="sAltura.set(valorNumero($event))" />
+          </label>
+        </div>
+
+        @let s = simulacao();
+        <dl class="sim-linhas">
+          <div><dt>Matéria-prima:</dt><dd class="num">{{ moeda(s.materiaPrima) }}</dd></div>
+          <div><dt>Acessórios:</dt><dd class="num">{{ moeda(s.acessorios) }}</dd></div>
+          <div class="sim-desc"><dt>Desconto à vista ({{ num(svc.regras().descontoAVistaPct, svc.regras().descontoAVistaPct % 1 ? 1 : 0) }}%):</dt><dd class="num">- {{ moeda(s.desconto) }}</dd></div>
+        </dl>
+        <div class="sim-total">
+          <p class="kpi-label">Total simulado à vista</p>
+          <div class="sim-total-row">
+            <strong class="num">{{ moeda(s.totalAVista) }}</strong>
+            <span>ou até {{ svc.regras().parcelasMax }}x de {{ moeda(s.parcela) }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>

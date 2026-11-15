@@ -1,24 +1,26 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-    })
-      .compileComponents();
+      providers: [provideRouter([])],
+    }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('cria o layout do ERP', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('mostra o menu com as telas do ERP', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, erp');
+    const texto = (fixture.nativeElement as HTMLElement).querySelector('nav')?.textContent ?? '';
+    expect(texto).toContain('Aprovação de Pedidos');
+    expect(texto).toContain('Produtos e Valores');
+    expect(texto).toContain('Financeiro');
   });
 });

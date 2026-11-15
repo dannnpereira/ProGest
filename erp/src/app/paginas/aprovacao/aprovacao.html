@@ -1,0 +1,289 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="kicker">Fila de entrada • E-commerce B2B</p>
+      <h1 class="page-title">Aprovação de Pedidos do Site</h1>
+      <p class="page-sub">
+        <strong>{{ fila().length }} pedidos</strong> aguardando análise técnica
+        <span class="dot-sep" aria-hidden="true">•</span>
+        Volume total: <strong class="big num">{{ moeda(valorFila()) }}</strong>
+      </p>
+    </div>
+
+    <div class="page-actions">
+      <div class="segmented" role="group" aria-label="Modo de visualização">
+        <button type="button" [attr.aria-pressed]="visao() === 'cartoes'" (click)="visao.set('cartoes')">
+          <app-icone nome="cartoes" [tamanho]="16" /> Cartões
+        </button>
+        <button type="button" [attr.aria-pressed]="visao() === 'tabela'" (click)="visao.set('tabela')">
+          <app-icone nome="tabela" [tamanho]="16" /> Tabela
+        </button>
+      </div>
+
+      @if (confirmandoLote()) {
+        <div class="lote-confirm" role="group" aria-label="Confirmar aprovação em lote">
+          <span>Aprovar {{ filtrados().length }} pedido(s)?</span>
+          <button type="button" class="btn btn--accent btn--sm" (click)="aprovarLote()">Confirmar</button>
+          <button type="button" class="btn btn--ghost btn--sm" (click)="confirmandoLote.set(false)">Cancelar</button>
+        </div>
+      } @else {
+        <button type="button" class="btn btn--dark btn--lg" [disabled]="!filtrados().length" (click)="confirmandoLote.set(true)">
+          <app-icone nome="checkDuplo" /> Aprovar em lote ({{ doisDigitos(filtrados().length) }})
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Indicadores -->
+  <div class="kpis">
+    <article class="card kpi">
+      <p class="kpi-label">Novos pedidos hoje <app-icone nome="calendario" [tamanho]="16" /></p>
+      <div class="kpi-row">
+        <p class="kpi-value">{{ doisDigitos(novosHoje()) }}</p>
+        <span class="tag">
+          <app-icone [nome]="novosHoje() >= novosOntem() ? 'sobe' : 'desce'" [tamanho]="12" />
+          {{ novosHoje() - novosOntem() >= 0 ? '+' : '' }}{{ novosHoje() - novosOntem() }} vs ontem
+        </span>
+      </div>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Aguardando aprovação <span class="pulse" aria-hidden="true"></span></p>
+      <div class="kpi-row">
+        <p class="kpi-value kpi-value--accent">{{ doisDigitos(fila().length) }}</p>
+        @if (fila().length) { <span class="tag tag--accent">Pendente</span> }
+      </div>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Valor na fila <app-icone nome="documento" [tamanho]="16" /></p>
+      <div class="kpi-row">
+        <p class="kpi-value kpi-value--md num">{{ moeda(valorFila()) }}</p>
+      </div>
+      <p class="kpi-foot">Ticket médio {{ moeda(ticketMedio()) }}</p>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Aprovados hoje <app-icone nome="aprovacao" [tamanho]="16" /></p>
+      <div class="kpi-row">
+        <p class="kpi-value">{{ doisDigitos(aprovadosHoje().length) }}</p>
+        @if (aprovadosHoje().length) {
+          <span class="tag tag--ok"><app-icone nome="check" [tamanho]="12" /> {{ moeda(valorAprovadosHoje()) }}</span>
+        }
+      </div>
+    </article>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card filtros">
+    <label class="search filtros-busca">
+      <app-icone nome="busca" />
+      <span class="sr-only">Filtrar pedidos</span>
+      <input type="search" placeholder="Filtrar por cliente, cidade, fio ou malha..."
+        [value]="texto()" (input)="texto.set($any($event.target).value)" />
+    </label>
+    <div class="chips" role="group" aria-label="Filtros rápidos">
+      <button type="button" class="chip" [attr.aria-pressed]="semFiltro()" (click)="limparFiltros()">Todos ({{ fila().length }})</button>
+      <button type="button" class="chip" [attr.aria-pressed]="fio() === 'FIO_12'" (click)="alternar(fio, 'FIO_12')">Fio 12 ({{ contagem().FIO_12 }})</button>
+      <button type="button" class="chip" [attr.aria-pressed]="fio() === 'FIO_14'" (click)="alternar(fio, 'FIO_14')">Fio 14 ({{ contagem().FIO_14 }})</button>
+      <button type="button" class="chip" [attr.aria-pressed]="malha() === 'MALHA_2'" (click)="alternar(malha, 'MALHA_2')">Malha 2" ({{ contagem().MALHA_2 }})</button>
+      <button type="button" class="chip" [attr.aria-pressed]="malha() === 'MALHA_3'" (click)="alternar(malha, 'MALHA_3')">Malha 3" ({{ contagem().MALHA_3 }})</button>
+      <span class="chips-sep" aria-hidden="true"></span>
+      <button type="button" class="chip" [attr.aria-pressed]="frete() === 'ENTREGA'" (click)="alternar(frete, 'ENTREGA')">Entrega ({{ contagem().ENTREGA }})</button>
+      <button type="button" class="chip" [attr.aria-pressed]="frete() === 'RETIRADA'" (click)="alternar(frete, 'RETIRADA')">Retirada ({{ contagem().RETIRADA }})</button>
+    </div>
+  </div>
+
+  @if (!fila().length) {
+    <div class="card empty">
+      <strong>Nenhum pedido aguardando aprovação</strong>
+      Os novos pedidos feitos pelo site aparecem aqui automaticamente.
+    </div>
+  } @else if (!filtrados().length) {
+    <div class="card empty">
+      <strong>Nenhum pedido com esses filtros</strong>
+      <button type="button" class="btn btn--sm" (click)="limparFiltros()">Limpar filtros</button>
+    </div>
+  } @else if (visao() === 'cartoes') {
+    <!-- Visão em cartões -->
+    <div class="lista">
+      @for (p of filtrados(); track p.id) {
+        <article class="card pedido" [attr.aria-labelledby]="'cli-' + p.id">
+          <header class="pedido-top">
+            <span class="tag tag--dark">#{{ p.codigo }}</span>
+            <span class="quando"><app-icone nome="relogio" [tamanho]="15" /> {{ quando(p) }} <small>({{ ha(p) }})</small></span>
+            <span class="tag tag--accent tag--dot">Aguardando aprovação</span>
+            <span class="frete">
+              <app-icone [nome]="p.frete.tipo === 'ENTREGA' ? 'caminhao' : 'fabrica'" [tamanho]="15" />
+              {{ p.frete.descricao }}
+            </span>
+          </header>
+
+          <div class="pedido-corpo">
+            <div class="pedido-cliente">
+              <h2 [id]="'cli-' + p.id">{{ p.cliente.nome }} <span class="tag">{{ p.cliente.tipo }}</span></h2>
+              <p class="doc">
+                <span class="mono">{{ p.cliente.documento }}</span>
+                <span class="cidade"><app-icone nome="pino" [tamanho]="15" /> {{ p.cliente.cidade }} / {{ p.cliente.uf }}</span>
+              </p>
+              <p class="destino">Destino: {{ p.destino }}</p>
+            </div>
+
+            <dl class="valores">
+              <div><dt>Material</dt><dd class="num">{{ moeda(p.valorMaterial) }}</dd></div>
+              <div><dt>{{ p.frete.tipo === 'ENTREGA' ? 'Frete técnico' : 'Frete' }}</dt>
+                <dd class="num">{{ p.valorFrete ? moeda(p.valorFrete) : 'Grátis (FOB)' }}</dd></div>
+              <div class="valores-total"><dt>Total do pedido</dt><dd class="num">{{ moeda(total(p)) }}</dd></div>
+            </dl>
+          </div>
+
+          <ul class="specs" aria-label="Especificação técnica">
+            <li class="tag tag--dark">{{ rotuloFio[p.fio] }}</li>
+            <li class="tag tag--dark">{{ rotuloMalha[p.malha] }}</li>
+            <li class="tag tag--dark">Altura: {{ num(p.alturaM, 2) }} m</li>
+            <li class="tag tag--dark">Metragem: {{ num(p.metragemM) }} m</li>
+            <li class="tag tag--ok"><app-icone nome="escudo" [tamanho]="12" /> {{ tratamento(p) }}</li>
+            <li class="tag">{{ p.rolos }}</li>
+          </ul>
+
+          @if (recusando() === p.id) {
+            <div class="recusa">
+              <label [for]="'motivo-' + p.id" class="label">Motivo da recusa (opcional)</label>
+              <div class="recusa-row">
+                <input [id]="'motivo-' + p.id" class="input" placeholder="Ex.: crédito não aprovado"
+                  [value]="motivo()" (input)="motivo.set($any($event.target).value)"
+                  (keydown.enter)="confirmarRecusa(p)" />
+                <button type="button" class="btn btn--danger" (click)="confirmarRecusa(p)">Confirmar recusa</button>
+                <button type="button" class="btn btn--ghost" (click)="recusando.set(null)">Cancelar</button>
+              </div>
+            </div>
+          } @else {
+            <footer class="pedido-acoes">
+              <p class="obs mono">{{ p.observacao }}</p>
+              <div class="botoes">
+                <button type="button" class="btn" (click)="detalhe.set(p)">
+                  <app-icone nome="olho" [tamanho]="16" /> Prévia técnica
+                </button>
+                <a class="btn" [href]="whatsapp(p)" target="_blank" rel="noopener">
+                  <app-icone nome="conversa" [tamanho]="16" /> Conversar com o cliente
+                </a>
+                <button type="button" class="btn btn--danger" (click)="iniciarRecusa(p)">Recusar</button>
+                <button type="button" class="btn btn--dark" (click)="aprovar(p)">
+                  <app-icone nome="check" [tamanho]="16" /> Aprovar pedido
+                </button>
+              </div>
+            </footer>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <!-- Visão em tabela -->
+    <div class="card table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Pedido</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Especificação</th>
+            <th scope="col">Frete</th>
+            <th scope="col" class="right">Total</th>
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filtrados(); track p.id) {
+            <tr>
+              <td>
+                <span class="tag tag--dark">#{{ p.codigo }}</span>
+                <small class="cell-sub">{{ quando(p) }}</small>
+              </td>
+              <td>
+                <strong>{{ p.cliente.nome }}</strong>
+                <small class="cell-sub">{{ p.cliente.cidade }} / {{ p.cliente.uf }}</small>
+              </td>
+              <td class="cell-spec">
+                {{ rotuloFio[p.fio] }} • {{ rotuloMalha[p.malha] }}
+                <small class="cell-sub">{{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ tratamento(p) }}</small>
+              </td>
+              <td>{{ p.frete.tipo === 'ENTREGA' ? 'Entrega • ' + p.frete.distanciaKm + ' km' : 'Retirada (FOB)' }}</td>
+              <td class="right num"><strong>{{ moeda(total(p)) }}</strong></td>
+              <td>
+                <div class="tabela-acoes">
+                  <button type="button" class="btn-icon" (click)="detalhe.set(p)" [attr.aria-label]="'Prévia técnica do pedido ' + p.codigo"><app-icone nome="olho" /></button>
+                  <button type="button" class="btn btn--danger btn--sm" (click)="visao.set('cartoes'); iniciarRecusa(p)">Recusar</button>
+                  <button type="button" class="btn btn--dark btn--sm" (click)="aprovar(p)">Aprovar</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Prévia técnica & PCP (Tela 4) -->
+@if (detalhe(); as p) {
+  <div class="overlay" (click)="detalhe.set(null)">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="previa-titulo" (click)="$event.stopPropagation()">
+      @let pr = previa(p);
+      <header class="drawer-head">
+        <h2 id="previa-titulo">Prévia técnica &amp; PCP</h2>
+        <span class="tag tag--dark">#{{ p.codigo }}</span>
+        <button type="button" class="btn-icon" aria-label="Fechar" (click)="detalhe.set(null)"><app-icone nome="x" /></button>
+      </header>
+
+      <div class="desenho">
+        <div class="desenho-top">
+          <span>Desenho técnico automático</span>
+          <span>{{ rotuloMalha[p.malha] }}</span>
+        </div>
+        <svg viewBox="0 0 320 120" role="img" [attr.aria-label]="'Desenho da tela ' + rotuloMalha[p.malha]">
+          <defs>
+            <pattern [attr.id]="'malha-' + p.id" [attr.width]="p.malha === 'MALHA_2' ? 16 : 24" [attr.height]="p.malha === 'MALHA_2' ? 16 : 24" patternUnits="userSpaceOnUse">
+              @let a = p.malha === 'MALHA_2' ? 16 : 24;
+              <path [attr.d]="'M0 ' + a / 2 + ' L' + a / 2 + ' 0 L' + a + ' ' + a / 2 + ' L' + a / 2 + ' ' + a + ' Z'"
+                fill="none" stroke="#f5b23d" [attr.stroke-width]="p.fio === 'FIO_12' ? 1.6 : 1.1" />
+            </pattern>
+          </defs>
+          <rect x="10" y="12" width="300" height="96" [attr.fill]="'url(#malha-' + p.id + ')'" />
+          <rect x="10" y="12" width="300" height="96" fill="none" stroke="#5c6470" stroke-dasharray="4 3" />
+          <text x="160" y="8" fill="#aab1bc" font-size="8" text-anchor="middle">{{ num(p.metragemM) }} m lineares</text>
+          <text x="316" y="62" fill="#aab1bc" font-size="8" transform="rotate(90 316 62)" text-anchor="middle">{{ num(p.alturaM, 2) }} m</text>
+        </svg>
+        <div class="desenho-foot">
+          <span>{{ rotuloFio[p.fio] }} • {{ tratamento(p) }}</span>
+          <span class="ok">Homologável</span>
+        </div>
+      </div>
+
+      <div class="previa-grid">
+        <div class="card previa-kpi">
+          <p class="kpi-label">Consumo de aço</p>
+          <p class="previa-num num">{{ num(pr.acoKg) }} kg</p>
+          <p class="kpi-foot">≈ {{ pr.bobinas }} bobinas de 400 kg</p>
+        </div>
+        <div class="card previa-kpi">
+          <p class="kpi-label">Tempo em tear</p>
+          <p class="previa-num num">{{ tempo(pr.tempoTearMin) }}</p>
+          <p class="kpi-foot">Velocidade 1,8 m/min</p>
+        </div>
+      </div>
+
+      <div class="card card-pad previa-log">
+        <p class="kpi-label">Logística e roteirização</p>
+        <dl>
+          <div><dt>Área de tela</dt><dd>{{ num(pr.areaM2) }} m²</dd></div>
+          <div><dt>Distância</dt><dd>{{ p.frete.distanciaKm ? p.frete.distanciaKm + ' km (ida)' : '—' }}</dd></div>
+          <div><dt>Veículo sugerido</dt><dd>{{ pr.veiculo }}</dd></div>
+          <div><dt>Apresentação</dt><dd>{{ p.rolos }}</dd></div>
+        </dl>
+        <p class="previa-aviso">Valores estimados a partir da especificação; conferir na ordem de produção.</p>
+      </div>
+
+      <div class="drawer-acoes">
+        <button type="button" class="btn" (click)="baixarMemorial(p)"><app-icone nome="download" [tamanho]="16" /> Baixar memorial descritivo</button>
+        <a class="btn" [href]="whatsapp(p)" target="_blank" rel="noopener"><app-icone nome="conversa" [tamanho]="16" /> Conversar com o cliente</a>
+        <button type="button" class="btn btn--dark btn--lg" (click)="aprovar(p)"><app-icone nome="checkCirculo" /> Aprovar pedido</button>
+      </div>
+    </aside>
+  </div>
+}
