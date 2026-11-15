@@ -1,0 +1,78 @@
+.tela { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; }
+
+/* ---------- Lado da marca ---------- */
+.marca {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+  gap: 32px; padding: 40px 48px; background: var(--side); color: #fff;
+}
+.malha { position: absolute; inset: 0; color: rgb(245 178 61 / 13%); pointer-events: none; }
+.marca > :not(.malha) { position: relative; }
+
+.marca-topo, .marca-mobile { display: flex; align-items: center; gap: 12px; }
+.marca-topo strong, .marca-mobile strong { display: block; font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+.marca-topo small, .marca-mobile small { display: block; font-size: 12px; color: var(--side-ink); }
+
+.marca-texto { max-width: 460px; }
+.selo {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 5px 10px; border-radius: 4px;
+  background: var(--accent); color: var(--ink); font-family: var(--mono); font-size: 11px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.marca-texto h2 { font-size: 34px; line-height: 1.15; font-weight: 700; letter-spacing: -.02em; }
+.marca-texto ul { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.marca-texto li { display: flex; align-items: center; gap: 12px; color: #d9dde3; font-size: 15px; }
+.marca-texto li app-icone { color: var(--accent); }
+.marca-rodape { font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--side-ink); }
+
+/* ---------- Formulário ---------- */
+.lado-form { display: grid; place-items: center; padding: 40px 24px; background: var(--bg); }
+.caixa { width: min(400px, 100%); }
+.marca-mobile { display: none; margin-bottom: 28px; }
+.marca-mobile small { color: var(--ink-2); }
+
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
+.sub { margin-top: 6px; margin-bottom: 24px; color: var(--ink-2); }
+
+.aviso { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+.aviso app-icone { margin-top: 1px; }
+.aviso--erro { background: var(--bad-soft); color: var(--bad); border: 1px solid #f6caca; }
+.aviso--info { background: var(--accent-soft); color: var(--accent-ink); border: 1px solid #f8dfa6; }
+
+.campo {
+  display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 4px 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink-3);
+}
+.campo:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); }
+.campo--erro { border-color: var(--bad); }
+.campo input { flex: 1; min-width: 0; height: 44px; border: 0; background: transparent; outline: 0; color: var(--ink); font-size: 15px; }
+.campo input::placeholder { color: var(--ink-3); }
+.ver-senha {
+  display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--ink-2); cursor: pointer;
+}
+.ver-senha:hover { background: var(--surface-2); color: var(--ink); }
+
+.lembrar { display: flex; align-items: center; gap: 10px; margin: 4px 0 20px; font-size: 13px; cursor: pointer; }
+.lembrar input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); cursor: pointer; }
+
+.entrar { width: 100%; min-height: 48px; font-size: 15px; }
+.girando {
+  width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgb(255 255 255 / 35%); border-top-color: #fff;
+  animation: girar .7s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .girando { animation-duration: 2s; } }
+
+.ajuda { margin-top: 18px; font-size: 13px; color: var(--ink-2); text-align: center; }
+.voltar-site {
+  display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 28px; padding-top: 20px;
+  border-top: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+}
+.voltar-site:hover { color: var(--ink); text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .tela { grid-template-columns: 1fr; }
+  .marca { display: none; }
+  .marca-mobile { display: flex; }
+  .lado-form { place-items: start center; padding: 48px 16px; }
+}

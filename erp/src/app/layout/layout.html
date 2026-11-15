@@ -76,8 +76,8 @@
 
         <div class="user">
           <span class="user-text">
-            <strong>Administrador</strong>
-            <small>Planta Sorocaba</small>
+            <strong>{{ sessao.usuario()?.nome ?? 'Administrador' }}</strong>
+            <small>{{ sessao.usuario()?.email }}</small>
           </span>
           <span class="user-avatar" aria-hidden="true"><app-icone nome="usuario" [tamanho]="18" /></span>
         </div>
@@ -89,13 +89,3 @@
     </main>
   </div>
 </div>
-
-@if (avisos.atual(); as aviso) {
-  <div class="toast" role="status" aria-live="polite">
-    <span>{{ aviso.texto }}</span>
-    @if (aviso.acao; as acao) {
-      <button type="button" (click)="acao.executar(); avisos.fechar()">{{ acao.rotulo }}</button>
-    }
-    <button type="button" aria-label="Fechar aviso" (click)="avisos.fechar()"><app-icone nome="x" [tamanho]="16" /></button>
-  </div>
-}

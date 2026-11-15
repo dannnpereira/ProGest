@@ -57,15 +57,18 @@ exit                       # saia e entre de novo no SSH
 ```bash
 cd ProGest
 cp .env.example .env
-nano .env                  # troque DB_PASSWORD por uma senha forte e salve (Ctrl+O, Enter, Ctrl+X)
+nano .env                  # troque DB_PASSWORD e ADMIN_SENHA por senhas fortes e salve (Ctrl+O, Enter, Ctrl+X)
 docker compose up -d --build
 ```
 
 O primeiro build demora (de 5 a 15 minutos). Depois, acesse:
 
 - Site: `http://SEU_ELASTIC_IP/`
-- Login: `http://SEU_ELASTIC_IP/login`
-- ERP: `http://SEU_ELASTIC_IP/erp/`
+- Login do cliente: `http://SEU_ELASTIC_IP/login`
+- ERP: `http://SEU_ELASTIC_IP/erp/` (entre com `ADMIN_EMAIL` e `ADMIN_SENHA` do `.env`)
+
+O usuário do ERP é criado só na primeira vez que o backend sobe. Depois disso, mudar
+`ADMIN_SENHA` no `.env` **não** troca a senha de quem já existe.
 
 Comandos úteis:
 
