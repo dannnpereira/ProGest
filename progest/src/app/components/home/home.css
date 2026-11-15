@@ -798,6 +798,10 @@
   color: #9ca3af;
 }
 
+/* Enquanto a API recalcula, o valor antigo fica esmaecido */
+.total-box--calculando .total-value { opacity: .55; transition: opacity .15s; }
+.total-box .orcamento-erro { display: block; color: #fca5a5; font-size: 12px; }
+
 .summary-actions {
   display: flex;
   flex-direction: column;

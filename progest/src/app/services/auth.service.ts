@@ -44,7 +44,7 @@ export class AuthService {
 
   login(email: string, senha: string, lembrar = false): Observable<Usuario> {
     return this.http
-      .post<Usuario>(`${this.api}/login`, { email, senha })
+      .post<Usuario>(`${this.api}/login`, { email: email.trim(), senha })
       .pipe(tap(usuario => this.entrar(usuario, lembrar)));
   }
 
@@ -52,6 +52,11 @@ export class AuthService {
     return this.http
       .post<Usuario>(`${this.api}/cadastro`, dados)
       .pipe(tap(usuario => this.entrar(usuario)));
+  }
+
+  /** Diz se CPF e/ou e-mail já têm conta (para avisar antes de enviar o cadastro). */
+  disponibilidade(cpf: string, email: string): Observable<{ cpfEmUso: boolean; emailEmUso: boolean }> {
+    return this.http.post<{ cpfEmUso: boolean; emailEmUso: boolean }>(`${this.api}/disponibilidade`, { cpf, email });
   }
 
   entrar(usuario: Usuario, lembrar = false): void {

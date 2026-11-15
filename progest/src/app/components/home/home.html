@@ -409,17 +409,17 @@
           <div class="price-breakdown">
             <div class="price-row">
               <span>Valor da Matéria-Prima:</span>
-              <strong>{{ valorMateriaPrima | currency:'BRL':'symbol':'1.2-2' }}</strong>
+              <strong>{{ reais(valorMateriaPrima) }}</strong>
             </div>
 
             <div class="price-row">
               <span>Acessórios Homologados:</span>
-              <strong>{{ valorAcessorios | currency:'BRL':'symbol':'1.2-2' }}</strong>
+              <strong>{{ reais(valorAcessorios) }}</strong>
             </div>
 
             <div class="price-row" *ngIf="tipoFrete === 'entrega'">
               <span>Frete Técnico:</span>
-              <strong>{{ valorFrete | currency:'BRL':'symbol':'1.2-2' }}</strong>
+              <strong>{{ reais(valorFrete) }}</strong>
             </div>
 
             <div class="price-row" *ngIf="tipoFrete === 'retirada'">
@@ -428,15 +428,19 @@
             </div>
 
             <div class="price-row discount">
-              <span>Desconto Comercial À Vista (5%):</span>
-              <strong>- {{ valorDesconto | currency:'BRL':'symbol':'1.2-2' }}</strong>
+              <span>Desconto Comercial À Vista ({{ descontoTexto }}%):</span>
+              <strong>- {{ reais(valorDesconto) }}</strong>
             </div>
           </div>
 
-          <div class="total-box">
+          <div class="total-box" [class.total-box--calculando]="calculando()" [attr.aria-busy]="calculando()">
             <small>INVESTIMENTO TOTAL</small>
-            <div class="total-value">{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</div>
-            <span>Ou em 10x de {{ valorParcela | currency:'BRL':'symbol':'1.2-2' }} no cartão</span>
+            <div class="total-value" aria-live="polite">{{ reais(valorTotal) }}</div>
+            @if (erroOrcamento()) {
+              <span class="orcamento-erro" role="alert">{{ erroOrcamento() }}</span>
+            } @else {
+              <span>Ou em {{ parcelasMax ?? '—' }}x de {{ reais(valorParcela) }} no cartão</span>
+            }
           </div>
 
           <div class="summary-actions">
@@ -460,7 +464,7 @@
 <div class="barra-total" [class.visivel]="barraVisivel" [attr.aria-hidden]="!barraVisivel">
   <div class="barra-total-info">
     <small>INVESTIMENTO TOTAL</small>
-    <strong>{{ valorTotal | currency:'BRL':'symbol':'1.2-2' }}</strong>
+    <strong>{{ reais(valorTotal) }}</strong>
   </div>
   <button type="button" (click)="irParaResumo()">VER ORÇAMENTO</button>
 </div>

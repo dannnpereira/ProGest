@@ -5,6 +5,7 @@ import {
 } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth.service';
 
 function cpfValido(c: AbstractControl): ValidationErrors | null {
@@ -17,6 +18,14 @@ function cpfValido(c: AbstractControl): ValidationErrors | null {
     return r === 10 ? 0 : r;
   };
   return digito(9) === +cpf[9] && digito(10) === +cpf[10] ? null : { cpf: true };
+}
+
+// Aceita qualquer e-mail no formato algo@dominio.ext, de qualquer provedor, com acentos,
+// "+" e subdomínios, e ignora espaços antes/depois (comum no corretor do celular).
+// É a mesma regra do backend (ClienteEmail.FORMATO).
+const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function emailValido(c: AbstractControl): ValidationErrors | null {
+  return FORMATO_EMAIL.test((c.value ?? '').trim()) ? null : { email: true };
 }
 
 @Component({
@@ -41,14 +50,51 @@ export class LoginComponent {
     nome: [''],
     cpf: [''],
     telefone: [''],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, emailValido]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     remember: [false],
   });
 
+  // Conta já existente com o CPF / e-mail digitado (conferido no banco ao sair do campo)
+  cpfEmUso = signal(false);
+  emailEmUso = signal(false);
+
+  constructor() {
+    // Mudou o valor: o aviso de "já cadastrado" deixa de valer até conferir de novo
+    this.form.controls.cpf.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.cpfEmUso.set(false));
+    this.form.controls.email.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.emailEmUso.set(false));
+  }
+
+  /** Ao sair do campo CPF ou e-mail no cadastro, pergunta ao banco se já existe conta. */
+  conferirCadastro() {
+    if (this.mode() !== 'register') return;
+    const { cpf, email } = this.form.controls;
+    const cpfOk = cpf.valid ? cpf.value.replace(/\D/g, '') : '';
+    const emailOk = email.valid ? email.value.trim() : '';
+    if (!cpfOk && !emailOk) return;
+
+    this.auth.disponibilidade(cpfOk, emailOk).subscribe({
+      next: (r) => {
+        // Só aplica se o campo não mudou enquanto a resposta vinha
+        if (cpfOk && cpfOk === cpf.value.replace(/\D/g, '')) this.cpfEmUso.set(r.cpfEmUso);
+        if (emailOk && emailOk === email.value.trim()) this.emailEmUso.set(r.emailEmUso);
+      },
+      // Sem resposta (servidor fora, limite de tentativas): o envio do cadastro confere de novo
+      error: () => {},
+    });
+  }
+
+  /** "Já tem conta? Entrar": troca para a aba Entrar mantendo o e-mail. */
+  irParaEntrar() {
+    this.setMode('login');
+    this.form.controls.password.reset('');
+  }
+
   setMode(mode: 'login' | 'register') {
     this.mode.set(mode);
     this.erro.set('');
+    this.cpfEmUso.set(false);
+    this.emailEmUso.set(false);
     const { nome, cpf, telefone } = this.form.controls;
     if (mode === 'register') {
       nome.setValidators([Validators.required, Validators.minLength(3)]);
@@ -86,16 +132,18 @@ export class LoginComponent {
       return;
     }
     if (this.enviando()) return;
+    if (this.mode() === 'register' && (this.cpfEmUso() || this.emailEmUso())) return;
 
     const dados = this.form.getRawValue();
+    const email = dados.email.trim();
     // Não use console.log com CPF/senha: são dados pessoais (LGPD)
     const requisicao = this.mode() === 'login'
-      ? this.auth.login(dados.email, dados.password, dados.remember)
+      ? this.auth.login(email, dados.password, dados.remember)
       : this.auth.cadastrar({
-          nome: dados.nome,
+          nome: dados.nome.trim(),
           cpf: dados.cpf.replace(/\D/g, ''),
           telefone: dados.telefone,
-          email: dados.email,
+          email,
           senha: dados.password,
         });
 
@@ -111,6 +159,12 @@ export class LoginComponent {
       },
       error: (e: HttpErrorResponse) => {
         this.enviando.set(false);
+        if (e.status === 409) {
+          // Marca o campo certo; a mensagem aparece embaixo dele
+          const msg = String(e.error?.message ?? '');
+          this.cpfEmUso.set(msg.includes('CPF'));
+          this.emailEmUso.set(msg.includes('e-mail'));
+        }
         this.erro.set(this.mensagemDeErro(e));
       },
     });
@@ -118,11 +172,14 @@ export class LoginComponent {
 
   private mensagemDeErro(e: HttpErrorResponse): string {
     const doServidor = typeof e.error?.message === 'string' ? e.error.message : '';
+    // Resposta que não veio do Spring (sem "timestamp"): o servidor nem chegou a responder.
+    // Ex.: "npm start" sem o backend rodando devolve 500 do proxy.
+    const servidorFora = e.status === 0 || e.status === 502 || e.status === 503 || e.status === 504
+      || (e.status >= 500 && !e.error?.timestamp);
+    if (servidorFora) {
+      return 'Não foi possível conectar ao servidor. Tente novamente em instantes.';
+    }
     switch (e.status) {
-      case 0:
-      case 502:
-      case 504:
-        return 'Não foi possível conectar ao servidor. Tente novamente em instantes.';
       case 401:
         return 'E-mail ou senha incorretos.';
       case 409:
@@ -130,7 +187,7 @@ export class LoginComponent {
       case 429:
         return 'Muitas tentativas seguidas. Aguarde um minuto e tente novamente.';
       case 400:
-        return doServidor === 'CPF inválido.' ? doServidor : 'Verifique os dados informados.';
+        return ['CPF inválido.', 'E-mail inválido.'].includes(doServidor) ? doServidor : 'Verifique os dados informados.';
       default:
         return 'Algo deu errado. Tente novamente.';
     }

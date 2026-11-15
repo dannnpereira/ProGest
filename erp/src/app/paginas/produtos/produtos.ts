@@ -1,6 +1,9 @@
 import { Component, ElementRef, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { Icone } from '../../shared/icone';
-import { ProdutosService } from '../../core/produtos.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { Orcamento, PedidoOrcamento, ProdutosService } from '../../core/produtos.service';
 import { AvisosService } from '../../core/avisos.service';
 import { Categoria, Produto, ROTULO_CATEGORIA, ROTULO_UNIDADE, Unidade } from '../../core/modelos';
 import { moeda, num } from '../../core/formato';
@@ -61,21 +64,51 @@ export class Produtos {
     !(this.rDesconto() >= 0 && this.rDesconto() <= 50) || !(this.rParcelas() >= 1 && this.rParcelas() <= 24),
   );
 
-  // ---------- Prévia no orçamento ----------
-  protected arames = computed(() => this.svc.ativos().filter(p => p.categoria === 'ARAME'));
-  protected malhas = computed(() => this.svc.ativos().filter(p => p.categoria === 'MALHA'));
-  protected tratamentos = computed(() => this.svc.ativos().filter(p => p.categoria === 'TRATAMENTO'));
+  // ---------- Prévia no orçamento (calculada pela API, igual ao site) ----------
+  // Só entram produtos com chave: são as opções que existem no configurador do site
+  private opcoes = (c: Categoria) => computed(() => this.svc.ativos().filter(p => p.categoria === c && p.chave));
+  protected arames = this.opcoes('ARAME');
+  protected malhas = this.opcoes('MALHA');
+  protected tratamentos = this.opcoes('TRATAMENTO');
 
-  protected sArame = linkedSignal(() => this.arames()[0]?.id ?? 0);
-  protected sMalha = linkedSignal(() => this.malhas().find(p => p.chave === 'MALHA_3')?.id ?? this.malhas()[0]?.id ?? 0);
-  protected sTratamento = linkedSignal(() => this.tratamentos()[0]?.id ?? 0);
+  protected sArame = linkedSignal(() => this.arames()[0]?.chave ?? '');
+  protected sMalha = linkedSignal(() => this.malhas().find(p => p.chave === 'MALHA_3')?.chave ?? this.malhas()[0]?.chave ?? '');
+  protected sTratamento = linkedSignal(() => this.tratamentos()[0]?.chave ?? '');
   protected sComprimento = signal(50);
   protected sAltura = signal(2);
 
-  protected simulacao = computed(() => this.svc.simular({
-    arameId: this.sArame(), malhaId: this.sMalha(), tratamentoId: this.sTratamento(),
-    comprimentoM: this.sComprimento() || 0, alturaM: this.sAltura() || 0,
-  }));
+  protected simulacao = signal<Orcamento | null>(null);
+  protected erroSimulacao = signal('');
+
+  private pedidoSimulacao = computed<PedidoOrcamento>(() => {
+    // Lê produtos e regras para pedir de novo depois de salvar um preço
+    this.svc.produtos();
+    this.svc.regras();
+    return {
+      arame: this.sArame(), malha: this.sMalha(), tratamento: this.sTratamento(),
+      alturaM: this.sAltura() || 0, comprimentoM: this.sComprimento() || 0,
+      entrega: false, cep: null,
+    };
+  });
+
+  constructor() {
+    toObservable(this.pedidoSimulacao).pipe(
+      debounceTime(250),
+      switchMap(pedido => this.svc.orcar(pedido).pipe(
+        map(o => ({ o, erro: '' })),
+        catchError((e: HttpErrorResponse) => of({
+          o: null,
+          erro: e.status === 400 ? 'Informe altura e comprimento.'
+            : e.status === 422 ? 'Uma das opções está inativa.'
+            : 'Não foi possível calcular a prévia agora.',
+        })),
+      )),
+      takeUntilDestroyed(),
+    ).subscribe(({ o, erro }) => {
+      this.simulacao.set(o);
+      this.erroSimulacao.set(erro);
+    });
+  }
 
   nota(p: Produto): string {
     if (p.categoria === 'MALHA' && p.valor === 0) return p.chave === 'MALHA_2' ? 'base padrão' : 'sem acréscimo';
@@ -107,34 +140,54 @@ export class Produtos {
     this.focarNome();
   }
 
-  salvar(): void {
+  /** Edição só com os dados do banco carregados, para não sobrescrever com valores antigos. */
+  protected podeEditar = computed(() => this.svc.estado() === 'ok');
+  protected salvando = signal(false);
+
+  async salvar(): Promise<void> {
     this.tentouSalvar.set(true);
-    if (this.nomeInvalido() || this.valorInvalido()) return;
+    if (this.nomeInvalido() || this.valorInvalido() || this.salvando() || !this.podeEditar()) return;
     const id = this.editandoId();
-    const original = id ? this.svc.porId(id) : undefined;
-    const salvo = this.svc.salvar({
-      ...(original ?? {}),
-      id: id ?? undefined,
-      categoria: this.fCategoria(),
-      nome: this.fNome().trim(),
-      descricao: this.fDescricao().trim(),
-      unidade: this.fUnidade(),
-      valor: Math.round(this.fValor() * 100) / 100,
-      ativo: this.fAtivo(),
-    });
-    this.avisos.mostrar({ texto: `${salvo.nome} ${id ? 'atualizado' : 'cadastrado'}.` });
-    this.novo();
+    this.salvando.set(true);
+    try {
+      const salvo = await this.svc.salvar({
+        id: id ?? undefined,
+        categoria: this.fCategoria(),
+        nome: this.fNome().trim(),
+        descricao: this.fDescricao().trim(),
+        unidade: this.fUnidade(),
+        valor: Math.round(this.fValor() * 100) / 100,
+        ativo: this.fAtivo(),
+      });
+      this.avisos.mostrar({ texto: `${salvo.nome} ${id ? 'atualizado' : 'cadastrado'}. O site já usa o novo valor.` });
+      this.novo();
+    } catch {
+      this.avisos.mostrar({ texto: 'Não foi possível salvar o produto. Tente de novo.' });
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
-  alternarAtivo(p: Produto): void {
-    this.svc.alternarAtivo(p.id);
-    this.avisos.mostrar({ texto: `${p.nome} ${p.ativo ? 'desativado' : 'ativado'} no simulador.` });
+  async alternarAtivo(p: Produto): Promise<void> {
+    try {
+      await this.svc.alternarAtivo(p.id);
+      this.avisos.mostrar({ texto: `${p.nome} ${p.ativo ? 'desativado' : 'ativado'} no simulador.` });
+    } catch {
+      this.avisos.mostrar({ texto: `Não foi possível alterar ${p.nome}. Tente de novo.` });
+    }
   }
 
-  salvarRegras(): void {
-    if (this.regrasInvalidas()) return;
-    this.svc.salvarRegras({ descontoAVistaPct: this.rDesconto(), parcelasMax: Math.round(this.rParcelas()) });
-    this.avisos.mostrar({ texto: 'Regras do orçamento salvas.' });
+  async salvarRegras(): Promise<void> {
+    if (this.regrasInvalidas() || this.salvando() || !this.podeEditar()) return;
+    this.salvando.set(true);
+    try {
+      await this.svc.salvarRegras({ descontoAVistaPct: this.rDesconto(), parcelasMax: Math.round(this.rParcelas()) });
+      this.avisos.mostrar({ texto: 'Regras do orçamento salvas. O site já usa as novas condições.' });
+    } catch {
+      this.avisos.mostrar({ texto: 'Não foi possível salvar as regras. Tente de novo.' });
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
   valorNumero(e: Event): number {

@@ -1,10 +1,13 @@
 package com.progest.Backend_api.services;
 
 import com.progest.Backend_api.dto.CadastroRequest;
+import com.progest.Backend_api.dto.DisponibilidadeRequest;
+import com.progest.Backend_api.dto.DisponibilidadeResponse;
 import com.progest.Backend_api.dto.LoginRequest;
 import com.progest.Backend_api.model.Cliente;
 import com.progest.Backend_api.repository.ClienteRepository;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,15 +52,9 @@ public class ClienteService {
         }
 
         Cliente cliente = repository.findByCpf(cpf).orElse(null);
-        if (cliente != null && cliente.getSenhaHash() != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este CPF.");
-        }
-
-        boolean emailEmUso = repository.findByEmailIgnoreCase(email)
-                .filter(outro -> cliente == null || !outro.getId().equals(cliente.getId()))
-                .isPresent();
-        if (emailEmUso) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este e-mail.");
+        DisponibilidadeResponse uso = verificarUso(cpf, email);
+        if (uso.cpfEmUso() || uso.emailEmUso()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, mensagemDeConflito(uso));
         }
 
         // Cliente ja registrado sem senha (ex.: cadastrado junto com um pedido): ativa a conta
@@ -68,7 +65,40 @@ public class ClienteService {
         novo.setTelefone(req.telefone().trim());
         novo.setSenhaHash(passwordEncoder.encode(req.senha()));
 
-        return repository.save(novo);
+        try {
+            return repository.saveAndFlush(novo);
+        } catch (DataIntegrityViolationException e) {
+            // Duas pessoas cadastrando o mesmo CPF/e-mail ao mesmo tempo: o banco barra a segunda
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este CPF ou e-mail.");
+        }
+    }
+
+    /** Usado pela tela de cadastro para avisar antes de enviar o formulário. */
+    public DisponibilidadeResponse disponibilidade(DisponibilidadeRequest req) {
+        return verificarUso(somenteDigitos(req.cpf()), normalizarEmail(req.email()));
+    }
+
+    // "Em uso" = ja existe uma CONTA (com senha). Cliente cadastrado so por um pedido
+    // ainda pode criar a conta com o mesmo CPF.
+    private DisponibilidadeResponse verificarUso(String cpf, String email) {
+        Cliente donoDoCpf = (cpf == null || cpf.isEmpty()) ? null : repository.findByCpf(cpf).orElse(null);
+        boolean cpfEmUso = donoDoCpf != null && donoDoCpf.getSenhaHash() != null;
+
+        boolean emailEmUso = email != null && !email.isEmpty() && repository.findByEmailIgnoreCase(email)
+                .filter(outro -> donoDoCpf == null || !outro.getId().equals(donoDoCpf.getId())
+                        || outro.getSenhaHash() != null)
+                .isPresent();
+
+        return new DisponibilidadeResponse(cpfEmUso, emailEmUso);
+    }
+
+    private static String mensagemDeConflito(DisponibilidadeResponse uso) {
+        if (uso.cpfEmUso() && uso.emailEmUso()) {
+            return "Já existe uma conta com este CPF e este e-mail. Use a aba Entrar.";
+        }
+        return uso.cpfEmUso()
+                ? "Já existe uma conta com este CPF. Use a aba Entrar."
+                : "Já existe uma conta com este e-mail. Use a aba Entrar.";
     }
 
     // Login: confere e-mail e senha

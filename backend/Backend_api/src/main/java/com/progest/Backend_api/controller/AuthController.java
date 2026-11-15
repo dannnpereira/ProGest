@@ -2,6 +2,8 @@ package com.progest.Backend_api.controller;
 
 import com.progest.Backend_api.dto.CadastroRequest;
 import com.progest.Backend_api.dto.ClienteResponse;
+import com.progest.Backend_api.dto.DisponibilidadeRequest;
+import com.progest.Backend_api.dto.DisponibilidadeResponse;
 import com.progest.Backend_api.dto.LoginRequest;
 import com.progest.Backend_api.services.ClienteService;
 
@@ -25,6 +27,12 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ClienteResponse cadastrar(@Valid @RequestBody CadastroRequest request) {
         return ClienteResponse.de(clienteService.cadastrar(request));
+    }
+
+    // A tela de cadastro pergunta antes de enviar se o CPF/e-mail ja tem conta
+    @PostMapping("/disponibilidade")
+    public DisponibilidadeResponse disponibilidade(@RequestBody DisponibilidadeRequest request) {
+        return clienteService.disponibilidade(request);
     }
 
     @PostMapping("/login")

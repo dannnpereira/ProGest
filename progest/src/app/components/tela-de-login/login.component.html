@@ -38,10 +38,17 @@
               <label for="cpf">CPF</label>
               <div class="input">
                 <input id="cpf" type="text" inputmode="numeric" formControlName="cpf"
-                  placeholder="000.000.000-00" (input)="maskCpf($event)" />
+                  placeholder="000.000.000-00" (input)="maskCpf($event)" (blur)="conferirCadastro()"
+                  [attr.aria-invalid]="cpfEmUso() || (form.controls.cpf.touched && form.controls.cpf.invalid)"
+                  [attr.aria-describedby]="cpfEmUso() ? 'cpf-em-uso' : null" />
               </div>
               @if (form.controls.cpf.touched && form.controls.cpf.invalid) {
                 <small class="error">CPF inválido.</small>
+              } @else if (cpfEmUso()) {
+                <small id="cpf-em-uso" class="error" role="alert">
+                  Já existe uma conta com este CPF.
+                  <button type="button" class="link-inline" (click)="irParaEntrar()">Entrar</button>
+                </small>
               }
             </div>
 
@@ -66,10 +73,17 @@
               <path d="m3 7 9 6 9-6" />
             </svg>
             <input id="email" type="email" formControlName="email" placeholder="contato@suaempresa.com"
-              autocomplete="email" />
+              autocomplete="email" (blur)="conferirCadastro()"
+              [attr.aria-invalid]="emailEmUso() || (form.controls.email.touched && form.controls.email.invalid)"
+              [attr.aria-describedby]="emailEmUso() ? 'email-em-uso' : null" />
           </div>
           @if (form.controls.email.touched && form.controls.email.invalid) {
-            <small class="error">Informe um e-mail válido.</small>
+            <small class="error">Informe um e-mail válido (ex.: nome&#64;gmail.com).</small>
+          } @else if (emailEmUso()) {
+            <small id="email-em-uso" class="error" role="alert">
+              Já existe uma conta com este e-mail.
+              <button type="button" class="link-inline" (click)="irParaEntrar()">Entrar</button>
+            </small>
           }
         </div>
 
@@ -106,7 +120,8 @@
           </div>
         }
 
-        @if (erro()) {
+        <!-- Conta repetida já aparece embaixo do CPF / e-mail -->
+        @if (erro() && !cpfEmUso() && !emailEmUso()) {
           <p class="form-error" role="alert">{{ erro() }}</p>
         }
 
