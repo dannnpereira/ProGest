@@ -148,6 +148,7 @@
 .input input {
   flex: 1;
   min-width: 0;
+  width: 100%;
   height: 100%;
   background: transparent;
   border: 0;
@@ -235,9 +236,11 @@
 
 .field-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, 1fr): as colunas não crescem além do cartão por causa do tamanho do input */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
+.field-row > .field { min-width: 0; }
 @media (max-width: 480px) {
   .field-row { grid-template-columns: 1fr; }
 }

@@ -23,6 +23,12 @@ export interface PedidoApi {
   comprimentoM: number;
   entrega: boolean;
   endereco: string | null;
+  distanciaKm: number | null;
+  valorMateriaPrima: number;
+  valorAcessorios: number;
+  valorFrete: number;
+  descontoPct: number;
+  valorDesconto: number;
   valorTotal: number;
   parcelas: number;
   valorParcela: number;

@@ -3,6 +3,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RastreioService } from '../../services/rastreio.service';
+import { PdfService } from '../../services/pdf.service';
 import { Etapa, EstadoEtapa, Pedido, StatusPedido } from '../../services/pedido';
 
 const ROTULOS_STATUS: Record<StatusPedido, string> = {
@@ -37,6 +38,7 @@ export class RastreioComponent implements OnInit {
   private rastreio = inject(RastreioService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private pdf = inject(PdfService);
 
   /** Código do pedido que acabou de ser feito (mostra a mensagem de confirmação) */
   novoPedido = signal('');
@@ -119,6 +121,37 @@ export class RastreioComponent implements OnInit {
   sair(): void {
     this.auth.sair();
     this.router.navigateByUrl('/');
+  }
+
+  /** Ficha técnica com os dados e valores gravados no pedido (iguais ao valor do pedido). */
+  baixarFicha(p: Pedido): void {
+    const v = p.valores;
+    if (!v) return;
+    const ok = this.pdf.gerarOrcamentoPdf({
+      configuracao: { bitola: p.bitola, malha: p.malha, tratamento: p.tratamento },
+      medidas: {
+        altura: p.alturaMetros, comprimento: p.comprimentoMetros,
+        area: Math.round(p.alturaMetros * p.comprimentoMetros * 100) / 100,
+        rolos: Math.ceil(p.comprimentoMetros / 15),
+      },
+      tipoFrete: p.tipoFrete,
+      endereco: null,
+      enderecoTexto: p.enderecoEntrega,
+      orcamento: {
+        areaM2: p.alturaMetros * p.comprimentoMetros,
+        materiaPrima: v.materiaPrima,
+        acessorios: v.acessorios,
+        frete: { valor: v.frete, distanciaKm: v.distanciaKm, combustivel: null, pedagios: null },
+        descontoPct: v.descontoPct,
+        desconto: v.desconto,
+        total: p.valorTotal,
+        parcelas: v.parcelas,
+        valorParcela: v.valorParcela,
+      },
+      cliente: this.nomeCompleto || null,
+      codigoPedido: p.codigo,
+    });
+    if (!ok) alert('O navegador bloqueou a janela da ficha técnica. Permita pop-ups para este site.');
   }
 
   // ---------- Textos e estilos ----------
