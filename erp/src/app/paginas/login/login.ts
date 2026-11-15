@@ -2,7 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Icone } from '../../shared/icone';
-import { SessaoService } from '../../core/sessao.service';
+import { SessaoService, telaInicial } from '../../core/sessao.service';
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -65,11 +65,14 @@ export class Login {
     }
   }
 
-  /** Só aceita caminhos internos do painel, para o ?volta= não levar para outro site. */
+  /**
+   * Só aceita caminhos internos do painel, para o ?volta= não levar para outro site.
+   * Se o perfil não puder abrir a tela pedida, o guard da rota manda para a tela dele.
+   */
   private destino(): string {
     const v = this.volta();
     const seguro = !!v && v.startsWith('/') && !v.startsWith('//') && !v.startsWith('/login');
-    return seguro ? v : '/aprovacao';
+    return seguro ? v : telaInicial(this.sessao.perfil());
   }
 }
 

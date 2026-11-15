@@ -12,7 +12,7 @@
 
     <nav class="nav">
       <p class="nav-title">Operação industrial</p>
-      @for (item of menu; track item.rota) {
+      @for (item of menu(); track item.rota) {
         <a class="nav-item" [routerLink]="item.rota" routerLinkActive="nav-item--active"
           [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">
           <app-icone [nome]="item.icone" />
@@ -38,19 +38,25 @@
         <app-icone nome="menu" [tamanho]="22" />
       </button>
 
-      <a routerLink="/aprovacao" class="top-logo" aria-label="Amaral Alambrados - início">
+      <a [routerLink]="inicio()" class="top-logo" aria-label="Amaral Alambrados - início">
         <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#111418" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
         <span><strong>AMARAL</strong><small>alambrados</small></span>
       </a>
 
+      <!-- Busca e avisos de pedidos novos são da Aprovação: só para o administrador -->
+      @if (sessao.ehAdmin()) {
       <form class="search top-search" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
         <app-icone nome="busca" />
         <label for="busca-global" class="sr-only">Buscar pedido ou cliente</label>
         <input #campoBusca id="busca-global" type="search" placeholder="Buscar pedido ou cliente" autocomplete="off" />
         <kbd>Ctrl K</kbd>
       </form>
+      } @else {
+        <span class="top-search top-espaco"></span>
+      }
 
       <div class="top-right">
+        @if (sessao.ehAdmin()) {
         <div class="notif">
           <button type="button" class="btn-icon" [attr.aria-expanded]="notificacoesAbertas()"
             aria-label="Notificações" (click)="notificacoesAbertas.set(!notificacoesAbertas())">
@@ -73,11 +79,12 @@
             </div>
           }
         </div>
+        }
 
         <div class="user">
           <span class="user-text">
-            <strong>{{ sessao.usuario()?.nome ?? 'Administrador' }}</strong>
-            <small>{{ sessao.usuario()?.email }}</small>
+            <strong>{{ sessao.usuario()?.nome ?? rotuloPerfil() }}</strong>
+            <small>{{ rotuloPerfil() }} · {{ sessao.usuario()?.email }}</small>
           </span>
           <span class="user-avatar" aria-hidden="true"><app-icone nome="usuario" [tamanho]="18" /></span>
         </div>

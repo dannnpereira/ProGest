@@ -25,14 +25,26 @@ public class UsuarioErp {
     @Column(nullable = false)
     private boolean ativo = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PerfilErp perfil = PerfilErp.ADMIN;
+
     public UsuarioErp() {
     }
 
     public UsuarioErp(String nome, String email, String senhaHash) {
+        this(nome, email, senhaHash, PerfilErp.ADMIN);
+    }
+
+    public UsuarioErp(String nome, String email, String senhaHash, PerfilErp perfil) {
         this.nome = nome;
         this.email = email;
         this.senhaHash = senhaHash;
+        this.perfil = perfil;
     }
+
+    public PerfilErp getPerfil() { return perfil; }
+    public void setPerfil(PerfilErp perfil) { this.perfil = perfil; }
 
     public Long getId() { return id; }
 

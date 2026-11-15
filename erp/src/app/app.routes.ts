@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { exigeLogin, somenteDeslogado } from './core/sessao.guard';
+import { exigeLogin, paraTelaInicial, somenteAdmin, somenteDeslogado } from './core/sessao.guard';
 import { Layout } from './layout/layout';
 
 export const routes: Routes = [
@@ -15,29 +15,35 @@ export const routes: Routes = [
     component: Layout,
     canActivate: [exigeLogin],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'aprovacao' },
+      // Admin abre em Aprovação; funcionário em Produção
+      { path: '', pathMatch: 'full', redirectTo: paraTelaInicial },
       {
         path: 'aprovacao',
+        canActivate: [somenteAdmin],
         title: 'Aprovação de Pedidos | ProGest',
         loadComponent: () => import('./paginas/aprovacao/aprovacao').then(m => m.Aprovacao),
       },
       {
+        // Única tela do funcionário
         path: 'producao',
         title: 'Produção e Entregas | ProGest',
         loadComponent: () => import('./paginas/producao/producao').then(m => m.Producao),
       },
       {
         path: 'produtos',
+        canActivate: [somenteAdmin],
         title: 'Produtos e Valores | ProGest',
         loadComponent: () => import('./paginas/produtos/produtos').then(m => m.Produtos),
       },
       {
         path: 'financeiro',
+        canActivate: [somenteAdmin],
         title: 'Financeiro | ProGest',
         loadComponent: () => import('./paginas/financeiro/financeiro').then(m => m.Financeiro),
       },
       {
         path: 'configuracoes',
+        canActivate: [somenteAdmin],
         title: 'Configurações | ProGest',
         loadComponent: () => import('./paginas/configuracoes/configuracoes').then(m => m.Configuracoes),
       },

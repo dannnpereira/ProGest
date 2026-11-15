@@ -3,10 +3,19 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
+/** ADMIN: todas as telas. FUNCIONARIO: só Produção e Entregas. */
+export type PerfilErp = 'ADMIN' | 'FUNCIONARIO';
+
 export interface UsuarioErp {
   id: number;
   nome: string;
   email: string;
+  perfil?: PerfilErp;
+}
+
+/** Tela inicial de cada perfil */
+export function telaInicial(perfil: PerfilErp): string {
+  return perfil === 'FUNCIONARIO' ? '/producao' : '/aprovacao';
 }
 
 interface SessaoGuardada {
@@ -35,6 +44,9 @@ export class SessaoService {
 
   readonly usuario = computed(() => this.sessao()?.usuario ?? null);
   readonly logado = computed(() => this.sessao() !== null);
+  // Sem perfil (sessão de versão antiga) vale o mais restrito até o servidor confirmar
+  readonly perfil = computed<PerfilErp>(() => this.usuario()?.perfil ?? 'FUNCIONARIO');
+  readonly ehAdmin = computed(() => this.perfil() === 'ADMIN');
 
   get token(): string | null {
     return this.sessao()?.token ?? null;

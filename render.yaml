@@ -24,3 +24,8 @@ services:
       # Nunca coloque a senha neste arquivo (o repositório é público).
       - key: ADMIN_SENHA
         sync: false
+      # Funcionário do ERP (só vê Produção e Entregas): e-mail e senha definidos no painel do Render
+      - key: FUNCIONARIO_EMAIL
+        sync: false
+      - key: FUNCIONARIO_SENHA
+        sync: false

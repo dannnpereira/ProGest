@@ -44,6 +44,11 @@ O arquivo `render.yaml` na raiz do repositório já tem toda a configuração.
 |---|---|
 | `ADMIN_SENHA` | senha do administrador do ERP (mínimo 8 caracteres) — **só aqui, nunca no código** |
 | `ADMIN_EMAIL` | `amaralalambrados109@gmail.com` (opcional, já é o padrão) |
+| `FUNCIONARIO_EMAIL` | e-mail do funcionário (opcional) — só vê **Produção e Entregas** |
+| `FUNCIONARIO_SENHA` | senha do funcionário (mínimo 8 caracteres) — **só aqui, nunca no código** |
+
+> Os usuários são recriados a cada início a partir dessas variáveis. Para trocar uma
+> senha, mude a variável em **Environment** e salve: o Render reinicia sozinho.
 
 Não precisa definir porta, perfil nem memória: o Dockerfile já cuida disso
 (`SPRING_PROFILES_ACTIVE=prod`, porta da variável `PORT` do Render, limite de memória).
