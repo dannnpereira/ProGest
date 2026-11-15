@@ -67,8 +67,8 @@ O primeiro build demora (de 5 a 15 minutos). Depois, acesse:
 - Login do cliente: `http://SEU_ELASTIC_IP/login`
 - ERP: `http://SEU_ELASTIC_IP/erp/` (entre com `ADMIN_EMAIL` e `ADMIN_SENHA` do `.env`)
 
-O usuário do ERP é criado só na primeira vez que o backend sobe. Depois disso, mudar
-`ADMIN_SENHA` no `.env` **não** troca a senha de quem já existe.
+A cada início o backend garante que o administrador do ERP exista com o e-mail e a
+senha do `.env`. Para trocar a senha: mude `ADMIN_SENHA` no `.env` e rode `docker compose up -d`.
 
 Comandos úteis:
 

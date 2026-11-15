@@ -172,11 +172,13 @@ export class LoginComponent {
 
   private mensagemDeErro(e: HttpErrorResponse): string {
     const doServidor = typeof e.error?.message === 'string' ? e.error.message : '';
-    // Resposta que não veio do Spring (sem "timestamp"): o servidor nem chegou a responder.
-    // Ex.: "npm start" sem o backend rodando devolve 500 do proxy.
-    const servidorFora = e.status === 0 || e.status === 502 || e.status === 503 || e.status === 504
-      || (e.status >= 500 && !e.error?.timestamp);
-    if (servidorFora) {
+    if (e.status === 429) {
+      return 'Muitas tentativas seguidas. Aguarde um minuto e tente novamente.';
+    }
+    // Toda resposta do backend (Spring) traz "timestamp". Sem ele, quem respondeu foi
+    // outro servidor: proxy do "npm start" sem backend, Vercel devolvendo a página do
+    // site (backend ainda não publicado) ou backend acordando no Render.
+    if (e.status === 0 || !e.error?.timestamp) {
       return 'Não foi possível conectar ao servidor. Tente novamente em instantes.';
     }
     switch (e.status) {
@@ -184,8 +186,6 @@ export class LoginComponent {
         return 'E-mail ou senha incorretos.';
       case 409:
         return doServidor || 'Já existe uma conta com estes dados.';
-      case 429:
-        return 'Muitas tentativas seguidas. Aguarde um minuto e tente novamente.';
       case 400:
         return ['CPF inválido.', 'E-mail inválido.'].includes(doServidor) ? doServidor : 'Verifique os dados informados.';
       default:

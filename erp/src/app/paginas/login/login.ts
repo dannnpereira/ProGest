@@ -75,17 +75,16 @@ export class Login {
 
 function mensagemDeErro(e: unknown): string {
   if (!(e instanceof HttpErrorResponse)) return 'Não foi possível entrar agora. Tente de novo.';
+  if (e.status === 429) return 'Muitas tentativas seguidas. Aguarde um minuto e tente de novo.';
+  // Resposta sem "timestamp" não veio do backend (Spring): servidor fora do ar,
+  // ainda não publicado (a Vercel devolve a página do site) ou acordando no Render.
+  if (e.status === 0 || !e.error?.timestamp) {
+    return 'Não foi possível falar com o servidor. Se ele estava parado, aguarde um minuto e tente de novo.';
+  }
   switch (e.status) {
-    case 0:
-    case 502:
-    case 503:
-    case 504:
-      return 'Não foi possível falar com o servidor. Confira se o backend está rodando.';
     case 401:
     case 403:
       return e.error?.message ?? 'E-mail ou senha incorretos.';
-    case 429:
-      return 'Muitas tentativas seguidas. Aguarde um minuto e tente de novo.';
     case 400:
       return 'Preencha o e-mail e a senha.';
     default:

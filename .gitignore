@@ -3,3 +3,6 @@
 
 # Backups do banco gerados por deploy/backup.sh
 backups/
+
+# Configuracao local do backend (senha do ERP)
+backend/Backend_api/src/main/resources/local.properties
