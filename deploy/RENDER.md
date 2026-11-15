@@ -1,5 +1,8 @@
 # Backend no Render + sites na Vercel
 
+**Backend publicado:** <https://progest-backend-n2g6.onrender.com> (teste: `/api/saude`).
+Os dois `vercel.json` já repassam `/api` para ele.
+
 Alternativa mais simples que a EC2 (ver `README.md`), boa para apresentar o projeto.
 
 > **Limitações do plano grátis do Render** (confira no site do Render, pode mudar):
