@@ -54,3 +54,11 @@ tr.editando { background: var(--accent-soft); }
   .grade { grid-template-columns: 1fr; }
   .lateral { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 }
+
+/* Aviso de carregamento / erro da API */
+.faixa {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px 14px;
+  border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2); font-size: 13px;
+}
+.faixa--erro { background: var(--bad-soft); border-color: #f6caca; color: var(--bad); }
+.faixa--erro span { flex: 1; min-width: 200px; }

@@ -161,6 +161,11 @@
 .eye:hover svg { stroke: var(--ink); }
 
 .error { display: block; margin-top: 6px; font-size: 12px; color: #b91c1c; }
+.link-inline {
+  margin-left: 4px; padding: 0; border: 0; background: none; font: inherit; font-weight: 700;
+  color: var(--ink); text-decoration: underline; cursor: pointer;
+}
+.link-inline:hover { color: var(--accent); }
 
 .row {
   display: flex;

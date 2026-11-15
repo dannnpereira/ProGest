@@ -9,6 +9,16 @@
     </div>
   </header>
 
+  @if (svc.estado() === 'erro') {
+    <div class="faixa faixa--erro" role="alert">
+      <app-icone nome="alerta" [tamanho]="18" />
+      <span>Não foi possível carregar os produtos do servidor. Os valores abaixo são os padrões e não podem ser editados agora.</span>
+      <button type="button" class="btn btn--sm" (click)="svc.carregar()">Tentar de novo</button>
+    </div>
+  } @else if (svc.estado() === 'carregando') {
+    <div class="faixa" role="status">Carregando produtos do servidor…</div>
+  }
+
   <div class="grade">
     <!-- Tabela de produtos -->
     <div class="card tabela-card">
@@ -55,7 +65,7 @@
                 </td>
                 <td>
                   <label class="switch" [title]="p.ativo ? 'Ativo no simulador' : 'Inativo'">
-                    <input type="checkbox" [checked]="p.ativo" (change)="alternarAtivo(p)"
+                    <input type="checkbox" [checked]="p.ativo" (change)="alternarAtivo(p)" [disabled]="!podeEditar()"
                       [attr.aria-label]="(p.ativo ? 'Desativar ' : 'Ativar ') + p.nome" />
                     <span></span>
                   </label>
@@ -76,7 +86,7 @@
       <p class="tabela-rodape">
         <span class="ponto" aria-hidden="true"></span>
         Mostrando {{ lista().length }} de {{ svc.produtos().length }} itens cadastrados
-        <span class="mono versao">Base Sorocaba</span>
+        <span class="mono versao">{{ svc.estado() === 'ok' ? 'Sincronizado com o site' : 'Sem conexão' }}</span>
       </p>
     </div>
 
@@ -130,7 +140,9 @@
           </label>
         </div>
         <div class="acoes-form">
-          <button type="submit" class="btn btn--dark btn--lg">Salvar</button>
+          <button type="submit" class="btn btn--dark btn--lg" [disabled]="!podeEditar() || salvando()">
+            {{ salvando() ? 'Salvando…' : 'Salvar' }}
+          </button>
           <button type="button" class="btn btn--lg" (click)="novo()">Cancelar</button>
         </div>
       </form>
@@ -160,7 +172,7 @@
           </div>
         </div>
         @if (regrasInvalidas()) { <p class="error-text">Desconto entre 0 e 50% e parcelas entre 1 e 24.</p> }
-        <button type="submit" class="btn btn--dark btn--lg largo" [disabled]="regrasInvalidas()">
+        <button type="submit" class="btn btn--dark btn--lg largo" [disabled]="regrasInvalidas() || !podeEditar() || salvando()">
           <app-icone nome="checkCirculo" [tamanho]="16" /> Salvar regras
         </button>
       </form>
@@ -175,18 +187,18 @@
 
         <div class="sim-campos">
           <label><span>Arame</span>
-            <select class="select" [value]="sArame()" (change)="sArame.set(+$any($event.target).value)">
-              @for (p of arames(); track p.id) { <option [value]="p.id" [selected]="p.id === sArame()">{{ p.nome }}</option> }
+            <select class="select" [value]="sArame()" (change)="sArame.set($any($event.target).value)">
+              @for (p of arames(); track p.id) { <option [value]="p.chave" [selected]="p.chave === sArame()">{{ p.nome }}</option> }
             </select>
           </label>
           <label><span>Malha</span>
-            <select class="select" [value]="sMalha()" (change)="sMalha.set(+$any($event.target).value)">
-              @for (p of malhas(); track p.id) { <option [value]="p.id" [selected]="p.id === sMalha()">{{ p.nome }}</option> }
+            <select class="select" [value]="sMalha()" (change)="sMalha.set($any($event.target).value)">
+              @for (p of malhas(); track p.id) { <option [value]="p.chave" [selected]="p.chave === sMalha()">{{ p.nome }}</option> }
             </select>
           </label>
           <label><span>Tratamento</span>
-            <select class="select" [value]="sTratamento()" (change)="sTratamento.set(+$any($event.target).value)">
-              @for (p of tratamentos(); track p.id) { <option [value]="p.id" [selected]="p.id === sTratamento()">{{ p.nome }}</option> }
+            <select class="select" [value]="sTratamento()" (change)="sTratamento.set($any($event.target).value)">
+              @for (p of tratamentos(); track p.id) { <option [value]="p.chave" [selected]="p.chave === sTratamento()">{{ p.nome }}</option> }
             </select>
           </label>
           <label><span>Comprimento (m)</span>
@@ -197,19 +209,24 @@
           </label>
         </div>
 
-        @let s = simulacao();
-        <dl class="sim-linhas">
-          <div><dt>Matéria-prima:</dt><dd class="num">{{ moeda(s.materiaPrima) }}</dd></div>
-          <div><dt>Acessórios:</dt><dd class="num">{{ moeda(s.acessorios) }}</dd></div>
-          <div class="sim-desc"><dt>Desconto à vista ({{ num(svc.regras().descontoAVistaPct, svc.regras().descontoAVistaPct % 1 ? 1 : 0) }}%):</dt><dd class="num">- {{ moeda(s.desconto) }}</dd></div>
-        </dl>
-        <div class="sim-total">
-          <p class="kpi-label">Total simulado à vista</p>
-          <div class="sim-total-row">
-            <strong class="num">{{ moeda(s.totalAVista) }}</strong>
-            <span>ou até {{ svc.regras().parcelasMax }}x de {{ moeda(s.parcela) }}</span>
+        @if (simulacao(); as s) {
+          <dl class="sim-linhas">
+            <div><dt>Matéria-prima:</dt><dd class="num">{{ moeda(s.materiaPrima) }}</dd></div>
+            <div><dt>Acessórios:</dt><dd class="num">{{ moeda(s.acessorios) }}</dd></div>
+            <div class="sim-desc"><dt>Desconto à vista ({{ num(s.descontoPct, s.descontoPct % 1 ? 1 : 0) }}%):</dt><dd class="num">- {{ moeda(s.desconto) }}</dd></div>
+          </dl>
+          <div class="sim-total">
+            <p class="kpi-label">Total no site (retirada na fábrica)</p>
+            <div class="sim-total-row">
+              <strong class="num">{{ moeda(s.total) }}</strong>
+              <span>ou {{ s.parcelas }}x de {{ moeda(s.valorParcela) }}</span>
+            </div>
           </div>
-        </div>
+        } @else if (erroSimulacao()) {
+          <p class="error-text" role="alert">{{ erroSimulacao() }}</p>
+        } @else {
+          <p class="card-sub">Calculando…</p>
+        }
       </section>
     </div>
   </div>

@@ -1,79 +1,121 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, firstValueFrom } from 'rxjs';
 import { Produto, RegrasOrcamento } from './modelos';
 import { PRODUTOS_EXEMPLO, REGRAS_EXEMPLO } from './dados-exemplo';
-import { ler, gravar } from './armazenamento';
 
-export interface ConfigSimulacao {
-  arameId: number;
-  malhaId: number;
-  tratamentoId: number;
-  comprimentoM: number;
+/** Pedido de orçamento — o mesmo que o configurador do site envia. */
+export interface PedidoOrcamento {
+  arame: string;
+  malha: string;
+  tratamento: string;
   alturaM: number;
+  comprimentoM: number;
+  entrega: boolean;
+  cep: string | null;
 }
 
-export interface ResultadoSimulacao {
+/** Orçamento calculado pela API (POST /api/orcamento). */
+export interface Orcamento {
+  areaM2: number;
   materiaPrima: number;
   acessorios: number;
-  bruto: number;
+  frete: { valor: number };
+  descontoPct: number;
   desconto: number;
-  totalAVista: number;
-  parcela: number;
+  total: number;
+  parcelas: number;
+  valorParcela: number;
 }
 
+type DadosProduto = Omit<Produto, 'id' | 'chave'>;
+
+/**
+ * Produtos e regras do orçamento, gravados no banco pela API.
+ * São os mesmos valores que o configurador do site usa (GET /api/catalogo).
+ */
 @Injectable({ providedIn: 'root' })
 export class ProdutosService {
-  readonly produtos = signal<Produto[]>(ler('produtos', PRODUTOS_EXEMPLO));
-  readonly regras = signal<RegrasOrcamento>(ler('regras', REGRAS_EXEMPLO));
+  private http = inject(HttpClient);
+
+  // Começa com os valores padrão para os nomes aparecerem na hora;
+  // a lista do banco substitui assim que chega.
+  readonly produtos = signal<Produto[]>(PRODUTOS_EXEMPLO());
+  readonly regras = signal<RegrasOrcamento>(REGRAS_EXEMPLO());
+
+  /** 'carregando' | 'ok' | 'erro' — só dá para editar com 'ok' */
+  readonly estado = signal<'carregando' | 'ok' | 'erro'>('carregando');
 
   readonly ativos = computed(() => this.produtos().filter(p => p.ativo));
 
   constructor() {
-    effect(() => gravar('produtos', this.produtos()));
-    effect(() => gravar('regras', this.regras()));
+    this.carregar();
+  }
+
+  async carregar(): Promise<void> {
+    this.estado.set('carregando');
+    try {
+      const [produtos, regras] = await Promise.all([
+        firstValueFrom(this.http.get<Produto[]>('/api/erp/produtos')),
+        firstValueFrom(this.http.get<RegrasOrcamento>('/api/erp/regras-orcamento')),
+      ]);
+      this.produtos.set(produtos.map(normalizar));
+      this.regras.set({ descontoAVistaPct: Number(regras.descontoAVistaPct), parcelasMax: regras.parcelasMax });
+      this.estado.set('ok');
+    } catch {
+      this.estado.set('erro');
+    }
   }
 
   porId(id: number): Produto | undefined {
     return this.produtos().find(p => p.id === id);
   }
 
-  salvar(produto: Omit<Produto, 'id'> & { id?: number }): Produto {
-    if (produto.id) {
-      const atualizado = produto as Produto;
-      this.produtos.update(lista => lista.map(p => (p.id === atualizado.id ? atualizado : p)));
-      return atualizado;
+  async salvar(dados: DadosProduto & { id?: number }): Promise<Produto> {
+    const corpo: DadosProduto = {
+      categoria: dados.categoria, nome: dados.nome, descricao: dados.descricao,
+      unidade: dados.unidade, valor: dados.valor, ativo: dados.ativo,
+    };
+    const salvo = normalizar(await firstValueFrom(
+      dados.id
+        ? this.http.put<Produto>(`/api/erp/produtos/${dados.id}`, corpo)
+        : this.http.post<Produto>('/api/erp/produtos', corpo),
+    ));
+    this.produtos.update(lista =>
+      lista.some(p => p.id === salvo.id) ? lista.map(p => (p.id === salvo.id ? salvo : p)) : [...lista, salvo],
+    );
+    return salvo;
+  }
+
+  /** Liga/desliga no simulador. Muda na tela na hora e desfaz se o servidor recusar. */
+  async alternarAtivo(id: number): Promise<void> {
+    const original = this.porId(id);
+    if (!original) return;
+    const alterado = { ...original, ativo: !original.ativo };
+    this.produtos.update(lista => lista.map(p => (p.id === id ? alterado : p)));
+    try {
+      await this.salvar(alterado);
+    } catch (e) {
+      this.produtos.update(lista => lista.map(p => (p.id === id ? original : p)));
+      throw e;
     }
-    const novo: Produto = { ...produto, id: Math.max(0, ...this.produtos().map(p => p.id)) + 1 };
-    this.produtos.update(lista => [...lista, novo]);
-    return novo;
   }
 
-  alternarAtivo(id: number): void {
-    this.produtos.update(lista => lista.map(p => (p.id === id ? { ...p, ativo: !p.ativo } : p)));
-  }
-
-  salvarRegras(regras: RegrasOrcamento): void {
-    this.regras.set(regras);
+  async salvarRegras(regras: RegrasOrcamento): Promise<void> {
+    const salvo = await firstValueFrom(this.http.put<RegrasOrcamento>('/api/erp/regras-orcamento', regras));
+    this.regras.set({ descontoAVistaPct: Number(salvo.descontoAVistaPct), parcelasMax: salvo.parcelasMax });
   }
 
   /**
-   * Mesmo cálculo do configurador do site:
-   * matéria-prima = área (m²) × (arame + malha + tratamento)
-   * acessórios    = comprimento × valor por metro linear
-   * desconto à vista sobre o total; parcelas sem juros sobre o valor cheio.
+   * Orçamento calculado pelo backend — a mesma rota que o site usa,
+   * então a prévia do ERP e o site sempre dão o mesmo valor.
    */
-  simular(c: ConfigSimulacao): ResultadoSimulacao {
-    const area = Math.max(0, c.comprimentoM) * Math.max(0, c.alturaM);
-    const valor = (id: number) => this.porId(id)?.valor ?? 0;
-    const materiaPrima = area * (valor(c.arameId) + valor(c.malhaId) + valor(c.tratamentoId));
-    const acessorio = this.produtos().find(p => p.categoria === 'ACESSORIOS' && p.ativo);
-    const acessorios = acessorio ? Math.max(0, c.comprimentoM) * acessorio.valor : 0;
-    const bruto = materiaPrima + acessorios;
-    const { descontoAVistaPct, parcelasMax } = this.regras();
-    const desconto = bruto * (descontoAVistaPct / 100);
-    return {
-      materiaPrima, acessorios, bruto, desconto,
-      totalAVista: bruto - desconto,
-      parcela: parcelasMax > 0 ? bruto / parcelasMax : bruto,
-    };
+  orcar(pedido: PedidoOrcamento): Observable<Orcamento> {
+    return this.http.post<Orcamento>('/api/orcamento', pedido);
   }
+}
+
+// O Java manda o valor como número decimal; garante number e descrição em texto
+function normalizar(p: Produto): Produto {
+  return { ...p, valor: Number(p.valor), descricao: p.descricao ?? '', chave: p.chave ?? undefined };
 }

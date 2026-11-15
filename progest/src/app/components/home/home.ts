@@ -5,13 +5,20 @@ import {
   ElementRef,
   HostListener,
   OnDestroy,
-  ViewChild
+  ViewChild,
+  computed,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { CepService } from '../../services/cep';
-import { FreteService } from '../../services/frete.service';
+import { Orcamento, OrcamentoService, PedidoOrcamento } from '../../services/orcamento.service';
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 @Component({
   selector: 'app-home',
@@ -21,18 +28,48 @@ import { FreteService } from '../../services/frete.service';
   styleUrl: './home.css'
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
-  // Propriedades do Configurador
-  bitolaSelecionada: 'fio12' | 'fio14' = 'fio12';
-  malhaSelecionada: 'malha2' | 'malha3' = 'malha3';
-  alturaMetros: number = 2.0;
-  comprimentoMetros: number = 50;
-  tratamentoSelecionado: 'galvanizado' | 'pvc' = 'galvanizado';
+  // Escolhas do configurador. Guardadas em signals para o orçamento ser pedido
+  // de novo à API sempre que alguma muda; os getters/setters mantêm o template igual.
+  private sBitola = signal<'fio12' | 'fio14'>('fio12');
+  private sMalha = signal<'malha2' | 'malha3'>('malha3');
+  private sAltura = signal(2.0);
+  private sComprimento = signal(50);
+  private sTratamento = signal<'galvanizado' | 'pvc'>('galvanizado');
+  private sTipoFrete = signal<'entrega' | 'retirada'>('retirada');
+  /** CEP usado no frete (só depois de "Calcular por CEP" dar certo) */
+  private cepFrete = signal<string | null>(null);
+
+  get bitolaSelecionada() { return this.sBitola(); }
+  set bitolaSelecionada(v: 'fio12' | 'fio14') { this.sBitola.set(v); }
+  get malhaSelecionada() { return this.sMalha(); }
+  set malhaSelecionada(v: 'malha2' | 'malha3') { this.sMalha.set(v); }
+  get alturaMetros() { return this.sAltura(); }
+  set alturaMetros(v: number) { this.sAltura.set(v); }
+  get comprimentoMetros() { return this.sComprimento(); }
+  set comprimentoMetros(v: number) { this.sComprimento.set(v); }
+  get tratamentoSelecionado() { return this.sTratamento(); }
+  set tratamentoSelecionado(v: 'galvanizado' | 'pvc') { this.sTratamento.set(v); }
+  get tipoFrete() { return this.sTipoFrete(); }
+  set tipoFrete(v: 'entrega' | 'retirada') { this.sTipoFrete.set(v); }
 
   cep: string = '';
-  tipoFrete: 'entrega' | 'retirada' = 'retirada';
-
   enderecoCliente: any = null;
-  resultadoFrete: any = null;
+
+  // ---------- Orçamento (calculado pela API) ----------
+  private pedido = computed<PedidoOrcamento>(() => ({
+    arame: this.sBitola() === 'fio12' ? 'FIO_12' : 'FIO_14',
+    malha: this.sMalha() === 'malha2' ? 'MALHA_2' : 'MALHA_3',
+    tratamento: this.sTratamento() === 'pvc' ? 'PVC' : 'GALVANIZADA',
+    alturaM: this.sAltura(),
+    comprimentoM: this.sComprimento(),
+    entrega: this.sTipoFrete() === 'entrega',
+    cep: this.cepFrete(),
+  }));
+
+  readonly orcamento = signal<Orcamento | null>(null);
+  readonly calculando = signal(true);
+  /** Mensagem quando a API não conseguiu calcular (servidor fora, opção indisponível...) */
+  readonly erroOrcamento = signal('');
 
   // Menu lateral (mobile)
   menuAberto = false;
@@ -54,8 +91,31 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private cepService: CepService,
-    private freteService: FreteService
-  ) {}
+    private orcamentoService: OrcamentoService
+  ) {
+    // Pede o orçamento à API quando as escolhas mudam (espera 250 ms de calmaria
+    // para não mandar uma requisição a cada tecla; uma resposta antiga é descartada).
+    toObservable(this.pedido).pipe(
+      tap(() => this.calculando.set(true)),
+      debounceTime(250),
+      switchMap(pedido => this.orcamentoService.calcular(pedido).pipe(
+        map(orcamento => ({ orcamento, erro: '' })),
+        catchError((e: HttpErrorResponse) => of({ orcamento: null, erro: this.mensagemDeErro(e) })),
+      )),
+      takeUntilDestroyed(),
+    ).subscribe(({ orcamento, erro }) => {
+      this.orcamento.set(orcamento);
+      this.erroOrcamento.set(erro);
+      this.calculando.set(false);
+    });
+  }
+
+  private mensagemDeErro(e: HttpErrorResponse): string {
+    const doServidor = typeof e.error?.message === 'string' ? e.error.message : '';
+    if (e.status === 400) return 'Confira a altura e o comprimento informados.';
+    if (e.status === 422 && doServidor) return doServidor;
+    return 'Não foi possível calcular o orçamento agora. Tente novamente em instantes.';
+  }
 
   // A barra aparece quando o configurador está na tela
   // e some quando o card de resumo já está visível.
@@ -84,7 +144,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.travarRolagem(false);
   }
 
-  // Getters para cálculos automáticos do orçamento
+  // Medidas (não envolvem preço)
   get areaTotal(): number {
     return this.alturaMetros * this.comprimentoMetros;
   }
@@ -93,33 +153,31 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return Math.ceil(this.comprimentoMetros / 15);
   }
 
-  get valorMateriaPrima(): number {
-    let precoBasePorMetro = this.bitolaSelecionada === 'fio12' ? 18 : 14;
-    if (this.tratamentoSelecionado === 'pvc') {
-      precoBasePorMetro += 4;
-    }
-    return this.areaTotal * precoBasePorMetro;
+  // Valores do resumo: todos vêm da resposta da API (null enquanto não há orçamento)
+  get valorMateriaPrima() { return this.orcamento()?.materiaPrima ?? null; }
+  get valorAcessorios() { return this.orcamento()?.acessorios ?? null; }
+  get valorFrete() { return this.orcamento()?.frete.valor ?? null; }
+  get valorDesconto() { return this.orcamento()?.desconto ?? null; }
+  get valorTotal() { return this.orcamento()?.total ?? null; }
+  get valorParcela() { return this.orcamento()?.valorParcela ?? null; }
+  get parcelasMax() { return this.orcamento()?.parcelas ?? null; }
+
+  get descontoTexto(): string {
+    const pct = this.orcamento()?.descontoPct;
+    return pct == null ? '—' : pct.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   }
 
-  get valorAcessorios(): number {
-    return this.comprimentoMetros * 3.50; // Custos estimados de mourões/fixadores
+  /** Detalhe do frete por CEP (mesmo formato que o template já usava) */
+  get resultadoFrete() {
+    const f = this.orcamento()?.frete;
+    return f && f.distanciaKm != null
+      ? { custoTotal: f.valor, distanciaKm: f.distanciaKm, pedagios: f.pedagios }
+      : null;
   }
 
-  get valorFrete(): number {
-    if (this.tipoFrete === 'retirada') return 0;
-    return this.resultadoFrete ? this.resultadoFrete.custoTotal : 150;
-  }
-
-  get valorDesconto(): number {
-    return (this.valorMateriaPrima + this.valorAcessorios) * 0.05;
-  }
-
-  get valorTotal(): number {
-    return (this.valorMateriaPrima + this.valorAcessorios + this.valorFrete) - this.valorDesconto;
-  }
-
-  get valorParcela(): number {
-    return this.valorTotal / 10;
+  /** R$ 1.234,56, ou "—" quando ainda não há valor */
+  reais(v: number | null): string {
+    return v == null ? '—' : BRL.format(v);
   }
 
   // Menu lateral
@@ -191,7 +249,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
         if (!dados || dados.erro) {
           this.enderecoCliente = null;
-          this.resultadoFrete = null;
+          this.cepFrete.set(null);
           this.erroCep = 'CEP não encontrado. Confira o número digitado.';
           this.cdr.markForCheck();
           return;
@@ -208,11 +266,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           complemento: this.enderecoCliente?.complemento || dados.complemento || ''
         };
 
-        this.freteService.calcularFretePorCep(cepLimpo).subscribe((frete) => {
-          this.resultadoFrete = frete;
-          this.tipoFrete = 'entrega';
-          this.cdr.markForCheck();
-        });
+        // O frete é calculado pela API junto com o orçamento
+        this.cepFrete.set(cepLimpo);
+        this.tipoFrete = 'entrega';
+        this.cdr.markForCheck();
       },
       error: () => {
         this.buscandoCep = false;
