@@ -59,7 +59,7 @@
 .user { display: flex; align-items: center; gap: 10px; padding-left: 16px; border-left: 1px solid var(--line); }
 .user-text { text-align: right; line-height: 1.25; }
 .user-text strong { display: block; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
-.user-text small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); }
+.user-text small { display: block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); }
 .user-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: #fff; }
 
 .scrim { display: none; }

@@ -9,6 +9,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+      # Primeiro usuario do ERP (so e usado enquanto nao existir nenhum)
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@amaral.com.br}
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador}
+      ADMIN_SENHA: ${ADMIN_SENHA:?Defina ADMIN_SENHA no arquivo .env}
       # Limita a memoria do Java para caber em uma instancia pequena
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
     volumes:

@@ -1,0 +1,114 @@
+<div class="tela">
+  <!-- Lado da marca (some no celular) -->
+  <aside class="marca" aria-hidden="true">
+    <svg class="malha" width="100%" height="100%">
+      <defs>
+        <pattern id="losango" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <path d="M0 0H44M0 0V44" fill="none" stroke="currentColor" stroke-width="1.4" />
+        </pattern>
+        <linearGradient id="esmaecer" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="0" />
+          <stop offset="1" stop-color="#fff" stop-opacity="1" />
+        </linearGradient>
+        <mask id="mascara"><rect width="100%" height="100%" fill="url(#esmaecer)" /></mask>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#losango)" mask="url(#mascara)" />
+    </svg>
+
+    <div class="marca-topo">
+      <svg viewBox="0 0 32 32" width="34" height="34"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#f5b23d" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
+      <span><strong>PROGEST</strong><small>Amaral Alambrados</small></span>
+    </div>
+
+    <div class="marca-texto">
+      <p class="selo">Painel de gestão</p>
+      <h2>Do pedido no site à entrega na obra, em um só lugar.</h2>
+      <ul>
+        @for (m of modulos; track m.icone) {
+          <li><app-icone [nome]="m.icone" [tamanho]="18" />{{ m.texto }}</li>
+        }
+      </ul>
+    </div>
+
+    <p class="marca-rodape">Acesso restrito à equipe da Amaral Alambrados</p>
+  </aside>
+
+  <!-- Formulário -->
+  <main class="lado-form">
+    <div class="caixa">
+      <div class="marca-mobile">
+        <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#111418" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
+        <span><strong>PROGEST</strong><small>Amaral Alambrados</small></span>
+      </div>
+
+      <h1>Entrar no painel</h1>
+      <p class="sub">Use o e-mail e a senha da sua conta de gestão.</p>
+
+      @if (expirou() && !erro()) {
+        <p class="aviso aviso--info" role="status">
+          <app-icone nome="relogio" [tamanho]="18" />
+          Sua sessão expirou. Entre de novo para continuar.
+        </p>
+      }
+      @if (erro(); as mensagem) {
+        <p class="aviso aviso--erro" role="alert">
+          <app-icone nome="alerta" [tamanho]="18" />
+          {{ mensagem }}
+        </p>
+      }
+
+      <form novalidate (submit)="$event.preventDefault(); entrar()">
+        <div class="field">
+          <label for="login-email">E-mail</label>
+          <div class="campo" [class.campo--erro]="tentou() && erros().email">
+            <app-icone nome="email" [tamanho]="18" />
+            <input id="login-email" type="email" autocomplete="username" inputmode="email"
+              placeholder="voce@amaral.com.br" [value]="email()" (input)="campo('email', $event)"
+              [attr.aria-invalid]="tentou() && erros().email"
+              [attr.aria-describedby]="tentou() && erros().email ? 'erro-email' : null" />
+          </div>
+          @if (tentou() && erros().email) {
+            <span id="erro-email" class="error-text">Informe um e-mail válido.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="login-senha">Senha</label>
+          <div class="campo" [class.campo--erro]="tentou() && erros().senha">
+            <app-icone nome="cadeado" [tamanho]="18" />
+            <input id="login-senha" [type]="mostrarSenha() ? 'text' : 'password'" autocomplete="current-password"
+              placeholder="Sua senha" [value]="senha()" (input)="campo('senha', $event)"
+              [attr.aria-invalid]="tentou() && erros().senha"
+              [attr.aria-describedby]="tentou() && erros().senha ? 'erro-senha' : null" />
+            <button type="button" class="ver-senha" (click)="mostrarSenha.set(!mostrarSenha())"
+              [attr.aria-label]="mostrarSenha() ? 'Esconder senha' : 'Mostrar senha'" [attr.aria-pressed]="mostrarSenha()">
+              <app-icone [nome]="mostrarSenha() ? 'olhoFechado' : 'olho'" [tamanho]="18" />
+            </button>
+          </div>
+          @if (tentou() && erros().senha) {
+            <span id="erro-senha" class="error-text">Informe a senha.</span>
+          }
+        </div>
+
+        <label class="lembrar">
+          <input type="checkbox" [checked]="manterConectado()" (change)="manterConectado.set($any($event.target).checked)" />
+          Manter conectado neste computador
+        </label>
+
+        <button type="submit" class="btn btn--dark btn--lg entrar" [disabled]="enviando()">
+          @if (enviando()) {
+            <span class="girando" aria-hidden="true"></span> Entrando…
+          } @else {
+            Entrar <app-icone nome="setaDireita" [tamanho]="18" />
+          }
+        </button>
+      </form>
+
+      <p class="ajuda">Esqueceu a senha? Peça ao administrador do sistema para redefinir.</p>
+
+      <a class="voltar-site" href="/">
+        <app-icone nome="voltar" [tamanho]="16" /> Voltar ao site da Amaral
+      </a>
+    </div>
+  </main>
+</div>
