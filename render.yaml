@@ -1,0 +1,26 @@
+# Blueprint do Render: cria o backend com tudo configurado.
+# No Render: New -> Blueprint -> escolha este repositório. Ele pede só a ADMIN_SENHA.
+# Detalhes e problemas comuns: deploy/RENDER.md
+services:
+  - type: web
+    name: progest-backend
+    runtime: docker
+    plan: free
+    region: virginia
+    branch: main
+    # O Dockerfile do backend fica nesta pasta (caminhos a partir da raiz do repositório)
+    dockerfilePath: ./backend/Backend_api/Dockerfile
+    dockerContext: ./backend/Backend_api
+    healthCheckPath: /api/saude
+    autoDeploy: true
+    # Só faz novo deploy quando algo do backend mudar (não a cada mudança nos sites)
+    buildFilter:
+      paths:
+        - backend/Backend_api/**
+    envVars:
+      - key: ADMIN_EMAIL
+        value: amaralalambrados109@gmail.com
+      # Senha do administrador do ERP: o Render pergunta na hora de criar.
+      # Nunca coloque a senha neste arquivo (o repositório é público).
+      - key: ADMIN_SENHA
+        sync: false

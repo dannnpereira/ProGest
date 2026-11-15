@@ -11,6 +11,17 @@ Alternativa mais simples que a EC2 (ver `README.md`), boa para apresentar o proj
 
 ## 1. Criar o serviço no Render
 
+### Jeito rápido: Blueprint (recomendado)
+
+O arquivo `render.yaml` na raiz do repositório já tem toda a configuração.
+
+1. Em <https://dashboard.render.com> → **New** → **Blueprint**.
+2. Conecte o GitHub e escolha o repositório (branch `main`).
+3. O Render mostra o serviço `progest-backend` e pede **ADMIN_SENHA**: digite a senha do ERP.
+4. **Deploy Blueprint**. Pule para o passo 6 abaixo.
+
+### Jeito manual
+
 1. Em <https://dashboard.render.com> → **New** → **Web Service**.
 2. Conecte o GitHub e escolha o repositório (o original ou o seu fork).
    Repositório público também pode ser colado em **Public Git Repository**.
