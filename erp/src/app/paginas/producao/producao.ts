@@ -86,7 +86,7 @@ export class Producao {
   }
 
   tratamento(p: Pedido): string {
-    return this.produtos.porId(p.tratamentoId)?.nome ?? '—';
+    return this.produtos.produtos().find(x => x.chave === p.tratamento)?.nome ?? (p.tratamento === "PVC" ? "Revestida em PVC" : "Galvanizada a fogo");
   }
 
   avancar(p: Pedido, coluna: Coluna): void {

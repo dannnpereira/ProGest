@@ -675,3 +675,13 @@ button {
     scroll-behavior: auto !important;
   }
 }
+/* Confirmação depois do "Fazer pedido" */
+.rs-confirmacao {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 15px;
+}

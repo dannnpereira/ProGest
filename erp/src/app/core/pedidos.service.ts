@@ -1,10 +1,11 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Pedido, StatusPedido } from './modelos';
-import { PEDIDOS_EXEMPLO } from './dados-exemplo';
-import { ler, gravar } from './armazenamento';
-import { isoDia } from './formato';
+import { SessaoService } from './sessao.service';
+import { AvisosService } from './avisos.service';
 
-// Transições permitidas, iguais à validação do WorkflowService no backend:
+// Transições permitidas na produção, iguais às do backend:
 // não dá para pular etapa (ex.: de "A fazer" direto para "Entregue").
 const PROXIMO: Partial<Record<StatusPedido, StatusPedido>> = {
   A_FAZER: 'EM_PROCESSO',
@@ -15,6 +16,8 @@ const PROXIMO: Partial<Record<StatusPedido, StatusPedido>> = {
 const DIAMETRO_MM = { FIO_12: 2.77, FIO_14: 2.1 } as const;
 const ABERTURA_MM = { MALHA_2: 50, MALHA_3: 75 } as const;
 const VELOCIDADE_TEAR_M_MIN = 1.8;
+/** Busca pedidos novos do site a cada minuto */
+const ATUALIZAR_A_CADA_MS = 60_000;
 
 export interface PreviaTecnica {
   areaM2: number;
@@ -25,9 +28,19 @@ export interface PreviaTecnica {
   saida: string;
 }
 
+/**
+ * Pedidos feitos pelo site (API). O administrador vê todos (/api/erp/pedidos);
+ * o funcionário só os da produção (/api/erp/producao/pedidos).
+ * As ações mudam a tela na hora e, se o servidor recusar, a lista é recarregada.
+ */
 @Injectable({ providedIn: 'root' })
 export class PedidosService {
-  readonly pedidos = signal<Pedido[]>(ler('pedidos', PEDIDOS_EXEMPLO));
+  private http = inject(HttpClient);
+  private sessao = inject(SessaoService);
+  private avisos = inject(AvisosService);
+
+  readonly pedidos = signal<Pedido[]>([]);
+  readonly estado = signal<'carregando' | 'ok' | 'erro'>('carregando');
 
   readonly fila = computed(() =>
     this.pedidos()
@@ -35,8 +48,27 @@ export class PedidosService {
       .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
   );
 
+  // A primeira carga é feita pelo Layout ao abrir o painel (depois do login,
+  // para buscar a lista certa para o perfil de quem entrou).
   constructor() {
-    effect(() => gravar('pedidos', this.pedidos()));
+    if (typeof window !== 'undefined') {
+      setInterval(() => {
+        if (this.sessao.logado()) this.carregar(true);
+      }, ATUALIZAR_A_CADA_MS);
+    }
+  }
+
+  async carregar(silencioso = false): Promise<void> {
+    if (!this.sessao.logado()) return;
+    if (!silencioso) this.estado.set('carregando');
+    const url = this.sessao.ehAdmin() ? '/api/erp/pedidos' : '/api/erp/producao/pedidos';
+    try {
+      const lista = await firstValueFrom(this.http.get<Pedido[]>(url));
+      this.pedidos.set(lista.map(normalizar));
+      this.estado.set('ok');
+    } catch {
+      if (!silencioso) this.estado.set('erro');
+    }
   }
 
   total(p: Pedido): number {
@@ -49,19 +81,15 @@ export class PedidosService {
 
   aprovar(ids: number[]): void {
     const agora = new Date().toISOString();
-    const prazo = new Date();
-    prazo.setDate(prazo.getDate() + 7);
-    this.atualizar(ids, p =>
-      p.status === 'AGUARDANDO_APROVACAO'
-        ? { ...p, status: 'A_FAZER', aprovadoEm: agora, previsaoEntrega: p.previsaoEntrega ?? isoDia(prazo) }
-        : p,
-    );
+    this.atualizarLocal(ids, p => (p.status === 'AGUARDANDO_APROVACAO' ? { ...p, status: 'A_FAZER', aprovadoEm: agora } : p));
+    this.enviar(this.http.post<Pedido[]>('/api/erp/pedidos/aprovar', { ids }), 'aprovar');
   }
 
   recusar(id: number, motivo: string): void {
-    this.atualizar([id], p => ({
+    this.atualizarLocal([id], p => ({
       ...p, status: 'RECUSADO', recusadoEm: new Date().toISOString(), motivoRecusa: motivo.trim() || undefined,
     }));
+    this.enviar(this.http.post<Pedido>(`/api/erp/pedidos/${id}/recusar`, { motivo }), 'recusar');
   }
 
   /** Avança uma etapa da produção. Retorna false se a transição não for permitida. */
@@ -70,19 +98,27 @@ export class PedidosService {
     const proximo = p && PROXIMO[p.status];
     if (!p || !proximo) return false;
     const agora = new Date().toISOString();
-    this.atualizar([id], x => ({
+    this.atualizarLocal([id], x => ({
       ...x,
       status: proximo,
       ...(proximo === 'EM_PROCESSO' ? { producaoIniciadaEm: agora } : {}),
       ...(proximo === 'ENTREGUE' ? { entregueEm: agora } : {}),
     }));
+    this.enviar(this.http.post<Pedido>(`/api/erp/producao/pedidos/${id}/avancar`, {}), 'atualizar a produção');
     return true;
   }
 
-  /** Volta ao estado anterior (usado pelo "Desfazer" dos avisos). */
+  /** "Desfazer" dos avisos: volta cada pedido para como estava. */
   restaurar(anteriores: Pedido[]): void {
-    const mapa = new Map(anteriores.map(p => [p.id, p]));
-    this.pedidos.update(lista => lista.map(p => mapa.get(p.id) ?? p));
+    for (const antes of anteriores) {
+      const agora = this.pedidos().find(p => p.id === antes.id);
+      if (!agora || agora.status === antes.status) continue;
+      const url = antes.status === 'AGUARDANDO_APROVACAO'
+        ? `/api/erp/pedidos/${antes.id}/voltar-para-fila`
+        : `/api/erp/producao/pedidos/${antes.id}/voltar`;
+      this.atualizarLocal([antes.id], () => ({ ...antes }));
+      this.enviar(this.http.post<Pedido>(url, {}), 'desfazer');
+    }
   }
 
   copia(ids: number[]): Pedido[] {
@@ -109,7 +145,38 @@ export class PedidosService {
     };
   }
 
-  private atualizar(ids: number[], fn: (p: Pedido) => Pedido): void {
+  private atualizarLocal(ids: number[], fn: (p: Pedido) => Pedido): void {
     this.pedidos.update(lista => lista.map(p => (ids.includes(p.id) ? fn(p) : p)));
   }
+
+  /** Manda a ação ao servidor; a resposta (ou um erro) atualiza a lista com os dados oficiais. */
+  private async enviar(req: ReturnType<HttpClient['post']>, acao: string): Promise<void> {
+    try {
+      const resp = (await firstValueFrom(req)) as Pedido | Pedido[];
+      const atualizados = (Array.isArray(resp) ? resp : [resp]).map(normalizar);
+      const mapa = new Map(atualizados.map(p => [p.id, p]));
+      this.pedidos.update(lista => lista.map(p => mapa.get(p.id) ?? p));
+    } catch (e) {
+      const msg = (e as { error?: { message?: string } })?.error?.message;
+      this.avisos.mostrar({ texto: `Não foi possível ${acao}. ${msg ?? 'Tente de novo.'}` });
+      this.carregar(true);
+    }
+  }
+}
+
+// O Java manda os valores decimais como número/texto; garante number
+function normalizar(p: Pedido): Pedido {
+  return {
+    ...p,
+    alturaM: Number(p.alturaM),
+    metragemM: Number(p.metragemM),
+    valorMaterial: Number(p.valorMaterial),
+    valorFrete: Number(p.valorFrete),
+    aprovadoEm: p.aprovadoEm ?? undefined,
+    recusadoEm: p.recusadoEm ?? undefined,
+    motivoRecusa: p.motivoRecusa ?? undefined,
+    producaoIniciadaEm: p.producaoIniciadaEm ?? undefined,
+    entregueEm: p.entregueEm ?? undefined,
+    previsaoEntrega: p.previsaoEntrega ?? undefined,
+  };
 }

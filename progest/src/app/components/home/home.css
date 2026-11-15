@@ -1105,6 +1105,34 @@
   color: #d97706;
 }
 
+/* Logado: atalho para o perfil, ao lado do "Sair" */
+.btn-perfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.btn-checkout:disabled,
+.btn-pdf:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pedido-erro {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 /* ---------- 1. Evita estouro horizontal (vale para todas as telas) ---------- */
 .hero-container > *,
 .configurator-grid > *,

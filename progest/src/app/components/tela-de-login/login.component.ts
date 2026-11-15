@@ -60,6 +60,10 @@ export class LoginComponent {
   emailEmUso = signal(false);
 
   constructor() {
+    // Veio de uma sessão que acabou (ex.: servidor reiniciou)
+    if (this.route.snapshot.queryParamMap.get('expirou')) {
+      this.erro.set('Sua sessão expirou. Entre novamente para continuar.');
+    }
     // Mudou o valor: o aviso de "já cadastrado" deixa de valer até conferir de novo
     this.form.controls.cpf.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.cpfEmUso.set(false));
     this.form.controls.email.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.emailEmUso.set(false));
