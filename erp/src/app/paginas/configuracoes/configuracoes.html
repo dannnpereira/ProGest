@@ -1,0 +1,51 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Configurações</h1>
+      <p class="page-sub">Dados da empresa e preferências do painel</p>
+    </div>
+  </header>
+
+  <div class="grade">
+    <form class="card card-pad" (submit)="$event.preventDefault(); salvar()">
+      <div class="bloco-head"><app-icone nome="fabrica" /><h2 class="card-title">Dados da empresa</h2></div>
+      <p class="card-sub">Usados no memorial descritivo e nos contatos com o cliente</p>
+
+      <div class="field">
+        <label for="e-razao">Razão social</label>
+        <input id="e-razao" class="input" [value]="empresa().razaoSocial" (input)="campo('razaoSocial', $event)" />
+      </div>
+      <div class="field">
+        <label for="e-cnpj">CNPJ</label>
+        <input id="e-cnpj" class="input" inputmode="numeric" placeholder="00.000.000/0000-00" [value]="empresa().cnpj" (input)="campo('cnpj', $event)" />
+      </div>
+      <div class="field">
+        <label for="e-whats">WhatsApp comercial</label>
+        <input id="e-whats" class="input" type="tel" placeholder="(15) 99999-0000" [value]="empresa().whatsapp" (input)="campo('whatsapp', $event)" />
+      </div>
+      <div class="field">
+        <label for="e-origem">Origem do frete</label>
+        <input id="e-origem" class="input" [value]="empresa().origemFrete" (input)="campo('origemFrete', $event)" />
+      </div>
+      <button type="submit" class="btn btn--dark btn--lg">Salvar</button>
+    </form>
+
+    <section class="card card-pad" aria-labelledby="demo-titulo">
+      <div class="bloco-head"><app-icone nome="voltar" /><h2 class="card-title" id="demo-titulo">Dados de demonstração</h2></div>
+      <p class="card-sub">Para preparar a apresentação</p>
+      <p class="info">
+        Enquanto as telas não estão ligadas à API, aprovações, produtos e compras ficam salvos neste navegador.
+        Restaurar volta tudo para os pedidos e valores de exemplo.
+      </p>
+      @if (confirmandoReset()) {
+        <div class="confirmar" role="group" aria-label="Confirmar restauração">
+          <p>Apagar as alterações e voltar aos dados de exemplo?</p>
+          <button type="button" class="btn btn--danger" (click)="restaurar()">Restaurar</button>
+          <button type="button" class="btn btn--ghost" (click)="confirmandoReset.set(false)">Cancelar</button>
+        </div>
+      } @else {
+        <button type="button" class="btn btn--lg" (click)="confirmandoReset.set(true)">Restaurar dados de exemplo</button>
+      }
+    </section>
+  </div>
+</section>

@@ -1,6 +1,101 @@
-<main style="font-family: system-ui, sans-serif; padding: 48px;">
-  <h1>ProGest | Painel de gestão</h1>
-  <p>Ambiente em construção.</p>
-</main>
+<div class="shell" [class.shell--menu]="menuAberto()">
+  <aside class="side" aria-label="Menu principal">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="30" height="30"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#f5b23d" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
+      </span>
+      <span>
+        <strong>PROGEST</strong>
+        <small>Amaral Alambrados</small>
+      </span>
+    </div>
 
-<router-outlet />
+    <nav class="nav">
+      <p class="nav-title">Operação industrial</p>
+      @for (item of menu; track item.rota) {
+        <a class="nav-item" [routerLink]="item.rota" routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">
+          <app-icone [nome]="item.icone" />
+          <span>{{ item.rotulo }}</span>
+          @if (item.rota === '/aprovacao' && novos() > 0) {
+            <span class="nav-badge" [attr.aria-label]="novos() + ' pedidos novos'">{{ novosTexto() }} novos</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <button type="button" class="nav-item nav-exit" (click)="sair()">
+      <app-icone nome="sair" />
+      <span>Sair</span>
+    </button>
+  </aside>
+
+  <button type="button" class="scrim" aria-label="Fechar menu" (click)="menuAberto.set(false)"></button>
+
+  <div class="main">
+    <header class="top">
+      <button type="button" class="btn-icon top-menu" aria-label="Abrir menu" (click)="menuAberto.set(true)">
+        <app-icone nome="menu" [tamanho]="22" />
+      </button>
+
+      <a routerLink="/aprovacao" class="top-logo" aria-label="Amaral Alambrados - início">
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#111418" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
+        <span><strong>AMARAL</strong><small>alambrados</small></span>
+      </a>
+
+      <form class="search top-search" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
+        <app-icone nome="busca" />
+        <label for="busca-global" class="sr-only">Buscar pedido ou cliente</label>
+        <input #campoBusca id="busca-global" type="search" placeholder="Buscar pedido ou cliente" autocomplete="off" />
+        <kbd>Ctrl K</kbd>
+      </form>
+
+      <div class="top-right">
+        <div class="notif">
+          <button type="button" class="btn-icon" [attr.aria-expanded]="notificacoesAbertas()"
+            aria-label="Notificações" (click)="notificacoesAbertas.set(!notificacoesAbertas())">
+            <app-icone nome="sino" [tamanho]="20" />
+            @if (novos() > 0) { <span class="notif-dot" aria-hidden="true"></span> }
+          </button>
+          @if (notificacoesAbertas()) {
+            <div class="notif-panel card" role="dialog" aria-label="Notificações">
+              @if (novos() > 0) {
+                <p class="notif-head">{{ novos() }} pedido(s) aguardando aprovação</p>
+                @for (p of pedidos.fila().slice(0, 4); track p.id) {
+                  <a routerLink="/aprovacao" [queryParams]="{ q: p.codigo }" class="notif-item">
+                    <span class="mono">#{{ p.codigo }}</span>
+                    <span>{{ p.cliente.nome }}</span>
+                  </a>
+                }
+              } @else {
+                <p class="notif-head">Nenhuma notificação nova.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="user">
+          <span class="user-text">
+            <strong>Administrador</strong>
+            <small>Planta Sorocaba</small>
+          </span>
+          <span class="user-avatar" aria-hidden="true"><app-icone nome="usuario" [tamanho]="18" /></span>
+        </div>
+      </div>
+    </header>
+
+    <main id="conteudo">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+@if (avisos.atual(); as aviso) {
+  <div class="toast" role="status" aria-live="polite">
+    <span>{{ aviso.texto }}</span>
+    @if (aviso.acao; as acao) {
+      <button type="button" (click)="acao.executar(); avisos.fechar()">{{ acao.rotulo }}</button>
+    }
+    <button type="button" aria-label="Fechar aviso" (click)="avisos.fechar()"><app-icone nome="x" [tamanho]="16" /></button>
+  </div>
+}
