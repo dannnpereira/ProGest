@@ -66,6 +66,9 @@
           <div class="rs-valor">
             <small>Valor total</small>
             <strong>{{ p.valorTotal | currency: 'BRL' }}</strong>
+            @if (p.valores) {
+              <button type="button" class="rs-btn-ficha" (click)="baixarFicha(p)">📄 Ficha técnica do pedido</button>
+            }
           </div>
         </div>
 

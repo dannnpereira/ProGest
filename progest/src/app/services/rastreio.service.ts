@@ -43,6 +43,16 @@ function paraTela(p: PedidoApi): Pedido {
     // As condições de pagamento são combinadas na aprovação do pedido
     pagamentoConfirmado: !!p.aprovadoEm,
     motivoRecusa: p.motivoRecusa ?? undefined,
+    valores: {
+      materiaPrima: Number(p.valorMateriaPrima),
+      acessorios: Number(p.valorAcessorios),
+      frete: Number(p.valorFrete),
+      distanciaKm: p.distanciaKm,
+      descontoPct: Number(p.descontoPct),
+      desconto: Number(p.valorDesconto),
+      parcelas: p.parcelas,
+      valorParcela: Number(p.valorParcela),
+    },
     datas: {
       aprovacao: aprovado,
       pagamento: aprovado,

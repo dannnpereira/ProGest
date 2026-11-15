@@ -34,6 +34,17 @@ export interface Pedido {
   pagamentoConfirmado: boolean;
   motivoRecusa?: string;     // só quando status === 'recusado'
   datas: Partial<Record<EtapaChave, string>>; // data em que cada etapa foi concluída
+  /** Composição dos valores gravada no pedido (para a ficha técnica do pedido) */
+  valores?: {
+    materiaPrima: number;
+    acessorios: number;
+    frete: number;
+    distanciaKm: number | null;
+    descontoPct: number;
+    desconto: number;
+    parcelas: number;
+    valorParcela: number;
+  };
 }
 
 export type EstadoEtapa = 'concluida' | 'atual' | 'pendente' | 'recusada';

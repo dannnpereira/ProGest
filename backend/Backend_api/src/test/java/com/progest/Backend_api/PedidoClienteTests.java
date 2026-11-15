@@ -77,6 +77,12 @@ class PedidoClienteTests {
         assertEquals(StatusPedidoCliente.AGUARDANDO_APROVACAO, p.getStatus());
         assertEquals(0, new BigDecimal("1876.25").compareTo(p.getValorTotal()));
         assertEquals(0, BigDecimal.ZERO.compareTo(p.getValorFrete()));
+
+        // O que o site recebe permite refazer a ficha técnica com os mesmos valores
+        var r = PedidoClienteResponse.de(p);
+        assertEquals(0, new BigDecimal("5").compareTo(r.descontoPct()));
+        assertEquals(0, r.valorTotal().compareTo(r.valorMateriaPrima().add(r.valorAcessorios())
+                .add(r.valorFrete()).subtract(r.valorDesconto())));
     }
 
     @Test

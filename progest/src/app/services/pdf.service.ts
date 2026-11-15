@@ -9,6 +9,10 @@ export interface DadosFichaTecnica {
   /** Valores calculados pela API (mesmos do resumo na tela) */
   orcamento: Orcamento;
   cliente: string | null;
+  /** Endereço já montado (ficha de um pedido gravado) */
+  enderecoTexto?: string;
+  /** Código do pedido, quando a ficha é de um pedido feito */
+  codigoPedido?: string;
 }
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -33,7 +37,7 @@ export class PdfService {
     const o = d.orcamento;
     const entrega = d.tipoFrete === 'entrega';
     const e = d.endereco;
-    const enderecoTexto = e
+    const enderecoTexto = d.enderecoTexto ? esc(d.enderecoTexto) : e
       ? `${esc(e.logradouro)}${e.numero ? ', nº ' + esc(e.numero) : ''}${e.complemento ? ' (' + esc(e.complemento) + ')' : ''}` +
         `${e.bairro ? ' - ' + esc(e.bairro) : ''} - ${esc(e.localidade)}/${esc(e.uf)} (CEP ${esc(e.cep)})`
       : '';
@@ -71,7 +75,7 @@ export class PdfService {
   <div class="header">
     <div>
       <span class="logo">AMARAL ALAMBRADOS</span>
-      <p class="sub">Ficha técnica e orçamento${d.cliente ? ' • Cliente: ' + esc(d.cliente) : ''}</p>
+      <p class="sub">Ficha técnica e orçamento${d.codigoPedido ? " • Pedido " + esc(d.codigoPedido) : ""}${d.cliente ? ' • Cliente: ' + esc(d.cliente) : ''}</p>
     </div>
     <div>
       <span class="badge">VÁLIDO ATÉ ${validade.toLocaleDateString('pt-BR')}</span>

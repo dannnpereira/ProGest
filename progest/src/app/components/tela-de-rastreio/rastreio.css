@@ -685,3 +685,19 @@ button {
   color: #065f46;
   font-size: 15px;
 }
+
+/* Ficha técnica do pedido (mesmos valores do pedido) */
+.rs-btn-ficha {
+  display: block;
+  margin-top: 10px;
+  margin-left: auto;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rs-btn-ficha:hover { border-color: #d97706; color: #d97706; }
