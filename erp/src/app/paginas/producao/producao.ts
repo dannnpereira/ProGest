@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Icone } from '../../shared/icone';
 import { PedidosService } from '../../core/pedidos.service';
 import { ProdutosService } from '../../core/produtos.service';
+import { SessaoService } from '../../core/sessao.service';
 import { AvisosService } from '../../core/avisos.service';
 import { Pedido, ROTULO_FIO, ROTULO_MALHA, StatusPedido } from '../../core/modelos';
 import { data, diaMes, doisDigitos, isoDia, moeda, num } from '../../core/formato';
@@ -24,6 +25,7 @@ interface Coluna {
 export class Producao {
   private svc = inject(PedidosService);
   private produtos = inject(ProdutosService);
+  protected sessao = inject(SessaoService);
   private avisos = inject(AvisosService);
 
   protected readonly moeda = moeda;

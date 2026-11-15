@@ -1,6 +1,9 @@
 package com.progest.Backend_api.config;
 
+import com.progest.Backend_api.model.PerfilErp;
 import com.progest.Backend_api.services.SessaoErpService;
+
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,8 +41,26 @@ public class ErpAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        if (!podeAcessar(usuario.get().getPerfil(), request.getRequestURI())) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"message\":\"Seu acesso não permite esta área.\"}");
+            return false;
+        }
+
         request.setAttribute(ATRIBUTO_USUARIO, usuario.get());
         return true;
+    }
+
+    // Funcionario so acessa a propria sessao e o que for da Producao.
+    // Toda rota nova do ERP fica restrita ao ADMIN ate ser liberada aqui.
+    private static final List<String> ROTAS_FUNCIONARIO = List.of("/api/erp/sessao", "/api/erp/producao");
+
+    public static boolean podeAcessar(PerfilErp perfil, String caminho) {
+        if (perfil == PerfilErp.ADMIN) {
+            return true;
+        }
+        return ROTAS_FUNCIONARIO.stream().anyMatch(r -> caminho.equals(r) || caminho.startsWith(r + "/"));
     }
 
     public static String tokenDe(HttpServletRequest request) {

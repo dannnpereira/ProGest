@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
 import { Produto, RegrasOrcamento } from './modelos';
 import { PRODUTOS_EXEMPLO, REGRAS_EXEMPLO } from './dados-exemplo';
+import { SessaoService } from './sessao.service';
 
 /** Pedido de orçamento — o mesmo que o configurador do site envia. */
 export interface PedidoOrcamento {
@@ -37,6 +38,7 @@ type DadosProduto = Omit<Produto, 'id' | 'chave'>;
 @Injectable({ providedIn: 'root' })
 export class ProdutosService {
   private http = inject(HttpClient);
+  private sessao = inject(SessaoService);
 
   // Começa com os valores padrão para os nomes aparecerem na hora;
   // a lista do banco substitui assim que chega.
@@ -49,7 +51,9 @@ export class ProdutosService {
   readonly ativos = computed(() => this.produtos().filter(p => p.ativo));
 
   constructor() {
-    this.carregar();
+    // Funcionário não tem acesso à tabela de preços (o servidor recusa):
+    // a tela de Produção usa só os nomes padrão dos produtos.
+    if (this.sessao.ehAdmin()) this.carregar();
   }
 
   async carregar(): Promise<void> {

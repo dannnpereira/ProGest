@@ -13,6 +13,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-amaralalambrados109@gmail.com}
       ADMIN_NOME: ${ADMIN_NOME:-Administrador}
       ADMIN_SENHA: ${ADMIN_SENHA:?Defina ADMIN_SENHA no arquivo .env}
+      # Funcionario do ERP (opcional): so ve Producao e Entregas
+      FUNCIONARIO_EMAIL: ${FUNCIONARIO_EMAIL:-}
+      FUNCIONARIO_NOME: ${FUNCIONARIO_NOME:-Funcionário}
+      FUNCIONARIO_SENHA: ${FUNCIONARIO_SENHA:-}
       # Limita a memoria do Java para caber em uma instancia pequena
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
     volumes:

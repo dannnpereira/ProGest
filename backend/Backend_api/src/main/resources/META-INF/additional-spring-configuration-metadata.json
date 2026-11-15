@@ -3,6 +3,9 @@
     { "name": "progest.admin.email", "type": "java.lang.String", "description": "E-mail do administrador do ERP (ADMIN_EMAIL)." },
     { "name": "progest.admin.nome", "type": "java.lang.String", "description": "Nome do administrador do ERP (ADMIN_NOME)." },
     { "name": "progest.admin.senha", "type": "java.lang.String", "description": "Senha do administrador do ERP (ADMIN_SENHA). Nunca no codigo." },
+    { "name": "progest.funcionario.email", "type": "java.lang.String", "description": "E-mail do funcionario do ERP (FUNCIONARIO_EMAIL); so ve Producao." },
+    { "name": "progest.funcionario.nome", "type": "java.lang.String", "description": "Nome do funcionario do ERP (FUNCIONARIO_NOME)." },
+    { "name": "progest.funcionario.senha", "type": "java.lang.String", "description": "Senha do funcionario do ERP (FUNCIONARIO_SENHA). Nunca no codigo." },
     { "name": "progest.cors.origens", "type": "java.lang.String", "description": "Dominios liberados para chamar a API (CORS_ORIGENS), separados por virgula." }
   ]
 }

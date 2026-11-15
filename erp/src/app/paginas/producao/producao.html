@@ -6,9 +6,11 @@
       <p class="page-sub">Acompanhe cada pedido aprovado do tear até a entrega na obra</p>
     </div>
     <div class="page-actions">
-      <a routerLink="/aprovacao" class="btn btn--lg">
-        <app-icone nome="aprovacao" /> Ver fila de aprovação
-      </a>
+      @if (sessao.ehAdmin()) {
+        <a routerLink="/aprovacao" class="btn btn--lg">
+          <app-icone nome="aprovacao" /> Ver fila de aprovação
+        </a>
+      }
     </div>
   </header>
 

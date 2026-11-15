@@ -25,8 +25,13 @@ CREATE TABLE IF NOT EXISTS usuarios_erp (
     nome VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha_hash VARCHAR(100) NOT NULL,
-    ativo BOOLEAN DEFAULT TRUE NOT NULL
+    ativo BOOLEAN DEFAULT TRUE NOT NULL,
+    -- ADMIN: todas as telas | FUNCIONARIO: so Producao e Entregas
+    perfil VARCHAR(20) DEFAULT 'ADMIN' NOT NULL
 );
+
+-- Garante a coluna em bancos criados antes dos perfis existirem
+ALTER TABLE usuarios_erp ADD COLUMN IF NOT EXISTS perfil VARCHAR(20) DEFAULT 'ADMIN' NOT NULL;
 
 -- =========================================
 -- TABELA: PRODUTOS E VALORES (Tela 5 do ERP)

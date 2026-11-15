@@ -3,7 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs';
 import { Icone } from '../shared/icone';
 import { PedidosService } from '../core/pedidos.service';
-import { SessaoService } from '../core/sessao.service';
+import { SessaoService, telaInicial } from '../core/sessao.service';
 import { doisDigitos } from '../core/formato';
 
 interface ItemMenu {
@@ -27,13 +27,18 @@ export class Layout {
 
   private campoBusca = viewChild<ElementRef<HTMLInputElement>>('campoBusca');
 
-  protected readonly menu: ItemMenu[] = [
-    { rota: '/aprovacao', rotulo: 'Aprovação de Pedidos', icone: 'aprovacao' },
-    { rota: '/producao', rotulo: 'Produção e Entregas', icone: 'producao' },
-    { rota: '/produtos', rotulo: 'Produtos e Valores', icone: 'produtos' },
-    { rota: '/financeiro', rotulo: 'Financeiro', icone: 'financeiro' },
-    { rota: '/configuracoes', rotulo: 'Configurações', icone: 'config' },
+  private readonly menuCompleto: (ItemMenu & { soAdmin: boolean })[] = [
+    { rota: '/aprovacao', rotulo: 'Aprovação de Pedidos', icone: 'aprovacao', soAdmin: true },
+    { rota: '/producao', rotulo: 'Produção e Entregas', icone: 'producao', soAdmin: false },
+    { rota: '/produtos', rotulo: 'Produtos e Valores', icone: 'produtos', soAdmin: true },
+    { rota: '/financeiro', rotulo: 'Financeiro', icone: 'financeiro', soAdmin: true },
+    { rota: '/configuracoes', rotulo: 'Configurações', icone: 'config', soAdmin: true },
   ];
+
+  /** Funcionário só vê Produção e Entregas */
+  protected menu = computed(() => this.menuCompleto.filter(i => this.sessao.ehAdmin() || !i.soAdmin));
+  protected inicio = computed(() => telaInicial(this.sessao.perfil()));
+  protected rotuloPerfil = computed(() => (this.sessao.ehAdmin() ? 'Administrador' : 'Funcionário'));
 
   protected menuAberto = signal(false);
   protected notificacoesAbertas = signal(false);
