@@ -17,8 +17,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // Painel de gestão: token do usuário do ERP
-        registry.addInterceptor(erpAuthInterceptor).addPathPatterns("/api/erp/**");
+        // Painel de gestão: token do usuário do ERP. As rotas antigas de clientes, pedidos,
+        // workflow e financeiro ficam fora de /api/erp/, mas mexem em dados internos
+        // (CPF, e-mail, caixa): exigem o mesmo login, só de administrador (issue #118).
+        registry.addInterceptor(erpAuthInterceptor).addPathPatterns(
+                "/api/erp/**", "/api/financeiro/**", "/api/clientes/**", "/api/pedidos/**", "/api/workflow/**");
         // Área do cliente no site (perfil e pedidos): token do cliente
         registry.addInterceptor(clienteAuthInterceptor).addPathPatterns("/api/conta/**");
     }
