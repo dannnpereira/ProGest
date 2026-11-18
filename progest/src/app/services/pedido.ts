@@ -23,9 +23,10 @@ export interface Pedido {
   codigo: string;            // ex.: "AM-7820"
   criadoEm: string;          // data ISO
   status: StatusPedido;
-  bitola: 'fio12' | 'fio14';
-  malha: 'malha2' | 'malha3';
-  tratamento: 'galvanizado' | 'pvc';
+  /** Nomes dos produtos escolhidos (como estavam no momento do pedido) */
+  arame: string;
+  malha: string;
+  tratamento: string;
   alturaMetros: number;
   comprimentoMetros: number;
   tipoFrete: TipoFrete;

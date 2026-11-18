@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * pelo navegador.
  *
  *   materia-prima = area (m2) x (arame + malha + tratamento)
- *   acessorios    = comprimento x valor do acessorio por metro linear
+ *   acessorios    = comprimento x soma dos acessorios ativos (por metro linear)
  *   desconto      = (materia-prima + acessorios) x desconto a vista %
  *   total         = materia-prima + acessorios + frete - desconto
  *   parcela       = total / parcelas
@@ -50,16 +50,17 @@ public class OrcamentoService {
     }
 
     public OrcamentoResponse calcular(OrcamentoRequest req) {
-        Map<String, Produto> ativos = produtos.findByAtivoTrueOrderByIdAsc().stream()
+        Map<String, Produto> ativos = produtos.findByAtivoTrueAndExcluidoFalseOrderByIdAsc().stream()
                 .filter(p -> p.getChave() != null)
                 .collect(Collectors.toMap(Produto::getChave, Function.identity()));
 
         BigDecimal arame = valor(ativos, req.arame(), CategoriaProduto.ARAME);
         BigDecimal malha = valor(ativos, req.malha(), CategoriaProduto.MALHA);
         BigDecimal tratamento = valor(ativos, req.tratamento(), CategoriaProduto.TRATAMENTO);
+        // Todos os acessorios ativos entram no kit (valor por metro linear de cerca)
         BigDecimal acessorioPorMetro = ativos.values().stream()
                 .filter(p -> p.getCategoria() == CategoriaProduto.ACESSORIOS)
-                .map(Produto::getValor).findFirst().orElse(BigDecimal.ZERO);
+                .map(Produto::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal area = req.alturaM().multiply(req.comprimentoM());
         BigDecimal materiaPrima = reais(area.multiply(arame.add(malha).add(tratamento)));

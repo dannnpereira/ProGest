@@ -105,6 +105,12 @@ export class ProdutosService {
     }
   }
 
+  /** Exclui o produto: some daqui e do site (os pedidos antigos continuam com o nome). */
+  async excluir(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`/api/erp/produtos/${id}`));
+    this.produtos.update(lista => lista.filter(p => p.id !== id));
+  }
+
   async salvarRegras(regras: RegrasOrcamento): Promise<void> {
     const salvo = await firstValueFrom(this.http.put<RegrasOrcamento>('/api/erp/regras-orcamento', regras));
     this.regras.set({ descontoAVistaPct: Number(salvo.descontoAVistaPct), parcelasMax: salvo.parcelasMax });

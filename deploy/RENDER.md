@@ -6,9 +6,9 @@ Os dois `vercel.json` já repassam `/api` para ele.
 Alternativa mais simples que a EC2 (ver `README.md`), boa para apresentar o projeto.
 
 > **Limitações do plano grátis do Render** (confira no site do Render, pode mudar):
-> - O banco H2 é um arquivo dentro do servidor e **volta vazio a cada deploy ou reinício**
->   (cadastros e preços alterados no ERP somem). Para guardar os dados é preciso um
->   disco persistente, que é pago.
+> - Sem `DB_URL`, o banco H2 é um arquivo dentro do servidor e **volta vazio a cada deploy
+>   ou reinício** (pedidos, cadastros e produtos somem). **Use o Supabase** (grátis):
+>   passo a passo em [SUPABASE.md](SUPABASE.md).
 > - O serviço **dorme depois de ~15 min sem uso**. O primeiro acesso depois disso leva
 >   cerca de 1 minuto; nesse tempo os sites mostram "Não foi possível conectar ao servidor".
 
@@ -46,6 +46,7 @@ O arquivo `render.yaml` na raiz do repositório já tem toda a configuração.
 | `ADMIN_EMAIL` | `amaralalambrados109@gmail.com` (opcional, já é o padrão) |
 | `FUNCIONARIO_EMAIL` | e-mail do funcionário (opcional) — só vê **Produção e Entregas** |
 | `FUNCIONARIO_SENHA` | senha do funcionário (mínimo 8 caracteres) — **só aqui, nunca no código** |
+| `DB_URL`, `DB_USER`, `DB_PASSWORD` | banco Postgres do Supabase — ver [SUPABASE.md](SUPABASE.md). **Sem eles os dados somem a cada reinício** |
 
 > Os usuários são recriados a cada início a partir dessas variáveis. Para trocar uma
 > senha, mude a variável em **Environment** e salve: o Render reinicia sozinho.

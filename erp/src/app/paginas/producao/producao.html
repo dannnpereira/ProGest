@@ -63,8 +63,8 @@
             <p class="ordem-local"><app-icone nome="pino" [tamanho]="14" /> {{ p.cliente.cidade }} / {{ p.cliente.uf }}</p>
 
             <p class="ordem-spec mono">
-              {{ rotuloFio[p.fio] }} • {{ rotuloMalha[p.malha] }}<br />
-              {{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ tratamento(p) }}
+              {{ p.fioNome }} • {{ p.malhaNome }}<br />
+              {{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ p.tratamentoNome }}
             </p>
 
             <div class="ordem-foot">

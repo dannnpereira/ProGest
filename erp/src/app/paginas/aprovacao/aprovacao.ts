@@ -1,9 +1,8 @@
 import { Component, DestroyRef, WritableSignal, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { Icone } from '../../shared/icone';
-import { PedidosService, PreviaTecnica } from '../../core/pedidos.service';
-import { ProdutosService } from '../../core/produtos.service';
+import { PedidosService, PreviaTecnica, aberturaMm, diametroMm } from '../../core/pedidos.service';
 import { AvisosService } from '../../core/avisos.service';
-import { Fio, Malha, Pedido, ROTULO_FIO, ROTULO_MALHA } from '../../core/modelos';
+import { Fio, Malha, Pedido } from '../../core/modelos';
 import { data, doisDigitos, haQuanto, hora, mesmoDia, moeda, num } from '../../core/formato';
 
 type Visao = 'cartoes' | 'tabela';
@@ -18,7 +17,6 @@ type TipoFrete = 'ENTREGA' | 'RETIRADA';
 })
 export class Aprovacao {
   protected svc = inject(PedidosService);
-  private produtos = inject(ProdutosService);
   private avisos = inject(AvisosService);
 
   /** ?q= vindo da busca do topo */
@@ -27,8 +25,6 @@ export class Aprovacao {
   protected readonly moeda = moeda;
   protected readonly num = num;
   protected readonly doisDigitos = doisDigitos;
-  protected readonly rotuloFio = ROTULO_FIO;
-  protected readonly rotuloMalha = ROTULO_MALHA;
 
   protected visao = signal<Visao>('cartoes');
   protected texto = linkedSignal(() => this.q() ?? '');
@@ -64,11 +60,13 @@ export class Aprovacao {
     const f = this.fila();
     const n = (fn: (p: Pedido) => boolean) => f.filter(fn).length;
     return {
-      FIO_12: n(p => p.fio === 'FIO_12'), FIO_14: n(p => p.fio === 'FIO_14'),
-      MALHA_2: n(p => p.malha === 'MALHA_2'), MALHA_3: n(p => p.malha === 'MALHA_3'),
       ENTREGA: n(p => p.frete.tipo === 'ENTREGA'), RETIRADA: n(p => p.frete.tipo === 'RETIRADA'),
     };
   });
+
+  /** Chips de arame e malha: os produtos que aparecem nos pedidos da fila */
+  protected opcoesFio = computed(() => opcoes(this.fila(), p => p.fio, p => p.fioNome));
+  protected opcoesMalha = computed(() => opcoes(this.fila(), p => p.malha, p => p.malhaNome));
 
   protected filtrados = computed(() => {
     const termo = normalizar(this.texto());
@@ -78,7 +76,7 @@ export class Aprovacao {
       (!this.frete() || p.frete.tipo === this.frete()) &&
       (!termo || normalizar([
         p.codigo, p.cliente.nome, p.cliente.cidade, p.cliente.documento, p.destino,
-        ROTULO_FIO[p.fio], ROTULO_MALHA[p.malha], this.tratamento(p),
+        p.fioNome, p.malhaNome, p.tratamentoNome,
       ].join(' ')).includes(termo)),
     );
   });
@@ -145,8 +143,13 @@ export class Aprovacao {
     return this.svc.total(p);
   }
 
-  tratamento(p: Pedido): string {
-    return this.produtos.produtos().find(x => x.chave === p.tratamento)?.nome ?? (p.tratamento === "PVC" ? "Revestida em PVC" : "Galvanizada a fogo");
+  /** Desenho da malha: losango proporcional à abertura e traço à espessura do arame */
+  ladoLosango(p: Pedido): number {
+    return Math.min(32, Math.max(10, aberturaMm(p) / 3));
+  }
+
+  espessuraTraco(p: Pedido): number {
+    return Math.min(2.2, Math.max(0.8, diametroMm(p) * 0.6));
   }
 
   quando(p: Pedido): string {
@@ -181,9 +184,9 @@ export class Aprovacao {
       `Local: ${p.destino} - ${p.cliente.cidade}/${p.cliente.uf}`,
       '',
       'ESPECIFICAÇÃO DA TELA',
-      `Arame: ${ROTULO_FIO[p.fio]}`,
-      `Malha: ${ROTULO_MALHA[p.malha]} losangular`,
-      `Tratamento: ${this.tratamento(p)}`,
+      `Arame: ${p.fioNome}`,
+      `Malha: ${p.malhaNome} losangular`,
+      `Tratamento: ${p.tratamentoNome}`,
       `Altura: ${num(p.alturaM, 2)} m • Metragem: ${num(p.metragemM)} m lineares (${num(pr.areaM2)} m²)`,
       `Apresentação: ${p.rolos}`,
       '',
@@ -206,4 +209,16 @@ export class Aprovacao {
 
 function normalizar(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+/** Produtos distintos de uma lista de pedidos, com quantos pedidos usam cada um. */
+function opcoes(lista: Pedido[], chave: (p: Pedido) => string, nome: (p: Pedido) => string) {
+  const mapa = new Map<string, { chave: string; nome: string; n: number }>();
+  for (const p of lista) {
+    const k = chave(p);
+    const item = mapa.get(k) ?? { chave: k, nome: nome(p), n: 0 };
+    item.n++;
+    mapa.set(k, item);
+  }
+  return [...mapa.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }));
 }

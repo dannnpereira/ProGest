@@ -75,6 +75,10 @@ class PedidoClienteTests {
         var p = pedidos.criar(maria, retirada());
         assertEquals("AM-" + (1000 + p.getId()), p.getCodigo());
         assertEquals(StatusPedidoCliente.AGUARDANDO_APROVACAO, p.getStatus());
+        // Nome dos produtos gravado no pedido (continua certo se o ERP renomear/excluir)
+        assertEquals("Fio 12 (2,77 mm)", p.getArameNome());
+        assertEquals("Malha 3\" (75 mm)", p.getMalhaNome());
+        assertEquals("Galvanizada a fogo", p.getTratamentoNome());
         assertEquals(0, new BigDecimal("1876.25").compareTo(p.getValorTotal()));
         assertEquals(0, BigDecimal.ZERO.compareTo(p.getValorFrete()));
 

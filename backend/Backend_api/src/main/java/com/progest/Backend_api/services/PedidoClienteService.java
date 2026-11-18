@@ -5,7 +5,9 @@ import com.progest.Backend_api.dto.PedidoClienteRequest;
 import com.progest.Backend_api.model.Cliente;
 import com.progest.Backend_api.model.PedidoCliente;
 import com.progest.Backend_api.model.StatusPedidoCliente;
+import com.progest.Backend_api.model.Produto;
 import com.progest.Backend_api.repository.PedidoClienteRepository;
+import com.progest.Backend_api.repository.ProdutoRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,10 +36,13 @@ public class PedidoClienteService {
 
     private final PedidoClienteRepository pedidos;
     private final OrcamentoService orcamentos;
+    private final ProdutoRepository produtos;
 
-    public PedidoClienteService(PedidoClienteRepository pedidos, OrcamentoService orcamentos) {
+    public PedidoClienteService(PedidoClienteRepository pedidos, OrcamentoService orcamentos,
+                                ProdutoRepository produtos) {
         this.pedidos = pedidos;
         this.orcamentos = orcamentos;
+        this.produtos = produtos;
     }
 
     // ---------- Cliente ----------
@@ -58,6 +63,9 @@ public class PedidoClienteService {
         p.setArame(req.arame());
         p.setMalha(req.malha());
         p.setTratamento(req.tratamento());
+        p.setArameNome(nomeDoProduto(req.arame()));
+        p.setMalhaNome(nomeDoProduto(req.malha()));
+        p.setTratamentoNome(nomeDoProduto(req.tratamento()));
         p.setAlturaM(req.alturaM());
         p.setComprimentoM(req.comprimentoM());
         p.setEntrega(req.entrega());
@@ -174,6 +182,10 @@ public class PedidoClienteService {
         }
         throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "O pedido " + p.getCodigo() + " já foi atualizado por outra pessoa. Recarregue a tela.");
+    }
+
+    private String nomeDoProduto(String chave) {
+        return produtos.findByChave(chave).map(Produto::getNome).orElse(chave);
     }
 
     private static String formatarEndereco(PedidoClienteRequest.Endereco e) {

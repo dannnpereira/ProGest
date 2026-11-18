@@ -2,7 +2,7 @@
   <header class="page-head">
     <div>
       <h1 class="page-title titulo">Produtos e Valores <span class="tag">Módulo tabela-preço</span></h1>
-      <p class="page-sub">Os valores cadastrados aqui aparecem no orçamento do site</p>
+      <p class="page-sub">Os produtos ativos de Arame, Malha e Tratamento viram opções no site; os valores entram no orçamento</p>
     </div>
     <div class="page-actions">
       <button type="button" class="btn btn--dark btn--lg" (click)="novo()"><app-icone nome="mais" /> Novo produto</button>
@@ -70,10 +70,22 @@
                     <span></span>
                   </label>
                 </td>
-                <td>
-                  <button type="button" class="btn-icon" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nome">
-                    <app-icone nome="lapis" [tamanho]="16" />
-                  </button>
+                <td class="col-acoes">
+                  @if (excluindoId() === p.id) {
+                    <div class="confirmar-exclusao" role="group" [attr.aria-label]="'Confirmar exclusão de ' + p.nome">
+                      <span>Excluir?</span>
+                      <button type="button" class="btn btn--sm btn--danger" (click)="excluir(p)" [disabled]="salvando()">Excluir</button>
+                      <button type="button" class="btn btn--sm" (click)="excluindoId.set(null)">Cancelar</button>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn-icon" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nome">
+                      <app-icone nome="lapis" [tamanho]="16" />
+                    </button>
+                    <button type="button" class="btn-icon btn-icon--perigo" (click)="excluindoId.set(p.id)" [disabled]="!podeEditar()"
+                      [attr.aria-label]="'Excluir ' + p.nome">
+                      <app-icone nome="lixeira" [tamanho]="16" />
+                    </button>
+                  }
                 </td>
               </tr>
             } @empty {

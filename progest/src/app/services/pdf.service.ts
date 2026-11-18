@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Orcamento } from './orcamento.service';
 
 export interface DadosFichaTecnica {
-  configuracao: { bitola: 'fio12' | 'fio14'; malha: 'malha2' | 'malha3'; tratamento: 'galvanizado' | 'pvc' };
+  /** Nomes dos produtos escolhidos (cadastrados no ProGest) */
+  configuracao: { arame: string; malha: string; tratamento: string };
   medidas: { altura: number; comprimento: number; area: number; rolos: number };
   tipoFrete: 'entrega' | 'retirada';
   endereco: { logradouro?: string; numero?: string; complemento?: string; bairro?: string; localidade?: string; uf?: string; cep?: string } | null;
@@ -85,9 +86,9 @@ export class PdfService {
 
   <h2>01. Especificação técnica</h2>
   <table>
-    <tr><th>Bitola do arame</th><td>${d.configuracao.bitola === 'fio12' ? 'Fio 12 (2,77 mm) - alta resistência' : 'Fio 14 (2,10 mm) - padrão comercial'}</td></tr>
-    <tr><th>Malha / abertura</th><td>${d.configuracao.malha === 'malha2' ? 'Malha 2" (50 mm)' : 'Malha 3" (75 mm)'}</td></tr>
-    <tr><th>Tratamento anticorrosivo</th><td>${d.configuracao.tratamento === 'galvanizado' ? 'Galvanizada a fogo' : 'Revestida em PVC'}</td></tr>
+    <tr><th>Bitola do arame</th><td>${esc(d.configuracao.arame)}</td></tr>
+    <tr><th>Malha / abertura</th><td>${esc(d.configuracao.malha)}</td></tr>
+    <tr><th>Tratamento anticorrosivo</th><td>${esc(d.configuracao.tratamento)}</td></tr>
     <tr><th>Altura da tela</th><td>${NUM.format(d.medidas.altura)} m</td></tr>
     <tr><th>Comprimento (metragem linear)</th><td>${NUM.format(d.medidas.comprimento)} m</td></tr>
     <tr><th>Área total de tela</th><td>${NUM.format(d.medidas.area)} m²</td></tr>

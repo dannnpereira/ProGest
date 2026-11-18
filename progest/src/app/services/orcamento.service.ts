@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Escolhas do configurador. Os produtos vão pela chave cadastrada no ERP.
+// Escolhas do configurador. Os produtos vão pela chave cadastrada no ProGest (GET /api/catalogo).
 export interface PedidoOrcamento {
-  arame: 'FIO_12' | 'FIO_14';
-  malha: 'MALHA_2' | 'MALHA_3';
-  tratamento: 'GALVANIZADA' | 'PVC';
+  arame: string;
+  malha: string;
+  tratamento: string;
   alturaM: number;
   comprimentoM: number;
   entrega: boolean;
