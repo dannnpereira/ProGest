@@ -231,7 +231,7 @@
             pequenos animais e objetos.</p>
 
           <div class="cards-grid-2" role="radiogroup" aria-label="Malha">
-            @for (item of catalogo.malhas(); track item.chave) {
+            @for (item of malhas(); track item.chave) {
               <div class="select-card" [class.active]="malhaSelecionada === item.chave" (click)="malhaSelecionada = item.chave"
                 role="radio" tabindex="0" [attr.aria-checked]="malhaSelecionada === item.chave"
                 (keydown.enter)="malhaSelecionada = item.chave" (keydown.space)="$event.preventDefault(); malhaSelecionada = item.chave">
@@ -294,7 +294,7 @@
           </div>
 
           <div class="cards-grid-2" role="radiogroup" aria-label="Tratamento anticorrosivo">
-            @for (item of catalogo.tratamentos(); track item.chave) {
+            @for (item of tratamentos(); track item.chave) {
               <div class="select-card" [class.active]="tratamentoSelecionado === item.chave" (click)="tratamentoSelecionado = item.chave"
                 role="radio" tabindex="0" [attr.aria-checked]="tratamentoSelecionado === item.chave"
                 (keydown.enter)="tratamentoSelecionado = item.chave" (keydown.space)="$event.preventDefault(); tratamentoSelecionado = item.chave">

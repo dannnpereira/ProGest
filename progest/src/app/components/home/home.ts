@@ -43,16 +43,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   // Escolhas do configurador (chave do produto). Guardadas em signals para o orçamento
   // ser pedido de novo à API sempre que alguma muda. Se a opção escolhida sair do
   // catálogo (desativada/excluída no ProGest), volta para a primeira disponível.
+  // Malhas e tratamentos seguem a tabela de preços: só as combinações que existem
+  // (ex.: Fio 16 só tem malha 3/4" e 1"); ao trocar o arame, a malha se ajusta.
+  protected readonly malhas = computed(() => this.catalogo.malhasDo(this.sArame()));
+  protected readonly tratamentos = computed(() => this.catalogo.tratamentosDe(this.sArame(), this.sMalha()));
+
   private sArame = linkedSignal<ItemCatalogo[], string>({
     source: () => this.catalogo.arames(),
     computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
   });
   private sMalha = linkedSignal<ItemCatalogo[], string>({
-    source: () => this.catalogo.malhas(),
+    source: () => this.malhas(),
     computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
   });
   private sTratamento = linkedSignal<ItemCatalogo[], string>({
-    source: () => this.catalogo.tratamentos(),
+    source: () => this.tratamentos(),
     computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
   });
   private sAltura = signal(2.0);

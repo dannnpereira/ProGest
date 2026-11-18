@@ -1,10 +1,8 @@
 package com.progest.Backend_api.services;
 
-import com.progest.Backend_api.dto.CatalogoItem;
 import com.progest.Backend_api.dto.ProdutoRequest;
 import com.progest.Backend_api.dto.ProdutoResponse;
 import com.progest.Backend_api.dto.RegrasOrcamentoDto;
-import com.progest.Backend_api.model.CategoriaProduto;
 import com.progest.Backend_api.model.Produto;
 import com.progest.Backend_api.model.RegrasOrcamento;
 import com.progest.Backend_api.repository.ProdutoRepository;
@@ -15,34 +13,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class ProdutoService {
 
-    // Categorias em que o cliente escolhe uma opcao no site: precisa haver ao menos uma ativa
-    private static final Set<CategoriaProduto> OBRIGATORIAS =
-            EnumSet.of(CategoriaProduto.ARAME, CategoriaProduto.MALHA, CategoriaProduto.TRATAMENTO);
-
     private final ProdutoRepository produtos;
     private final RegrasOrcamentoRepository regras;
+    private final CatalogoService catalogo;
 
-    public ProdutoService(ProdutoRepository produtos, RegrasOrcamentoRepository regras) {
+    public ProdutoService(ProdutoRepository produtos, RegrasOrcamentoRepository regras, CatalogoService catalogo) {
         this.produtos = produtos;
         this.regras = regras;
+        this.catalogo = catalogo;
     }
 
     public List<ProdutoResponse> listar() {
         return produtos.findByExcluidoFalseOrderByIdAsc().stream().map(ProdutoResponse::de).toList();
-    }
-
-    /** Opcoes que o cliente pode escolher no site: produtos ativos, na ordem do cadastro. */
-    public List<CatalogoItem> catalogo() {
-        return produtos.findByAtivoTrueAndExcluidoFalseOrderByIdAsc().stream()
-                .filter(p -> p.getChave() != null)
-                .map(CatalogoItem::de).toList();
     }
 
     @Transactional
@@ -60,7 +47,7 @@ public class ProdutoService {
         Produto p = buscar(id);
         aplicar(p, req);
         p = produtos.saveAndFlush(p);
-        garantirOpcoesNoSite();
+        catalogo.garantirTelaNoSite();
         return ProdutoResponse.de(p);
     }
 
@@ -74,34 +61,12 @@ public class ProdutoService {
         p.setExcluido(true);
         p.setAtivo(false);
         produtos.saveAndFlush(p);
-        garantirOpcoesNoSite();
+        catalogo.garantirTelaNoSite();
     }
 
     private Produto buscar(Long id) {
         return produtos.findById(id).filter(p -> !p.isExcluido()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado."));
-    }
-
-    /** Recusa (e desfaz, pela transacao) a mudanca que deixaria o site sem arame, malha ou tratamento. */
-    private void garantirOpcoesNoSite() {
-        Set<CategoriaProduto> comOpcao = EnumSet.noneOf(CategoriaProduto.class);
-        produtos.findByAtivoTrueAndExcluidoFalseOrderByIdAsc().forEach(p -> comOpcao.add(p.getCategoria()));
-        for (CategoriaProduto c : OBRIGATORIAS) {
-            if (!comOpcao.contains(c)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "O site precisa de pelo menos um produto ativo em " + nome(c)
-                                + ". Cadastre ou ative outro antes de desativar ou excluir este.");
-            }
-        }
-    }
-
-    private static String nome(CategoriaProduto c) {
-        return switch (c) {
-            case ARAME -> "Arame";
-            case MALHA -> "Malha";
-            case TRATAMENTO -> "Tratamento";
-            case ACESSORIOS -> "Acessórios";
-        };
     }
 
     public RegrasOrcamentoDto buscarRegras() {

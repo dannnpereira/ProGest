@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { Produto, RegrasOrcamento } from './modelos';
+import { PrecoTela, Produto, RegrasOrcamento } from './modelos';
 import { PRODUTOS_EXEMPLO, REGRAS_EXEMPLO } from './dados-exemplo';
 import { SessaoService } from './sessao.service';
 
@@ -30,6 +30,7 @@ export interface Orcamento {
 }
 
 type DadosProduto = Omit<Produto, 'id' | 'chave'>;
+export type DadosPreco = Omit<PrecoTela, 'id'>;
 
 /**
  * Produtos e regras do orçamento, gravados no banco pela API.
@@ -50,6 +51,16 @@ export class ProdutosService {
 
   readonly ativos = computed(() => this.produtos().filter(p => p.ativo));
 
+  /** Tabela de preços (tela por m² e arame por kg) */
+  readonly precos = signal<PrecoTela[]>([]);
+
+  /** Telas que viram opção no site: preço por m² com arame, malha e tratamento ativos */
+  readonly telasNoSite = computed(() => {
+    const ativos = new Set(this.ativos().map(p => p.chave));
+    return this.precos().filter(t =>
+      t.unidade === 'M2' && ativos.has(t.arame) && !!t.malha && ativos.has(t.malha) && ativos.has(t.tratamento));
+  });
+
   constructor() {
     // Funcionário não tem acesso à tabela de preços (o servidor recusa):
     // a tela de Produção usa só os nomes padrão dos produtos.
@@ -59,11 +70,13 @@ export class ProdutosService {
   async carregar(): Promise<void> {
     this.estado.set('carregando');
     try {
-      const [produtos, regras] = await Promise.all([
+      const [produtos, regras, precos] = await Promise.all([
         firstValueFrom(this.http.get<Produto[]>('/api/erp/produtos')),
         firstValueFrom(this.http.get<RegrasOrcamento>('/api/erp/regras-orcamento')),
+        firstValueFrom(this.http.get<PrecoTela[]>('/api/erp/precos')),
       ]);
       this.produtos.set(produtos.map(normalizar));
+      this.precos.set(precos.map(normalizarPreco));
       this.regras.set({ descontoAVistaPct: Number(regras.descontoAVistaPct), parcelasMax: regras.parcelasMax });
       this.estado.set('ok');
     } catch {
@@ -111,6 +124,24 @@ export class ProdutosService {
     this.produtos.update(lista => lista.filter(p => p.id !== id));
   }
 
+  // ---------- Tabela de preços ----------
+
+  async salvarPreco(dados: DadosPreco & { id?: number }): Promise<PrecoTela> {
+    const { id, ...corpo } = dados;
+    const salvo = normalizarPreco(await firstValueFrom(
+      id ? this.http.put<PrecoTela>(`/api/erp/precos/${id}`, corpo) : this.http.post<PrecoTela>('/api/erp/precos', corpo),
+    ));
+    this.precos.update(lista =>
+      lista.some(p => p.id === salvo.id) ? lista.map(p => (p.id === salvo.id ? salvo : p)) : [...lista, salvo],
+    );
+    return salvo;
+  }
+
+  async excluirPreco(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`/api/erp/precos/${id}`));
+    this.precos.update(lista => lista.filter(p => p.id !== id));
+  }
+
   async salvarRegras(regras: RegrasOrcamento): Promise<void> {
     const salvo = await firstValueFrom(this.http.put<RegrasOrcamento>('/api/erp/regras-orcamento', regras));
     this.regras.set({ descontoAVistaPct: Number(salvo.descontoAVistaPct), parcelasMax: salvo.parcelasMax });
@@ -128,4 +159,12 @@ export class ProdutosService {
 // O Java manda o valor como número decimal; garante number e descrição em texto
 function normalizar(p: Produto): Produto {
   return { ...p, valor: Number(p.valor), descricao: p.descricao ?? '', chave: p.chave ?? undefined };
+}
+
+function numOuNulo(v: unknown): number | null {
+  return v === null || v === undefined || v === '' ? null : Number(v);
+}
+
+function normalizarPreco(p: PrecoTela): PrecoTela {
+  return { ...p, valorVista: Number(p.valorVista), valorPrazo: numOuNulo(p.valorPrazo), pesoKgM2: numOuNulo(p.pesoKgM2) };
 }

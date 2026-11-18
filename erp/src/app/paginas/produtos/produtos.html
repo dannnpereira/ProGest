@@ -58,10 +58,14 @@
                 <td>
                   <span class="tag" [class.tag--dark]="p.categoria === 'ARAME'" [class.tag--accent]="p.categoria === 'ACESSORIOS'">{{ rotuloCategoria[p.categoria] }}</span>
                 </td>
-                <td class="col-unidade">{{ rotuloUnidade[p.unidade] }}</td>
+                <td class="col-unidade">{{ p.categoria === 'ACESSORIOS' ? rotuloUnidade[p.unidade] : '—' }}</td>
                 <td class="right col-valor">
-                  <strong class="num">{{ moeda(p.valor) }}</strong>
-                  @if (nota(p)) { <small>{{ nota(p) }}</small> }
+                  @if (p.categoria === 'ACESSORIOS') {
+                    <strong class="num">{{ moeda(p.valor) }}</strong>
+                  } @else {
+                    <span class="na-tabela">Tabela de preços</span>
+                    <small>{{ usoNaTabela(p) }} {{ usoNaTabela(p) === 1 ? 'linha' : 'linhas' }}</small>
+                  }
                 </td>
                 <td>
                   <label class="switch" [title]="p.ativo ? 'Ativo no simulador' : 'Inativo'">
@@ -127,6 +131,7 @@
           <label for="p-desc">Descrição curta <span class="opcional">(opcional)</span></label>
           <input id="p-desc" class="input" placeholder="Ex: BWG 16 • Uso leve" [value]="fDescricao()" (input)="fDescricao.set($any($event.target).value)" />
         </div>
+        @if (temValorProprio()) {
         <div class="field">
           <label for="p-unidade">Cobrado por</label>
           <select id="p-unidade" class="select" [value]="fUnidade()" (change)="fUnidade.set($any($event.target).value)">
@@ -144,6 +149,9 @@
           </div>
           @if (tentouSalvar() && valorInvalido()) { <span class="error-text">Informe um valor igual ou maior que zero.</span> }
         </div>
+        } @else {
+          <p class="card-sub dica-preco">O preço de arame, malha e tipo é cadastrado por combinação na <strong>Tabela de preços</strong>, abaixo.</p>
+        }
         <div class="linha-switch">
           <span class="label" id="p-ativo-label">Ativo no simulador</span>
           <label class="switch">
@@ -168,7 +176,8 @@
         <p class="card-sub bloco-sub">Condições comerciais aplicadas no cálculo automático do cliente</p>
 
         <div class="field">
-          <label for="r-desc">Desconto à vista (%) <span class="destaque">Pix / transferência</span></label>
+          <label for="r-desc">Desconto à vista nos acessórios (%) <span class="destaque">Pix / transferência</span></label>
+          <span class="card-sub dica-preco">Nas telas, o desconto à vista é a diferença entre o preço a prazo e à vista da tabela.</span>
           <div class="input-group">
             <input id="r-desc" class="input num grande" type="number" min="0" max="50" step="0.5"
               [value]="rDesconto()" (input)="rDesconto.set(valorNumero($event))" />
@@ -242,4 +251,7 @@
       </section>
     </div>
   </div>
+
+  <!-- Tabela de preços: tela por m² (opções do site) e arame avulso por kg -->
+  <app-tabela-precos />
 </section>
