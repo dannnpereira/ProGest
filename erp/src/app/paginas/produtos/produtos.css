@@ -62,3 +62,9 @@ tr.editando { background: var(--accent-soft); }
 }
 .faixa--erro { background: var(--bad-soft); border-color: #f6caca; color: var(--bad); }
 .faixa--erro span { flex: 1; min-width: 200px; }
+
+/* Ações da linha: editar / excluir (com confirmação) */
+.col-acoes { white-space: nowrap; text-align: right; }
+.btn-icon--perigo:hover { background: var(--bad-soft); color: var(--bad); }
+.btn-icon:disabled { opacity: .4; cursor: not-allowed; }
+.confirmar-exclusao { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--bad); }

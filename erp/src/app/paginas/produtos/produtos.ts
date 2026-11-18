@@ -65,7 +65,7 @@ export class Produtos {
   );
 
   // ---------- Prévia no orçamento (calculada pela API, igual ao site) ----------
-  // Só entram produtos com chave: são as opções que existem no configurador do site
+  // Opções do configurador do site: produtos ativos de cada categoria
   private opcoes = (c: Categoria) => computed(() => this.svc.ativos().filter(p => p.categoria === c && p.chave));
   protected arames = this.opcoes('ARAME');
   protected malhas = this.opcoes('MALHA');
@@ -161,8 +161,8 @@ export class Produtos {
       });
       this.avisos.mostrar({ texto: `${salvo.nome} ${id ? 'atualizado' : 'cadastrado'}. O site já usa o novo valor.` });
       this.novo();
-    } catch {
-      this.avisos.mostrar({ texto: 'Não foi possível salvar o produto. Tente de novo.' });
+    } catch (e) {
+      this.avisos.mostrar({ texto: mensagemDoServidor(e, 'Não foi possível salvar o produto. Tente de novo.') });
     } finally {
       this.salvando.set(false);
     }
@@ -172,8 +172,27 @@ export class Produtos {
     try {
       await this.svc.alternarAtivo(p.id);
       this.avisos.mostrar({ texto: `${p.nome} ${p.ativo ? 'desativado' : 'ativado'} no simulador.` });
-    } catch {
-      this.avisos.mostrar({ texto: `Não foi possível alterar ${p.nome}. Tente de novo.` });
+    } catch (e) {
+      this.avisos.mostrar({ texto: mensagemDoServidor(e, `Não foi possível alterar ${p.nome}. Tente de novo.`) });
+    }
+  }
+
+  // ---------- Excluir ----------
+  /** Produto com a confirmação aberta na tabela */
+  protected excluindoId = signal<number | null>(null);
+
+  async excluir(p: Produto): Promise<void> {
+    if (this.salvando() || !this.podeEditar()) return;
+    this.salvando.set(true);
+    try {
+      await this.svc.excluir(p.id);
+      this.excluindoId.set(null);
+      if (this.editandoId() === p.id) this.novo();
+      this.avisos.mostrar({ texto: `${p.nome} excluído. Já não aparece mais no site.` });
+    } catch (e) {
+      this.avisos.mostrar({ texto: mensagemDoServidor(e, `Não foi possível excluir ${p.nome}. Tente de novo.`) });
+    } finally {
+      this.salvando.set(false);
     }
   }
 
@@ -201,4 +220,10 @@ export class Produtos {
       el?.focus({ preventScroll: true });
     });
   }
+}
+
+/** Mensagem do backend quando ele recusa (ex.: deixaria o site sem nenhum arame ativo). */
+function mensagemDoServidor(e: unknown, padrao: string): string {
+  const erro = e instanceof HttpErrorResponse ? e.error : null;
+  return erro?.timestamp && typeof erro.message === 'string' && erro.message ? erro.message : padrao;
 }

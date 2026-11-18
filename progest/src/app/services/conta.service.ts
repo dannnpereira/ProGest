@@ -16,9 +16,14 @@ export interface PedidoApi {
   codigo: string;
   criadoEm: string;
   status: 'AGUARDANDO_APROVACAO' | 'RECUSADO' | 'A_FAZER' | 'EM_PROCESSO' | 'ENTREGUE';
-  arame: 'FIO_12' | 'FIO_14';
-  malha: 'MALHA_2' | 'MALHA_3';
-  tratamento: 'GALVANIZADA' | 'PVC';
+  /** Chaves dos produtos escolhidos */
+  arame: string;
+  malha: string;
+  tratamento: string;
+  /** Nomes dos produtos no momento do pedido */
+  arameNome: string;
+  malhaNome: string;
+  tratamentoNome: string;
   alturaM: number;
   comprimentoM: number;
   entrega: boolean;
@@ -40,9 +45,9 @@ export interface PedidoApi {
 }
 
 export interface NovoPedido {
-  arame: 'FIO_12' | 'FIO_14';
-  malha: 'MALHA_2' | 'MALHA_3';
-  tratamento: 'GALVANIZADA' | 'PVC';
+  arame: string;
+  malha: string;
+  tratamento: string;
   alturaM: number;
   comprimentoM: number;
   entrega: boolean;

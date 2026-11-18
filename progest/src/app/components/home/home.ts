@@ -7,6 +7,8 @@ import {
   OnDestroy,
   ViewChild,
   computed,
+  inject,
+  linkedSignal,
   signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -20,6 +22,7 @@ import { Orcamento, OrcamentoService, PedidoOrcamento } from '../../services/orc
 import { AuthService } from '../../services/auth.service';
 import { ContaService } from '../../services/conta.service';
 import { PdfService } from '../../services/pdf.service';
+import { CatalogoService, ItemCatalogo } from '../../services/catalogo.service';
 import { Router } from '@angular/router';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -34,27 +37,40 @@ const CHAVE_RASCUNHO = 'progest_rascunho_orcamento';
   styleUrl: './home.css'
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
-  // Escolhas do configurador. Guardadas em signals para o orçamento ser pedido
-  // de novo à API sempre que alguma muda; os getters/setters mantêm o template igual.
-  private sBitola = signal<'fio12' | 'fio14'>('fio12');
-  private sMalha = signal<'malha2' | 'malha3'>('malha3');
+  // Opções de arame, malha e tratamento: cadastradas no ProGest (GET /api/catalogo)
+  protected readonly catalogo = inject(CatalogoService);
+
+  // Escolhas do configurador (chave do produto). Guardadas em signals para o orçamento
+  // ser pedido de novo à API sempre que alguma muda. Se a opção escolhida sair do
+  // catálogo (desativada/excluída no ProGest), volta para a primeira disponível.
+  private sArame = linkedSignal<ItemCatalogo[], string>({
+    source: () => this.catalogo.arames(),
+    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+  });
+  private sMalha = linkedSignal<ItemCatalogo[], string>({
+    source: () => this.catalogo.malhas(),
+    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+  });
+  private sTratamento = linkedSignal<ItemCatalogo[], string>({
+    source: () => this.catalogo.tratamentos(),
+    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+  });
   private sAltura = signal(2.0);
   private sComprimento = signal(50);
-  private sTratamento = signal<'galvanizado' | 'pvc'>('galvanizado');
   private sTipoFrete = signal<'entrega' | 'retirada'>('retirada');
   /** CEP usado no frete (só depois de "Calcular por CEP" dar certo) */
   private cepFrete = signal<string | null>(null);
 
-  get bitolaSelecionada() { return this.sBitola(); }
-  set bitolaSelecionada(v: 'fio12' | 'fio14') { this.sBitola.set(v); }
+  get arameSelecionado() { return this.sArame(); }
+  set arameSelecionado(v: string) { this.sArame.set(v); }
   get malhaSelecionada() { return this.sMalha(); }
-  set malhaSelecionada(v: 'malha2' | 'malha3') { this.sMalha.set(v); }
+  set malhaSelecionada(v: string) { this.sMalha.set(v); }
   get alturaMetros() { return this.sAltura(); }
   set alturaMetros(v: number) { this.sAltura.set(v); }
   get comprimentoMetros() { return this.sComprimento(); }
   set comprimentoMetros(v: number) { this.sComprimento.set(v); }
   get tratamentoSelecionado() { return this.sTratamento(); }
-  set tratamentoSelecionado(v: 'galvanizado' | 'pvc') { this.sTratamento.set(v); }
+  set tratamentoSelecionado(v: string) { this.sTratamento.set(v); }
   get tipoFrete() { return this.sTipoFrete(); }
   set tipoFrete(v: 'entrega' | 'retirada') { this.sTipoFrete.set(v); }
 
@@ -63,9 +79,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   // ---------- Orçamento (calculado pela API) ----------
   private pedido = computed<PedidoOrcamento>(() => ({
-    arame: this.sBitola() === 'fio12' ? 'FIO_12' : 'FIO_14',
-    malha: this.sMalha() === 'malha2' ? 'MALHA_2' : 'MALHA_3',
-    tratamento: this.sTratamento() === 'pvc' ? 'PVC' : 'GALVANIZADA',
+    arame: this.sArame(),
+    malha: this.sMalha(),
+    tratamento: this.sTratamento(),
     alturaM: this.sAltura(),
     comprimentoM: this.sComprimento(),
     entrega: this.sTipoFrete() === 'entrega',
@@ -113,6 +129,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     private pdf: PdfService,
     private router: Router
   ) {
+    this.catalogo.carregar();
     this.voltouDoLogin = this.restaurarRascunho();
 
     // Pede o orçamento à API quando as escolhas mudam (espera 250 ms de calmaria
@@ -120,7 +137,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     toObservable(this.pedido).pipe(
       tap(() => this.calculando.set(true)),
       debounceTime(250),
-      switchMap(pedido => this.orcamentoService.calcular(pedido).pipe(
+      // Sem catálogo ainda (carregando ou fora do ar) não há o que orçar
+      switchMap(pedido => !pedido.arame || !pedido.malha || !pedido.tratamento
+        ? of({ orcamento: null, erro: '' })
+        : this.orcamentoService.calcular(pedido).pipe(
         map(orcamento => ({ orcamento, erro: '' })),
         catchError((e: HttpErrorResponse) => of({ orcamento: null, erro: this.mensagemDeErro(e) })),
       )),
@@ -128,7 +148,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     ).subscribe(({ orcamento, erro }) => {
       this.orcamento.set(orcamento);
       this.erroOrcamento.set(erro);
-      this.calculando.set(false);
+      this.calculando.set(!orcamento && !erro);
     });
   }
 
@@ -233,7 +253,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private guardarRascunho(): void {
     try {
       sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify({
-        bitola: this.bitolaSelecionada, malha: this.malhaSelecionada, altura: this.alturaMetros,
+        arame: this.arameSelecionado, malha: this.malhaSelecionada, altura: this.alturaMetros,
         comprimento: this.comprimentoMetros, tratamento: this.tratamentoSelecionado,
         tipoFrete: this.tipoFrete, cep: this.cep, cepFrete: this.cepFrete(), endereco: this.enderecoCliente,
       }));
@@ -248,11 +268,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       const bruto = sessionStorage.getItem(CHAVE_RASCUNHO);
       if (!bruto) return false;
       const r = JSON.parse(bruto);
-      this.sBitola.set(r.bitola === 'fio14' ? 'fio14' : 'fio12');
-      this.sMalha.set(r.malha === 'malha2' ? 'malha2' : 'malha3');
+      // Chaves dos produtos: se alguma não existir mais, o catálogo troca pela primeira opção
+      if (typeof r.arame === 'string') this.sArame.set(r.arame);
+      if (typeof r.malha === 'string') this.sMalha.set(r.malha);
       this.sAltura.set(Number(r.altura) || 2);
       this.sComprimento.set(Number(r.comprimento) || 50);
-      this.sTratamento.set(r.tratamento === 'pvc' ? 'pvc' : 'galvanizado');
+      if (typeof r.tratamento === 'string') this.sTratamento.set(r.tratamento);
       this.sTipoFrete.set(r.tipoFrete === 'entrega' ? 'entrega' : 'retirada');
       this.cep = r.cep ?? '';
       this.cepFrete.set(r.cepFrete ?? null);
@@ -420,7 +441,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     this.erroPedido.set('');
     const ok = this.pdf.gerarOrcamentoPdf({
-      configuracao: { bitola: this.bitolaSelecionada, malha: this.malhaSelecionada, tratamento: this.tratamentoSelecionado },
+      configuracao: {
+        arame: this.catalogo.nome(this.arameSelecionado),
+        malha: this.catalogo.nome(this.malhaSelecionada),
+        tratamento: this.catalogo.nome(this.tratamentoSelecionado),
+      },
       medidas: {
         altura: this.alturaMetros, comprimento: this.comprimentoMetros,
         area: Number(o.areaM2), rolos: this.totalRolos,
@@ -434,4 +459,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.erroPedido.set('O navegador bloqueou a janela da ficha técnica. Permita pop-ups para este site e tente de novo.');
     }
   }
+}
+
+/** Mantém a opção escolhida se ela ainda está no catálogo; senão, a primeira da lista. */
+function manterOuPrimeira(lista: ItemCatalogo[], escolhida: string | undefined): string {
+  return lista.some(i => i.chave === escolhida) ? escolhida! : lista[0]?.chave ?? '';
 }

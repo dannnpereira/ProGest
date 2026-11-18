@@ -2,10 +2,9 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icone } from '../../shared/icone';
 import { PedidosService } from '../../core/pedidos.service';
-import { ProdutosService } from '../../core/produtos.service';
 import { SessaoService } from '../../core/sessao.service';
 import { AvisosService } from '../../core/avisos.service';
-import { Pedido, ROTULO_FIO, ROTULO_MALHA, StatusPedido } from '../../core/modelos';
+import { Pedido, StatusPedido } from '../../core/modelos';
 import { data, diaMes, doisDigitos, isoDia, moeda, num } from '../../core/formato';
 
 interface Coluna {
@@ -24,7 +23,6 @@ interface Coluna {
 })
 export class Producao {
   private svc = inject(PedidosService);
-  private produtos = inject(ProdutosService);
   protected sessao = inject(SessaoService);
   private avisos = inject(AvisosService);
 
@@ -32,8 +30,6 @@ export class Producao {
   protected readonly num = num;
   protected readonly diaMes = diaMes;
   protected readonly doisDigitos = doisDigitos;
-  protected readonly rotuloFio = ROTULO_FIO;
-  protected readonly rotuloMalha = ROTULO_MALHA;
 
   // Mesmas etapas do workflow do backend (StatusWorkflow)
   protected readonly colunas: Coluna[] = [
@@ -83,10 +79,6 @@ export class Producao {
     if (dias === 1) return 'Entrega amanhã';
     if (dias < 0) return `Atrasado ${-dias} dia${dias < -1 ? 's' : ''}`;
     return `Entrega em ${data(p.previsaoEntrega).slice(0, 5)}`;
-  }
-
-  tratamento(p: Pedido): string {
-    return this.produtos.produtos().find(x => x.chave === p.tratamento)?.nome ?? (p.tratamento === "PVC" ? "Revestida em PVC" : "Galvanizada a fogo");
   }
 
   avancar(p: Pedido, coluna: Coluna): void {

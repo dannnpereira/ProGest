@@ -188,6 +188,13 @@
       <!-- COLUNA DA ESQUERDA: OPÇÕES DE SELEÇÃO -->
       <div class="config-options">
 
+        @if (catalogo.estado() === 'erro') {
+          <div class="catalogo-erro" role="alert">
+            Não foi possível carregar as opções de produtos agora.
+            <button type="button" (click)="catalogo.carregar()">Tentar de novo</button>
+          </div>
+        }
+
         <!-- 01: BITOLA DO ARAME -->
         <div class="option-block">
           <div class="option-header">
@@ -197,40 +204,20 @@
           <p class="option-desc">A escolha da espessura do arame afeta diretamente a vida útil e a resistência contra
             impactos na sua cerca.</p>
 
-          <div class="cards-select">
-            <!-- Fio 12 -->
-            <div class="select-card" [class.active]="bitolaSelecionada === 'fio12'"
-              (click)="bitolaSelecionada = 'fio12'">
-              <div class="card-radio"></div>
-              <div class="card-body">
-                <div class="card-title-row">
-                  <strong>Fio 12 (2,77 mm)</strong>
-                  <span class="badge-recommended">RECOMENDADO / MAIS VENDIDO</span>
-                </div>
-                <p>Proporciona excelente resistência mecânica. Recomendado para indústrias, quadras esportivas e
-                  perímetros de alta segurança.</p>
-                <div class="card-footer-info">
-                  <span class="tag-outline">Carga de Ruptura: ++</span>
-                  <span class="tag-outline">Vida útil: Superior</span>
+          <div class="cards-select" role="radiogroup" aria-label="Bitola do arame">
+            @for (item of catalogo.arames(); track item.chave) {
+              <div class="select-card" [class.active]="arameSelecionado === item.chave" (click)="arameSelecionado = item.chave"
+                role="radio" tabindex="0" [attr.aria-checked]="arameSelecionado === item.chave"
+                (keydown.enter)="arameSelecionado = item.chave" (keydown.space)="$event.preventDefault(); arameSelecionado = item.chave">
+                <div class="card-radio"></div>
+                <div class="card-body">
+                  <div class="card-title-row"><strong>{{ item.nome }}</strong></div>
+                  @if (item.descricao) { <p>{{ item.descricao }}</p> }
                 </div>
               </div>
-            </div>
-
-            <!-- Fio 14 -->
-            <div class="select-card" [class.active]="bitolaSelecionada === 'fio14'"
-              (click)="bitolaSelecionada = 'fio14'">
-              <div class="card-radio"></div>
-              <div class="card-body">
-                <div class="card-title-row">
-                  <strong>Fio 14 (2,10 mm)</strong>
-                </div>
-                <p>Economia para fechamentos residenciais, áreas internas ou de menor impacto visual.</p>
-                <div class="card-footer-info">
-                  <span class="tag-outline">Carga de Ruptura: +</span>
-                  <span class="tag-outline">Uso Residencial</span>
-                </div>
-              </div>
-            </div>
+            } @empty {
+              <p class="opcoes-vazias">{{ catalogo.estado() === 'carregando' ? 'Carregando opções…' : 'Nenhuma opção disponível no momento.' }}</p>
+            }
           </div>
         </div>
 
@@ -243,25 +230,20 @@
           <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de
             pequenos animais e objetos.</p>
 
-          <div class="cards-grid-2">
-            <div class="select-card" [class.active]="malhaSelecionada === 'malha2'"
-              (click)="malhaSelecionada = 'malha2'">
-              <div class="card-radio"></div>
-              <div>
-                <strong>Malha 2" (50 mm)</strong>
-                <p>Ideal para quadras de tênis, futebol, galpões e segurança reforçada.</p>
+          <div class="cards-grid-2" role="radiogroup" aria-label="Malha">
+            @for (item of catalogo.malhas(); track item.chave) {
+              <div class="select-card" [class.active]="malhaSelecionada === item.chave" (click)="malhaSelecionada = item.chave"
+                role="radio" tabindex="0" [attr.aria-checked]="malhaSelecionada === item.chave"
+                (keydown.enter)="malhaSelecionada = item.chave" (keydown.space)="$event.preventDefault(); malhaSelecionada = item.chave">
+                <div class="card-radio"></div>
+                <div>
+                  <div class="card-title-row"><strong>{{ item.nome }}</strong></div>
+                  @if (item.descricao) { <p>{{ item.descricao }}</p> }
+                </div>
               </div>
-            </div>
-
-            <div class="select-card" [class.active]="malhaSelecionada === 'malha3'"
-              (click)="malhaSelecionada = 'malha3'">
-              <div class="card-radio"></div>
-              <div>
-                <strong>Malha 3" (75 mm)</strong>
-                <span class="badge-recommended">PADRÃO INDUSTRIAL</span>
-                <p>Ideal para grandes perímetros, chácaras e cercamentos extensos.</p>
-              </div>
-            </div>
+            } @empty {
+              <p class="opcoes-vazias">{{ catalogo.estado() === 'carregando' ? 'Carregando opções…' : 'Nenhuma opção disponível no momento.' }}</p>
+            }
           </div>
         </div>
 
@@ -311,25 +293,20 @@
             <h3><span>04</span> TRATAMENTO ANTICORROSIVO</h3>
           </div>
 
-          <div class="cards-grid-2">
-            <div class="select-card" [class.active]="tratamentoSelecionado === 'galvanizado'"
-              (click)="tratamentoSelecionado = 'galvanizado'">
-              <div class="card-radio"></div>
-              <div>
-                <strong>Galvanizada a Fogo</strong>
-                <span class="badge-recommended">MAIOR DURABILIDADE</span>
-                <p>Proteção anticorrosiva pesada de zinco para atmosferas urbanas e industriais.</p>
+          <div class="cards-grid-2" role="radiogroup" aria-label="Tratamento anticorrosivo">
+            @for (item of catalogo.tratamentos(); track item.chave) {
+              <div class="select-card" [class.active]="tratamentoSelecionado === item.chave" (click)="tratamentoSelecionado = item.chave"
+                role="radio" tabindex="0" [attr.aria-checked]="tratamentoSelecionado === item.chave"
+                (keydown.enter)="tratamentoSelecionado = item.chave" (keydown.space)="$event.preventDefault(); tratamentoSelecionado = item.chave">
+                <div class="card-radio"></div>
+                <div>
+                  <div class="card-title-row"><strong>{{ item.nome }}</strong></div>
+                  @if (item.descricao) { <p>{{ item.descricao }}</p> }
+                </div>
               </div>
-            </div>
-
-            <div class="select-card" [class.active]="tratamentoSelecionado === 'pvc'"
-              (click)="tratamentoSelecionado = 'pvc'">
-              <div class="card-radio"></div>
-              <div>
-                <strong>Revestida em PVC</strong>
-                <p>Camada extra de polímero com alta imunidade à névoa salina.</p>
-              </div>
-            </div>
+            } @empty {
+              <p class="opcoes-vazias">{{ catalogo.estado() === 'carregando' ? 'Carregando opções…' : 'Nenhuma opção disponível no momento.' }}</p>
+            }
           </div>
         </div>
 
@@ -419,8 +396,8 @@
           </div>
 
           <div class="summary-specs">
-            <span>{{ bitolaSelecionada === 'fio12' ? 'Fio 12 (2,77mm)' : 'Fio 14 (2,10mm)' }}</span> •
-            <span>{{ malhaSelecionada === 'malha2' ? 'Malha 2"' : 'Malha 3"' }}</span> •
+            <span>{{ catalogo.nome(arameSelecionado) || '—' }}</span> •
+            <span>{{ catalogo.nome(malhaSelecionada) || '—' }}</span> •
             <span>{{ comprimentoMetros }}m x {{ alturaMetros }}m</span>
           </div>
 

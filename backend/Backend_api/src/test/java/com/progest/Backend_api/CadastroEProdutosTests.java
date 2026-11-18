@@ -168,6 +168,60 @@ class CadastroEProdutosTests {
         assertThrows(ResponseStatusException.class, () -> orcamento.calcular(req));
     }
 
+    // ---------- Produtos novos e exclusão pelo ERP ----------
+
+    private ProdutoResponse novo(CategoriaProduto categoria, String nome, String valor) {
+        return produtos.criar(new ProdutoRequest(categoria, nome, "Cadastrado no ERP",
+                UnidadeProduto.M2, new BigDecimal(valor), true));
+    }
+
+    private ProdutoResponse porChave(String chave) {
+        return produtos.listar().stream().filter(p -> chave.equals(p.chave())).findFirst().orElseThrow();
+    }
+
+    @Test
+    void produtoNovoDoErpApareceNoSiteEPodeSerOrcado() {
+        var fio16 = novo(CategoriaProduto.ARAME, "Fio 16 (1,65 mm)", "10.00");
+        assertEquals("PROD_" + fio16.id(), fio16.chave());
+        assertTrue(produtos.catalogo().stream().anyMatch(i -> i.chave().equals(fio16.chave())));
+
+        var o = orcamento.calcular(new OrcamentoRequest(fio16.chave(), "MALHA_3", "GALVANIZADA",
+                new BigDecimal("2"), new BigDecimal("50"), false, null));
+        igual("1000.00", o.materiaPrima()); // 100 m² x 10
+    }
+
+    @Test
+    void produtoExcluidoSomeDoErpEDoSite() {
+        var fio16 = novo(CategoriaProduto.ARAME, "Fio 16 (1,65 mm)", "10.00");
+        produtos.excluir(fio16.id());
+
+        assertTrue(produtos.listar().stream().noneMatch(p -> p.id().equals(fio16.id())));
+        assertTrue(produtos.catalogo().stream().noneMatch(i -> i.chave().equals(fio16.chave())));
+        var erro = assertThrows(ResponseStatusException.class, () -> orcamento.calcular(
+                new OrcamentoRequest(fio16.chave(), "MALHA_3", "GALVANIZADA", BigDecimal.ONE, BigDecimal.TEN, false, null)));
+        assertEquals(422, erro.getStatusCode().value());
+    }
+
+    @Test
+    void naoDeixaOSiteSemNenhumaOpcaoDeUmaCategoria() {
+        produtos.excluir(porChave("PVC").id());
+        var galvanizada = porChave("GALVANIZADA");
+
+        var erro = assertThrows(ResponseStatusException.class, () -> produtos.excluir(galvanizada.id()));
+        assertEquals(HttpStatus.CONFLICT, erro.getStatusCode());
+        assertThrows(ResponseStatusException.class, () -> produtos.atualizar(galvanizada.id(),
+                new ProdutoRequest(galvanizada.categoria(), galvanizada.nome(), galvanizada.descricao(),
+                        galvanizada.unidade(), galvanizada.valor(), false)));
+    }
+
+    @Test
+    void todosOsAcessoriosAtivosEntramNoOrcamento() {
+        produtos.criar(new ProdutoRequest(CategoriaProduto.ACESSORIOS, "Arame de amarração", null,
+                UnidadeProduto.METRO_LINEAR, new BigDecimal("1.50"), true));
+        var o = orcamento.calcular(pedido50x2("GALVANIZADA", false, null));
+        igual("250.00", o.acessorios()); // 50 m x (3,50 + 1,50)
+    }
+
     @Test
     void medidasZeradasSaoRecusadas() {
         var req = new OrcamentoRequest("FIO_12", "MALHA_3", "GALVANIZADA", BigDecimal.ZERO, BigDecimal.ZERO, false, null);

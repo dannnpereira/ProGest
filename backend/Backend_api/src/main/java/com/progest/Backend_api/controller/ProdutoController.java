@@ -1,5 +1,6 @@
 package com.progest.Backend_api.controller;
 
+import com.progest.Backend_api.dto.CatalogoItem;
 import com.progest.Backend_api.dto.ProdutoRequest;
 import com.progest.Backend_api.dto.ProdutoResponse;
 import com.progest.Backend_api.dto.RegrasOrcamentoDto;
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Produtos e valores editados pelo ERP (rotas /api/erp/, exigem login).
-// O site nao le os precos direto: pede o orcamento pronto em /api/orcamento.
+// O site le as opcoes em /api/catalogo (aberta, sem precos) e pede o orcamento
+// pronto em /api/orcamento.
 @RestController
 public class ProdutoController {
 
@@ -37,6 +39,18 @@ public class ProdutoController {
     @PutMapping("/api/erp/produtos/{id}")
     public ProdutoResponse atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequest req) {
         return service.atualizar(id, req);
+    }
+
+    @DeleteMapping("/api/erp/produtos/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(@PathVariable Long id) {
+        service.excluir(id);
+    }
+
+    /** Opcoes de arame, malha e tratamento do configurador do site (sem login). */
+    @GetMapping("/api/catalogo")
+    public List<CatalogoItem> catalogo() {
+        return service.catalogo();
     }
 
     @GetMapping("/api/erp/regras-orcamento")

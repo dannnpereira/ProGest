@@ -13,7 +13,8 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Liga o produto a uma opcao do configurador do site (FIO_12, PVC...). Nao muda pelo ERP.
+    // Liga o produto a uma opcao do configurador do site (FIO_12, PVC...).
+    // Produto novo do ERP recebe PROD_<id> automaticamente. Nao muda depois.
     @Column(unique = true, length = 30)
     private String chave;
 
@@ -37,9 +38,14 @@ public class Produto {
     @Column(nullable = false)
     private boolean ativo = true;
 
+    // Excluido pelo ERP: some das listas, mas continua no banco por causa dos pedidos antigos
+    @Column(nullable = false)
+    private boolean excluido = false;
+
     public Long getId() { return id; }
 
     public String getChave() { return chave; }
+    public void setChave(String chave) { this.chave = chave; }
 
     public CategoriaProduto getCategoria() { return categoria; }
     public void setCategoria(CategoriaProduto categoria) { this.categoria = categoria; }
@@ -58,4 +64,7 @@ public class Produto {
 
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
+    public boolean isExcluido() { return excluido; }
+    public void setExcluido(boolean excluido) { this.excluido = excluido; }
 }

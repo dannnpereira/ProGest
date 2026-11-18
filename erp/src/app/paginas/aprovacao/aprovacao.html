@@ -81,10 +81,12 @@
     </label>
     <div class="chips" role="group" aria-label="Filtros rápidos">
       <button type="button" class="chip" [attr.aria-pressed]="semFiltro()" (click)="limparFiltros()">Todos ({{ fila().length }})</button>
-      <button type="button" class="chip" [attr.aria-pressed]="fio() === 'FIO_12'" (click)="alternar(fio, 'FIO_12')">Fio 12 ({{ contagem().FIO_12 }})</button>
-      <button type="button" class="chip" [attr.aria-pressed]="fio() === 'FIO_14'" (click)="alternar(fio, 'FIO_14')">Fio 14 ({{ contagem().FIO_14 }})</button>
-      <button type="button" class="chip" [attr.aria-pressed]="malha() === 'MALHA_2'" (click)="alternar(malha, 'MALHA_2')">Malha 2" ({{ contagem().MALHA_2 }})</button>
-      <button type="button" class="chip" [attr.aria-pressed]="malha() === 'MALHA_3'" (click)="alternar(malha, 'MALHA_3')">Malha 3" ({{ contagem().MALHA_3 }})</button>
+      @for (o of opcoesFio(); track o.chave) {
+        <button type="button" class="chip" [attr.aria-pressed]="fio() === o.chave" (click)="alternar(fio, o.chave)">{{ o.nome }} ({{ o.n }})</button>
+      }
+      @for (o of opcoesMalha(); track o.chave) {
+        <button type="button" class="chip" [attr.aria-pressed]="malha() === o.chave" (click)="alternar(malha, o.chave)">{{ o.nome }} ({{ o.n }})</button>
+      }
       <span class="chips-sep" aria-hidden="true"></span>
       <button type="button" class="chip" [attr.aria-pressed]="frete() === 'ENTREGA'" (click)="alternar(frete, 'ENTREGA')">Entrega ({{ contagem().ENTREGA }})</button>
       <button type="button" class="chip" [attr.aria-pressed]="frete() === 'RETIRADA'" (click)="alternar(frete, 'RETIRADA')">Retirada ({{ contagem().RETIRADA }})</button>
@@ -142,11 +144,11 @@
           </div>
 
           <ul class="specs" aria-label="Especificação técnica">
-            <li class="tag tag--dark">{{ rotuloFio[p.fio] }}</li>
-            <li class="tag tag--dark">{{ rotuloMalha[p.malha] }}</li>
+            <li class="tag tag--dark">{{ p.fioNome }}</li>
+            <li class="tag tag--dark">{{ p.malhaNome }}</li>
             <li class="tag tag--dark">Altura: {{ num(p.alturaM, 2) }} m</li>
             <li class="tag tag--dark">Metragem: {{ num(p.metragemM) }} m</li>
-            <li class="tag tag--ok"><app-icone nome="escudo" [tamanho]="12" /> {{ tratamento(p) }}</li>
+            <li class="tag tag--ok"><app-icone nome="escudo" [tamanho]="12" /> {{ p.tratamentoNome }}</li>
             <li class="tag">{{ p.rolos }}</li>
           </ul>
 
@@ -207,8 +209,8 @@
                 <small class="cell-sub">{{ p.cliente.cidade }} / {{ p.cliente.uf }}</small>
               </td>
               <td class="cell-spec">
-                {{ rotuloFio[p.fio] }} • {{ rotuloMalha[p.malha] }}
-                <small class="cell-sub">{{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ tratamento(p) }}</small>
+                {{ p.fioNome }} • {{ p.malhaNome }}
+                <small class="cell-sub">{{ num(p.alturaM, 2) }} m × {{ num(p.metragemM) }} m • {{ p.tratamentoNome }}</small>
               </td>
               <td>{{ p.frete.tipo === 'ENTREGA' ? 'Entrega • ' + p.frete.distanciaKm + ' km' : 'Retirada (FOB)' }}</td>
               <td class="right num"><strong>{{ moeda(total(p)) }}</strong></td>
@@ -241,14 +243,14 @@
       <div class="desenho">
         <div class="desenho-top">
           <span>Desenho técnico automático</span>
-          <span>{{ rotuloMalha[p.malha] }}</span>
+          <span>{{ p.malhaNome }}</span>
         </div>
-        <svg viewBox="0 0 320 120" role="img" [attr.aria-label]="'Desenho da tela ' + rotuloMalha[p.malha]">
+        <svg viewBox="0 0 320 120" role="img" [attr.aria-label]="'Desenho da tela ' + p.malhaNome">
           <defs>
-            <pattern [attr.id]="'malha-' + p.id" [attr.width]="p.malha === 'MALHA_2' ? 16 : 24" [attr.height]="p.malha === 'MALHA_2' ? 16 : 24" patternUnits="userSpaceOnUse">
-              @let a = p.malha === 'MALHA_2' ? 16 : 24;
+            @let a = ladoLosango(p);
+            <pattern [attr.id]="'malha-' + p.id" [attr.width]="a" [attr.height]="a" patternUnits="userSpaceOnUse">
               <path [attr.d]="'M0 ' + a / 2 + ' L' + a / 2 + ' 0 L' + a + ' ' + a / 2 + ' L' + a / 2 + ' ' + a + ' Z'"
-                fill="none" stroke="#f5b23d" [attr.stroke-width]="p.fio === 'FIO_12' ? 1.6 : 1.1" />
+                fill="none" stroke="#f5b23d" [attr.stroke-width]="espessuraTraco(p)" />
             </pattern>
           </defs>
           <rect x="10" y="12" width="300" height="96" [attr.fill]="'url(#malha-' + p.id + ')'" />
@@ -257,7 +259,7 @@
           <text x="316" y="62" fill="#aab1bc" font-size="8" transform="rotate(90 316 62)" text-anchor="middle">{{ num(p.alturaM, 2) }} m</text>
         </svg>
         <div class="desenho-foot">
-          <span>{{ rotuloFio[p.fio] }} • {{ tratamento(p) }}</span>
+          <span>{{ p.fioNome }} • {{ p.tratamentoNome }}</span>
           <span class="ok">Homologável</span>
         </div>
       </div>

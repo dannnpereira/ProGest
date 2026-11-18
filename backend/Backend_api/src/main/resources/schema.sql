@@ -59,6 +59,10 @@ CREATE TABLE IF NOT EXISTS produtos (
         CHECK (valor >= 0)
 );
 
+-- Produto excluido pelo ERP: some do ERP e do site, mas a linha fica para os
+-- pedidos antigos continuarem com o nome certo (e para nao ser recriado abaixo).
+ALTER TABLE produtos ADD COLUMN IF NOT EXISTS excluido BOOLEAN DEFAULT FALSE NOT NULL;
+
 -- Regras do orcamento: uma linha so (id = 1)
 CREATE TABLE IF NOT EXISTS regras_orcamento (
     id INT PRIMARY KEY,
@@ -95,6 +99,10 @@ WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE chave = 'PVC');
 INSERT INTO produtos (chave, categoria, nome, descricao, unidade, valor)
 SELECT 'ACESSORIOS', 'ACESSORIOS', 'Acessórios de fixação (mourões e fixadores)', 'Kit catracas, parafusos e grampos', 'METRO_LINEAR', 3.50
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE chave = 'ACESSORIOS');
+
+-- Produtos cadastrados pelo ERP antes da chave automatica: ganham uma (PROD_<id>)
+-- para aparecerem como opcao no configurador do site.
+UPDATE produtos SET chave = CONCAT('PROD_', CAST(id AS VARCHAR(20))) WHERE chave IS NULL;
 
 INSERT INTO regras_orcamento (id, desconto_avista_pct, parcelas_max)
 SELECT 1, 5.00, 10
@@ -147,6 +155,19 @@ CREATE TABLE IF NOT EXISTS pedidos_cliente (
     CONSTRAINT chk_pedido_cliente_status
         CHECK (status IN ('AGUARDANDO_APROVACAO', 'RECUSADO', 'A_FAZER', 'EM_PROCESSO', 'ENTREGUE'))
 );
+
+-- Nome dos produtos no momento do pedido: o pedido continua certo mesmo que
+-- o produto seja renomeado ou excluido depois no ERP.
+ALTER TABLE pedidos_cliente ADD COLUMN IF NOT EXISTS arame_nome VARCHAR(120);
+ALTER TABLE pedidos_cliente ADD COLUMN IF NOT EXISTS malha_nome VARCHAR(120);
+ALTER TABLE pedidos_cliente ADD COLUMN IF NOT EXISTS tratamento_nome VARCHAR(120);
+
+UPDATE pedidos_cliente SET arame_nome = (SELECT p.nome FROM produtos p WHERE p.chave = pedidos_cliente.arame)
+WHERE arame_nome IS NULL;
+UPDATE pedidos_cliente SET malha_nome = (SELECT p.nome FROM produtos p WHERE p.chave = pedidos_cliente.malha)
+WHERE malha_nome IS NULL;
+UPDATE pedidos_cliente SET tratamento_nome = (SELECT p.nome FROM produtos p WHERE p.chave = pedidos_cliente.tratamento)
+WHERE tratamento_nome IS NULL;
 
 -- =========================================
 -- TABELA: ENDERECOS

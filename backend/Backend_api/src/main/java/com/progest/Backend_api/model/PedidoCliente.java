@@ -37,6 +37,10 @@ public class PedidoCliente {
     @Column(nullable = false, length = 30) private String arame;
     @Column(nullable = false, length = 30) private String malha;
     @Column(nullable = false, length = 30) private String tratamento;
+    // Nome de cada produto no momento do pedido (não muda se o ERP renomear/excluir o produto)
+    @Column(name = "arame_nome", length = 120) private String arameNome;
+    @Column(name = "malha_nome", length = 120) private String malhaNome;
+    @Column(name = "tratamento_nome", length = 120) private String tratamentoNome;
     @Column(name = "altura_m", nullable = false, precision = 6, scale = 2) private BigDecimal alturaM;
     @Column(name = "comprimento_m", nullable = false, precision = 8, scale = 2) private BigDecimal comprimentoM;
 
@@ -80,6 +84,13 @@ public class PedidoCliente {
     public void setMalha(String malha) { this.malha = malha; }
     public String getTratamento() { return tratamento; }
     public void setTratamento(String tratamento) { this.tratamento = tratamento; }
+    /** Nome gravado no pedido; sem ele (pedido antigo), a chave. */
+    public String getArameNome() { return arameNome != null ? arameNome : arame; }
+    public void setArameNome(String arameNome) { this.arameNome = arameNome; }
+    public String getMalhaNome() { return malhaNome != null ? malhaNome : malha; }
+    public void setMalhaNome(String malhaNome) { this.malhaNome = malhaNome; }
+    public String getTratamentoNome() { return tratamentoNome != null ? tratamentoNome : tratamento; }
+    public void setTratamentoNome(String tratamentoNome) { this.tratamentoNome = tratamentoNome; }
     public BigDecimal getAlturaM() { return alturaM; }
     public void setAlturaM(BigDecimal alturaM) { this.alturaM = alturaM; }
     public BigDecimal getComprimentoM() { return comprimentoM; }

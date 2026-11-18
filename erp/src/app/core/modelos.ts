@@ -8,8 +8,9 @@ export type StatusPedido =
   | 'EM_PROCESSO'
   | 'ENTREGUE';
 
-export type Fio = 'FIO_12' | 'FIO_14';
-export type Malha = 'MALHA_2' | 'MALHA_3';
+/** Chaves dos produtos cadastrados em "Produtos e Valores" (FIO_12, MALHA_3, PROD_8...) */
+export type Fio = string;
+export type Malha = string;
 
 export interface Cliente {
   nome: string;
@@ -32,7 +33,11 @@ export interface Pedido {
   malha: Malha;
   alturaM: number;
   metragemM: number;
-  tratamento: 'GALVANIZADA' | 'PVC'; // chave do produto da categoria Tratamento
+  tratamento: string; // chave do produto da categoria Tratamento
+  /** Nomes dos produtos gravados no pedido (não mudam se o produto for renomeado/excluído) */
+  fioNome: string;
+  malhaNome: string;
+  tratamentoNome: string;
   rolos: string;
 
   frete: { tipo: 'ENTREGA' | 'RETIRADA'; distanciaKm?: number; descricao: string };
@@ -96,16 +101,6 @@ export interface ResumoMes {
   entradas: number;
   saidas: number;
 }
-
-export const ROTULO_FIO: Record<Fio, string> = {
-  FIO_12: 'Fio 12 (2,77 mm)',
-  FIO_14: 'Fio 14 (2,10 mm)',
-};
-
-export const ROTULO_MALHA: Record<Malha, string> = {
-  MALHA_2: 'Malha 2" (50 mm)',
-  MALHA_3: 'Malha 3" (75 mm)',
-};
 
 export const ROTULO_CATEGORIA: Record<Categoria, string> = {
   ARAME: 'Arame',

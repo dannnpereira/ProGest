@@ -128,7 +128,7 @@ export class RastreioComponent implements OnInit {
     const v = p.valores;
     if (!v) return;
     const ok = this.pdf.gerarOrcamentoPdf({
-      configuracao: { bitola: p.bitola, malha: p.malha, tratamento: p.tratamento },
+      configuracao: { arame: p.arame, malha: p.malha, tratamento: p.tratamento },
       medidas: {
         altura: p.alturaMetros, comprimento: p.comprimentoMetros,
         area: Math.round(p.alturaMetros * p.comprimentoMetros * 100) / 100,
@@ -164,16 +164,17 @@ export class RastreioComponent implements OnInit {
     return CLASSES_STATUS[status];
   }
 
+  // Nomes gravados no pedido (iguais aos cadastrados no ProGest na hora do pedido)
   private rotuloBitola(p: Pedido): string {
-    return p.bitola === 'fio12' ? 'Fio 12 (2,77 mm)' : 'Fio 14 (2,10 mm)';
+    return p.arame;
   }
 
   private rotuloMalha(p: Pedido): string {
-    return p.malha === 'malha2' ? 'Malha 2"' : 'Malha 3"';
+    return p.malha;
   }
 
   private rotuloTratamento(p: Pedido): string {
-    return p.tratamento === 'galvanizado' ? 'Galvanizada a fogo' : 'Revestida em PVC';
+    return p.tratamento;
   }
 
   private numeroBR(valor: number): string {

@@ -18,6 +18,9 @@ public record PedidoClienteResponse(
         String arame,
         String malha,
         String tratamento,
+        String arameNome,
+        String malhaNome,
+        String tratamentoNome,
         BigDecimal alturaM,
         BigDecimal comprimentoM,
         boolean entrega,
@@ -42,7 +45,8 @@ public record PedidoClienteResponse(
         BigDecimal pct = base.signum() == 0 ? BigDecimal.ZERO
                 : p.getValorDesconto().multiply(BigDecimal.valueOf(100)).divide(base, 2, RoundingMode.HALF_UP);
         return new PedidoClienteResponse(p.getId(), p.getCodigo(), p.getCriadoEm(), p.getStatus(),
-                p.getArame(), p.getMalha(), p.getTratamento(), p.getAlturaM(), p.getComprimentoM(),
+                p.getArame(), p.getMalha(), p.getTratamento(),
+                p.getArameNome(), p.getMalhaNome(), p.getTratamentoNome(), p.getAlturaM(), p.getComprimentoM(),
                 p.isEntrega(), p.getEndereco(), p.getDistanciaKm(),
                 p.getValorMateriaPrima(), p.getValorAcessorios(), p.getValorFrete(), pct, p.getValorDesconto(),
                 p.getValorTotal(), p.getParcelas(), p.getValorParcela(),

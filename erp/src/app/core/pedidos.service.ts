@@ -12,9 +12,22 @@ const PROXIMO: Partial<Record<StatusPedido, StatusPedido>> = {
   EM_PROCESSO: 'ENTREGUE',
 };
 
-/** Diâmetro do arame em mm e abertura da malha em mm, usados nas estimativas técnicas. */
-const DIAMETRO_MM = { FIO_12: 2.77, FIO_14: 2.1 } as const;
-const ABERTURA_MM = { MALHA_2: 50, MALHA_3: 75 } as const;
+/**
+ * Diâmetro do arame e abertura da malha (mm), usados nas estimativas técnicas.
+ * Vêm do nome do produto, como "Fio 12 (2,77 mm)" ou "Malha 2" (50 mm)";
+ * sem a medida no nome, usa um valor médio.
+ */
+const DIAMETRO_PADRAO_MM = 2.5;
+const ABERTURA_PADRAO_MM = 60;
+
+export function medidaMm(nome: string, padrao: number): number {
+  const m = /(\d+(?:[.,]\d+)?)\s*mm/i.exec(nome ?? '');
+  const v = m ? parseFloat(m[1].replace(',', '.')) : NaN;
+  return v > 0 ? v : padrao;
+}
+
+export const diametroMm = (p: Pedido) => medidaMm(p.fioNome, DIAMETRO_PADRAO_MM);
+export const aberturaMm = (p: Pedido) => medidaMm(p.malhaNome, ABERTURA_PADRAO_MM);
 const VELOCIDADE_TEAR_M_MIN = 1.8;
 /** Busca pedidos novos do site a cada minuto */
 const ATUALIZAR_A_CADA_MS = 60_000;
@@ -128,8 +141,8 @@ export class PedidosService {
   previa(p: Pedido): PreviaTecnica {
     const areaM2 = p.metragemM * p.alturaM;
     // Comprimento de arame por m² de tela losangular ≈ 2 fios / abertura, com ~10% de dobra
-    const metrosArame = areaM2 * (2 / (ABERTURA_MM[p.malha] / 1000)) * 1.1;
-    const raio = DIAMETRO_MM[p.fio] / 2000;
+    const metrosArame = areaM2 * (2 / (aberturaMm(p) / 1000)) * 1.1;
+    const raio = diametroMm(p) / 2000;
     const acoKg = metrosArame * Math.PI * raio * raio * 7850;
     const pesoT = acoKg / 1000;
     const veiculo = p.frete.tipo === 'RETIRADA'
