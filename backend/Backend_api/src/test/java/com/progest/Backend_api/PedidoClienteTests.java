@@ -79,12 +79,12 @@ class PedidoClienteTests {
         assertEquals("Fio 12 (2,77 mm)", p.getArameNome());
         assertEquals("Malha 3\" (75 mm)", p.getMalhaNome());
         assertEquals("Galvanizada a fogo", p.getTratamentoNome());
-        assertEquals(0, new BigDecimal("1876.25").compareTo(p.getValorTotal()));
+        assertEquals(0, new BigDecimal("1866.25").compareTo(p.getValorTotal()));
         assertEquals(0, BigDecimal.ZERO.compareTo(p.getValorFrete()));
 
         // O que o site recebe permite refazer a ficha técnica com os mesmos valores
         var r = PedidoClienteResponse.de(p);
-        assertEquals(0, new BigDecimal("5").compareTo(r.descontoPct()));
+        assertEquals(0, new BigDecimal("10.49").compareTo(r.descontoPct()));
         assertEquals(0, r.valorTotal().compareTo(r.valorMateriaPrima().add(r.valorAcessorios())
                 .add(r.valorFrete()).subtract(r.valorDesconto())));
     }

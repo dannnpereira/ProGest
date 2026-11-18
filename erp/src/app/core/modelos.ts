@@ -69,6 +69,24 @@ export interface Produto {
   chave?: string;
 }
 
+/** Como a linha da tabela de preços é cobrada: tela por m² ou arame avulso por kg */
+export type UnidadePreco = 'M2' | 'KG';
+
+/**
+ * Linha da tabela de preços: arame + malha + tratamento (chaves dos produtos).
+ * As telas (M2) são as combinações que o cliente pode escolher no site.
+ */
+export interface PrecoTela {
+  id: number;
+  arame: string;
+  malha: string | null; // vazia no arame por kg
+  tratamento: string;
+  unidade: UnidadePreco;
+  pesoKgM2: number | null;
+  valorVista: number;
+  valorPrazo: number | null;
+}
+
 export interface RegrasOrcamento {
   descontoAVistaPct: number;
   parcelasMax: number;

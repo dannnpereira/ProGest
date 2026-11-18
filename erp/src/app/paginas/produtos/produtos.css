@@ -68,3 +68,7 @@ tr.editando { background: var(--accent-soft); }
 .btn-icon--perigo:hover { background: var(--bad-soft); color: var(--bad); }
 .btn-icon:disabled { opacity: .4; cursor: not-allowed; }
 .confirmar-exclusao { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--bad); }
+
+/* Produtos cobrados pela tabela de preços */
+.na-tabela { font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.dica-preco { display: block; margin: 4px 0 12px; font-size: 12.5px; }

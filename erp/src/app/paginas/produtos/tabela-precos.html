@@ -1,0 +1,137 @@
+<section class="card tabela-card precos" aria-labelledby="precos-titulo">
+  <div class="precos-head">
+    <div>
+      <h2 class="card-title" id="precos-titulo">Tabela de preços</h2>
+      <p class="card-sub">Preço por combinação de arame + malha + tipo. As telas (m²) com produtos ativos viram as opções do site.</p>
+    </div>
+    <button type="button" class="btn btn--dark" (click)="novo()" [disabled]="!podeEditar() || editandoId() !== null">
+      <app-icone nome="mais" [tamanho]="16" /> Novo preço
+    </button>
+  </div>
+
+  <div class="tabela-topo">
+    <div class="abas" role="group" aria-label="Tipo de preço">
+      <button type="button" class="aba" [attr.aria-pressed]="unidade() === 'M2'" (click)="trocarUnidade('M2')">Telas (por m²)</button>
+      <button type="button" class="aba" [attr.aria-pressed]="unidade() === 'KG'" (click)="trocarUnidade('KG')">Arame avulso (por kg)</button>
+    </div>
+    <div class="chips" role="group" aria-label="Filtrar por tipo">
+      <button type="button" class="chip" [attr.aria-pressed]="!tratamento()" (click)="tratamento.set(null)">Todos</button>
+      @for (t of tiposComLinha(); track t.id) {
+        <button type="button" class="chip" [attr.aria-pressed]="tratamento() === t.chave" (click)="tratamento.set(t.chave!)">{{ t.nome }}</button>
+      }
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Tipo</th>
+          <th scope="col">Arame</th>
+          @if (unidade() === 'M2') {
+            <th scope="col">Malha</th>
+            <th scope="col" class="right">Peso (kg/m²)</th>
+          }
+          <th scope="col" class="right">À vista</th>
+          <th scope="col" class="right">A prazo</th>
+          <th scope="col"><span class="sr-only">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (editandoId() === 'novo') {
+          <ng-container *ngTemplateOutlet="formLinha" />
+        }
+        @for (p of lista(); track p.id) {
+          @if (editandoId() === p.id) {
+            <ng-container *ngTemplateOutlet="formLinha" />
+          } @else {
+            <tr [class.inativo]="unidade() === 'M2' && !estaNoSite(p)">
+              <td>{{ nome(p.tratamento) }}</td>
+              <td><strong>{{ nome(p.arame) }}</strong></td>
+              @if (unidade() === 'M2') {
+                <td>
+                  {{ nome(p.malha) }}
+                  @if (!estaNoSite(p)) { <small class="fora-site">fora do site (produto inativo)</small> }
+                </td>
+                <td class="right num">{{ p.pesoKgM2 == null ? '—' : num(p.pesoKgM2, 3) }}</td>
+              }
+              <td class="right num"><strong>{{ moeda(p.valorVista) }}</strong></td>
+              <td class="right num">{{ p.valorPrazo == null ? '—' : moeda(p.valorPrazo) }}</td>
+              <td class="col-acoes">
+                @if (excluindoId() === p.id) {
+                  <div class="confirmar-exclusao" role="group" aria-label="Confirmar exclusão do preço">
+                    <span>Excluir?</span>
+                    <button type="button" class="btn btn--sm btn--danger" (click)="excluir(p)" [disabled]="salvando()">Excluir</button>
+                    <button type="button" class="btn btn--sm" (click)="excluindoId.set(null)">Cancelar</button>
+                  </div>
+                } @else {
+                  <button type="button" class="btn-icon" (click)="editar(p)" [disabled]="!podeEditar() || editandoId() !== null"
+                    [attr.aria-label]="'Editar preço de ' + nome(p.arame) + ' ' + nome(p.malha)">
+                    <app-icone nome="lapis" [tamanho]="16" />
+                  </button>
+                  <button type="button" class="btn-icon btn-icon--perigo" (click)="excluindoId.set(p.id)" [disabled]="!podeEditar()"
+                    [attr.aria-label]="'Excluir preço de ' + nome(p.arame) + ' ' + nome(p.malha)">
+                    <app-icone nome="lixeira" [tamanho]="16" />
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        } @empty {
+          @if (editandoId() !== 'novo') {
+            <tr><td colspan="7" class="empty">Nenhum preço cadastrado aqui.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="tabela-rodape">
+    {{ lista().length }} {{ lista().length === 1 ? 'linha' : 'linhas' }}
+    @if (unidade() === 'M2') { • {{ svc.telasNoSite().length }} telas disponíveis no site }
+  </p>
+</section>
+
+<!-- Linha de edição (nova ou existente) -->
+<ng-template #formLinha>
+  <tr class="editando">
+    <td>
+      <select class="select" aria-label="Tipo" [value]="r().tratamento" (change)="campo('tratamento', $event)">
+        @for (t of tratamentos(); track t.id) { <option [value]="t.chave" [selected]="t.chave === r().tratamento">{{ t.nome }}</option> }
+      </select>
+    </td>
+    <td>
+      <select class="select" aria-label="Arame" [value]="r().arame" (change)="campo('arame', $event)">
+        @for (a of arames(); track a.id) { <option [value]="a.chave" [selected]="a.chave === r().arame">{{ a.nome }}</option> }
+      </select>
+    </td>
+    @if (unidade() === 'M2') {
+      <td>
+        <select class="select" aria-label="Malha" [value]="r().malha" (change)="campo('malha', $event)">
+          @for (m of malhas(); track m.id) { <option [value]="m.chave" [selected]="m.chave === r().malha">{{ m.nome }}</option> }
+        </select>
+      </td>
+      <td class="right">
+        <input class="input num curto" inputmode="decimal" placeholder="opcional" aria-label="Peso em kg por m²"
+          [value]="r().peso" (input)="campo('peso', $event)" />
+      </td>
+    }
+    <td class="right">
+      <input class="input num curto" inputmode="decimal" placeholder="0,00" aria-label="Valor à vista"
+        [value]="r().vista" (input)="campo('vista', $event)" (keydown.enter)="salvar()" />
+    </td>
+    <td class="right">
+      <input class="input num curto" inputmode="decimal" placeholder="opcional" aria-label="Valor a prazo"
+        [value]="r().prazo" (input)="campo('prazo', $event)" (keydown.enter)="salvar()" />
+    </td>
+    <td class="col-acoes">
+      <button type="button" class="btn btn--sm btn--dark" (click)="salvar()" [disabled]="!!erro() || salvando()">
+        {{ salvando() ? 'Salvando…' : 'Salvar' }}
+      </button>
+      <button type="button" class="btn btn--sm" (click)="cancelar()">Cancelar</button>
+    </td>
+  </tr>
+  @if (erro() && (r().vista || r().prazo || r().peso)) {
+    <tr class="editando"><td colspan="7" class="error-text">{{ erro() }}</td></tr>
+  }
+</ng-template>

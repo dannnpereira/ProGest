@@ -7,10 +7,11 @@ import { Orcamento, PedidoOrcamento, ProdutosService } from '../../core/produtos
 import { AvisosService } from '../../core/avisos.service';
 import { Categoria, Produto, ROTULO_CATEGORIA, ROTULO_UNIDADE, Unidade } from '../../core/modelos';
 import { moeda, num } from '../../core/formato';
+import { TabelaPrecos } from './tabela-precos';
 
 @Component({
   selector: 'app-produtos',
-  imports: [Icone],
+  imports: [Icone, TabelaPrecos],
   templateUrl: './produtos.html',
   styleUrl: './produtos.css',
 })
@@ -55,7 +56,9 @@ export class Produtos {
   protected tentouSalvar = signal(false);
 
   protected nomeInvalido = computed(() => this.fNome().trim().length < 3);
-  protected valorInvalido = computed(() => !(this.fValor() >= 0));
+  // Só acessórios têm valor próprio; arame, malha e tipo são cobrados pela tabela de preços
+  protected temValorProprio = computed(() => this.fCategoria() === 'ACESSORIOS');
+  protected valorInvalido = computed(() => this.temValorProprio() && !(this.fValor() >= 0));
 
   // ---------- Regras do orçamento ----------
   protected rDesconto = linkedSignal(() => this.svc.regras().descontoAVistaPct);
@@ -65,15 +68,25 @@ export class Produtos {
   );
 
   // ---------- Prévia no orçamento (calculada pela API, igual ao site) ----------
-  // Opções do configurador do site: produtos ativos de cada categoria
-  private opcoes = (c: Categoria) => computed(() => this.svc.ativos().filter(p => p.categoria === c && p.chave));
-  protected arames = this.opcoes('ARAME');
-  protected malhas = this.opcoes('MALHA');
-  protected tratamentos = this.opcoes('TRATAMENTO');
+  // Opções do configurador do site: só as combinações da tabela de preços (telas com produtos ativos)
+  private daCategoria(c: Categoria, chaves: Set<string | undefined>): Produto[] {
+    return this.svc.ativos().filter(p => p.categoria === c && chaves.has(p.chave));
+  }
+  protected arames = computed(() => this.daCategoria('ARAME', new Set(this.svc.telasNoSite().map(t => t.arame))));
+  protected malhas = computed(() => this.daCategoria('MALHA', new Set(
+    this.svc.telasNoSite().filter(t => t.arame === this.sArame()).map(t => t.malha ?? undefined))));
+  protected tratamentos = computed(() => this.daCategoria('TRATAMENTO', new Set(
+    this.svc.telasNoSite().filter(t => t.arame === this.sArame() && t.malha === this.sMalha()).map(t => t.tratamento))));
 
-  protected sArame = linkedSignal(() => this.arames()[0]?.chave ?? '');
-  protected sMalha = linkedSignal(() => this.malhas().find(p => p.chave === 'MALHA_3')?.chave ?? this.malhas()[0]?.chave ?? '');
-  protected sTratamento = linkedSignal(() => this.tratamentos()[0]?.chave ?? '');
+  protected sArame = linkedSignal<Produto[], string>({
+    source: () => this.arames(), computation: (l, antes) => manterOuPrimeira(l, antes?.value),
+  });
+  protected sMalha = linkedSignal<Produto[], string>({
+    source: () => this.malhas(), computation: (l, antes) => manterOuPrimeira(l, antes?.value),
+  });
+  protected sTratamento = linkedSignal<Produto[], string>({
+    source: () => this.tratamentos(), computation: (l, antes) => manterOuPrimeira(l, antes?.value),
+  });
   protected sComprimento = signal(50);
   protected sAltura = signal(2);
 
@@ -83,6 +96,7 @@ export class Produtos {
   private pedidoSimulacao = computed<PedidoOrcamento>(() => {
     // Lê produtos e regras para pedir de novo depois de salvar um preço
     this.svc.produtos();
+    this.svc.precos();
     this.svc.regras();
     return {
       arame: this.sArame(), malha: this.sMalha(), tratamento: this.sTratamento(),
@@ -99,7 +113,7 @@ export class Produtos {
         catchError((e: HttpErrorResponse) => of({
           o: null,
           erro: e.status === 400 ? 'Informe altura e comprimento.'
-            : e.status === 422 ? 'Uma das opções está inativa.'
+            : e.status === 422 ? 'Esta combinação não tem preço na tabela (ou um produto está inativo).'
             : 'Não foi possível calcular a prévia agora.',
         })),
       )),
@@ -110,10 +124,9 @@ export class Produtos {
     });
   }
 
-  nota(p: Produto): string {
-    if (p.categoria === 'MALHA' && p.valor === 0) return p.chave === 'MALHA_2' ? 'base padrão' : 'sem acréscimo';
-    if (p.categoria === 'TRATAMENTO') return p.valor === 0 ? 'sem acréscimo' : '+ acréscimo';
-    return '';
+  /** Quantas linhas da tabela de preços usam o produto */
+  usoNaTabela(p: Produto): number {
+    return this.svc.precos().filter(t => t.arame === p.chave || t.malha === p.chave || t.tratamento === p.chave).length;
   }
 
   novo(): void {
@@ -155,11 +168,15 @@ export class Produtos {
         categoria: this.fCategoria(),
         nome: this.fNome().trim(),
         descricao: this.fDescricao().trim(),
-        unidade: this.fUnidade(),
-        valor: Math.round(this.fValor() * 100) / 100,
+        unidade: this.temValorProprio() ? this.fUnidade() : 'M2',
+        valor: this.temValorProprio() ? Math.round(this.fValor() * 100) / 100 : (this.fValor() || 0),
         ativo: this.fAtivo(),
       });
-      this.avisos.mostrar({ texto: `${salvo.nome} ${id ? 'atualizado' : 'cadastrado'}. O site já usa o novo valor.` });
+      this.avisos.mostrar({
+        texto: salvo.categoria === 'ACESSORIOS' || this.usoNaTabela(salvo)
+          ? `${salvo.nome} ${id ? 'atualizado' : 'cadastrado'}. O site já usa a mudança.`
+          : `${salvo.nome} cadastrado. Para aparecer no site, cadastre o preço dele na Tabela de preços.`,
+      });
       this.novo();
     } catch (e) {
       this.avisos.mostrar({ texto: mensagemDoServidor(e, 'Não foi possível salvar o produto. Tente de novo.') });
@@ -226,4 +243,9 @@ export class Produtos {
 function mensagemDoServidor(e: unknown, padrao: string): string {
   const erro = e instanceof HttpErrorResponse ? e.error : null;
   return erro?.timestamp && typeof erro.message === 'string' && erro.message ? erro.message : padrao;
+}
+
+/** Mantém a opção escolhida se ela ainda existe; senão, a primeira da lista. */
+function manterOuPrimeira(lista: Produto[], escolhida: string | undefined): string {
+  return lista.some(p => p.chave === escolhida) ? escolhida! : lista[0]?.chave ?? '';
 }

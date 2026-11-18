@@ -3,6 +3,7 @@ package com.progest.Backend_api.services;
 import com.progest.Backend_api.dto.OrcamentoRequest;
 import com.progest.Backend_api.dto.OrcamentoResponse;
 import com.progest.Backend_api.model.CategoriaProduto;
+import com.progest.Backend_api.model.PrecoTela;
 import com.progest.Backend_api.model.Produto;
 import com.progest.Backend_api.model.RegrasOrcamento;
 import com.progest.Backend_api.repository.ProdutoRepository;
@@ -14,20 +15,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Calculo do orcamento do configurador. Fica aqui (e nao no site) para que os precos
  * e regras editados no ERP valham na hora, e para o cliente nao conseguir mudar o valor
- * pelo navegador.
+ * pelo navegador. O preco da tela vem da tabela de precos (arame + malha + tratamento).
  *
- *   materia-prima = area (m2) x (arame + malha + tratamento)
- *   acessorios    = comprimento x soma dos acessorios ativos (por metro linear)
- *   desconto      = (materia-prima + acessorios) x desconto a vista %
- *   total         = materia-prima + acessorios + frete - desconto
- *   parcela       = total / parcelas
+ *   materia-prima  = area (m2) x valor A PRAZO da tela   (preco cheio)
+ *   acessorios     = comprimento x soma dos acessorios ativos (por metro linear)
+ *   desconto       = area x (a prazo - a vista)  +  acessorios x desconto a vista %
+ *   total (a vista)= materia-prima + acessorios + frete - desconto
+ *   parcela        = (materia-prima + acessorios + frete) / parcelas   (a prazo)
  */
 @Service
 public class OrcamentoService {
@@ -43,49 +41,46 @@ public class OrcamentoService {
 
     private final ProdutoRepository produtos;
     private final RegrasOrcamentoRepository regras;
+    private final CatalogoService catalogo;
 
-    public OrcamentoService(ProdutoRepository produtos, RegrasOrcamentoRepository regras) {
+    public OrcamentoService(ProdutoRepository produtos, RegrasOrcamentoRepository regras, CatalogoService catalogo) {
         this.produtos = produtos;
         this.regras = regras;
+        this.catalogo = catalogo;
     }
 
     public OrcamentoResponse calcular(OrcamentoRequest req) {
-        Map<String, Produto> ativos = produtos.findByAtivoTrueAndExcluidoFalseOrderByIdAsc().stream()
-                .filter(p -> p.getChave() != null)
-                .collect(Collectors.toMap(Produto::getChave, Function.identity()));
+        PrecoTela tela = catalogo.tela(req.arame(), req.malha(), req.tratamento()).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
+                        "Esta combinação não está disponível no momento."));
 
-        BigDecimal arame = valor(ativos, req.arame(), CategoriaProduto.ARAME);
-        BigDecimal malha = valor(ativos, req.malha(), CategoriaProduto.MALHA);
-        BigDecimal tratamento = valor(ativos, req.tratamento(), CategoriaProduto.TRATAMENTO);
         // Todos os acessorios ativos entram no kit (valor por metro linear de cerca)
-        BigDecimal acessorioPorMetro = ativos.values().stream()
+        BigDecimal acessorioPorMetro = produtos.findByAtivoTrueAndExcluidoFalseOrderByIdAsc().stream()
                 .filter(p -> p.getCategoria() == CategoriaProduto.ACESSORIOS)
                 .map(Produto::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal area = req.alturaM().multiply(req.comprimentoM());
-        BigDecimal materiaPrima = reais(area.multiply(arame.add(malha).add(tratamento)));
-        BigDecimal acessorios = reais(req.comprimentoM().multiply(acessorioPorMetro));
-        OrcamentoResponse.Frete frete = req.entrega() ? frete(req.cep()) : semFrete();
-
         RegrasOrcamento r = regras.findById(RegrasOrcamento.ID_UNICO).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Regras do orçamento não configuradas."));
-        BigDecimal desconto = reais(materiaPrima.add(acessorios).multiply(r.getDescontoAVistaPct()).divide(CEM));
-        BigDecimal total = materiaPrima.add(acessorios).add(frete.valor()).subtract(desconto);
+
+        BigDecimal area = req.alturaM().multiply(req.comprimentoM());
+        BigDecimal materiaPrima = reais(area.multiply(tela.prazoOuVista()));
+        BigDecimal descontoTela = materiaPrima.subtract(reais(area.multiply(tela.getValorVista()))).max(BigDecimal.ZERO);
+        BigDecimal acessorios = reais(req.comprimentoM().multiply(acessorioPorMetro));
+        BigDecimal descontoAcessorios = reais(acessorios.multiply(r.getDescontoAVistaPct()).divide(CEM));
+        OrcamentoResponse.Frete frete = req.entrega() ? frete(req.cep()) : semFrete();
+
+        BigDecimal cheio = materiaPrima.add(acessorios).add(frete.valor());
+        BigDecimal desconto = descontoTela.add(descontoAcessorios);
+        BigDecimal total = cheio.subtract(desconto);
+        BigDecimal base = materiaPrima.add(acessorios);
+        BigDecimal descontoPct = base.signum() == 0 ? BigDecimal.ZERO
+                : desconto.multiply(CEM).divide(base, 2, RoundingMode.HALF_UP);
         int parcelas = Math.max(1, r.getParcelasMax());
 
         return new OrcamentoResponse(
                 area.setScale(2, RoundingMode.HALF_UP), materiaPrima, acessorios, frete,
-                r.getDescontoAVistaPct(), desconto, total,
-                parcelas, total.divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.HALF_UP));
-    }
-
-    private static BigDecimal valor(Map<String, Produto> ativos, String chave, CategoriaProduto categoria) {
-        Produto p = ativos.get(chave);
-        if (p == null || p.getCategoria() != categoria) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
-                    "Esta opção não está disponível no momento.");
-        }
-        return p.getValor();
+                descontoPct, desconto, total,
+                parcelas, cheio.divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.HALF_UP));
     }
 
     private static OrcamentoResponse.Frete semFrete() {
