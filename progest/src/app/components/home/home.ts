@@ -41,8 +41,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly catalogo = inject(CatalogoService);
 
   // Escolhas do configurador (chave do produto). Guardadas em signals para o orçamento
-  // ser pedido de novo à API sempre que alguma muda. Se a opção escolhida sair do
-  // catálogo (desativada/excluída no ProGest), volta para a primeira disponível.
+  // ser pedido de novo à API sempre que alguma muda. O site abre sem nada escolhido:
+  // o preço só aparece depois de o cliente escolher arame, malha e tipo. Se a opção
+  // escolhida deixar de existir (ex.: trocou o arame), ela volta a ficar em branco.
   // Malhas e tratamentos seguem a tabela de preços: só as combinações que existem
   // (ex.: Fio 16 só tem malha 3/4" e 1"); ao trocar o arame, a malha se ajusta.
   protected readonly malhas = computed(() => this.catalogo.malhasDo(this.sArame()));
@@ -50,15 +51,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private sArame = linkedSignal<ItemCatalogo[], string>({
     source: () => this.catalogo.arames(),
-    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+    computation: (lista, antes) => manterOuVazio(lista, antes?.value),
   });
   private sMalha = linkedSignal<ItemCatalogo[], string>({
     source: () => this.malhas(),
-    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+    computation: (lista, antes) => manterOuVazio(lista, antes?.value),
   });
   private sTratamento = linkedSignal<ItemCatalogo[], string>({
     source: () => this.tratamentos(),
-    computation: (lista, antes) => manterOuPrimeira(lista, antes?.value),
+    computation: (lista, antes) => manterOuVazio(lista, antes?.value),
   });
   private sAltura = signal(2.0);
   private sComprimento = signal(50);
@@ -77,6 +78,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   get tratamentoSelecionado() { return this.sTratamento(); }
   set tratamentoSelecionado(v: string) { this.sTratamento.set(v); }
   get tipoFrete() { return this.sTipoFrete(); }
+
+  /** Ainda falta escolher arame, malha ou tipo (sem isso não há preço) */
+  readonly faltaEscolher = computed(() => !this.sArame() || !this.sMalha() || !this.sTratamento());
+
+  textoFaltaEscolher(): string {
+    if (!this.sArame()) return 'Escolha o arame (passo 01) para ver o preço.';
+    if (!this.sMalha()) return 'Escolha a malha (passo 02) para ver o preço.';
+    return 'Escolha o tratamento (passo 04) para ver o preço.';
+  }
   set tipoFrete(v: 'entrega' | 'retirada') { this.sTipoFrete.set(v); }
 
   cep: string = '';
@@ -142,7 +152,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     toObservable(this.pedido).pipe(
       tap(() => this.calculando.set(true)),
       debounceTime(250),
-      // Sem catálogo ainda (carregando ou fora do ar) não há o que orçar
+      // Sem as três escolhas (ou sem catálogo) não há o que orçar
       switchMap(pedido => !pedido.arame || !pedido.malha || !pedido.tratamento
         ? of({ orcamento: null, erro: '' })
         : this.orcamentoService.calcular(pedido).pipe(
@@ -153,7 +163,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     ).subscribe(({ orcamento, erro }) => {
       this.orcamento.set(orcamento);
       this.erroOrcamento.set(erro);
-      this.calculando.set(!orcamento && !erro);
+      this.calculando.set(!orcamento && !erro && !this.faltaEscolher());
     });
   }
 
@@ -220,7 +230,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     }
     if (!this.orcamento()) {
-      this.erroPedido.set('Aguarde o orçamento ser calculado para fazer o pedido.');
+      this.erroPedido.set(this.faltaEscolher() ? this.textoFaltaEscolher() : 'Aguarde o orçamento ser calculado para fazer o pedido.');
       return;
     }
 
@@ -441,7 +451,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   baixarPdfOrcamento() {
     const o = this.orcamento();
     if (!o) {
-      this.erroPedido.set('Aguarde o orçamento ser calculado para gerar a ficha técnica.');
+      this.erroPedido.set(this.faltaEscolher() ? this.textoFaltaEscolher() : 'Aguarde o orçamento ser calculado para gerar a ficha técnica.');
       return;
     }
     this.erroPedido.set('');
@@ -466,7 +476,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 }
 
-/** Mantém a opção escolhida se ela ainda está no catálogo; senão, a primeira da lista. */
-function manterOuPrimeira(lista: ItemCatalogo[], escolhida: string | undefined): string {
-  return lista.some(i => i.chave === escolhida) ? escolhida! : lista[0]?.chave ?? '';
+/** Mantém a opção escolhida se ela ainda existe; senão, fica sem escolha. */
+function manterOuVazio(lista: ItemCatalogo[], escolhida: string | undefined): string {
+  return escolhida && lista.some(i => i.chave === escolhida) ? escolhida : '';
 }

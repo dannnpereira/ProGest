@@ -230,6 +230,9 @@
           <p class="option-desc">Dimensão do espaço quadrado/losango da tela. Malhas menores impedem a passagem de
             pequenos animais e objetos.</p>
 
+          @if (!arameSelecionado && catalogo.estado() === 'ok') {
+            <p class="opcoes-vazias">Escolha o arame primeiro para ver as malhas disponíveis.</p>
+          } @else {
           <div class="cards-grid-2" role="radiogroup" aria-label="Malha">
             @for (item of malhas(); track item.chave) {
               <div class="select-card" [class.active]="malhaSelecionada === item.chave" (click)="malhaSelecionada = item.chave"
@@ -245,6 +248,7 @@
               <p class="opcoes-vazias">{{ catalogo.estado() === 'carregando' ? 'Carregando opções…' : 'Nenhuma opção disponível no momento.' }}</p>
             }
           </div>
+          }
         </div>
 
         <!-- 03: MEDIDAS DO PROJETO -->
@@ -293,6 +297,9 @@
             <h3><span>04</span> TRATAMENTO ANTICORROSIVO</h3>
           </div>
 
+          @if ((!arameSelecionado || !malhaSelecionada) && catalogo.estado() === 'ok') {
+            <p class="opcoes-vazias">Escolha o arame e a malha primeiro para ver os tratamentos disponíveis.</p>
+          } @else {
           <div class="cards-grid-2" role="radiogroup" aria-label="Tratamento anticorrosivo">
             @for (item of tratamentos(); track item.chave) {
               <div class="select-card" [class.active]="tratamentoSelecionado === item.chave" (click)="tratamentoSelecionado = item.chave"
@@ -308,6 +315,7 @@
               <p class="opcoes-vazias">{{ catalogo.estado() === 'carregando' ? 'Carregando opções…' : 'Nenhuma opção disponível no momento.' }}</p>
             }
           </div>
+          }
         </div>
 
         <!-- 05: LOCALIZAÇÃO E FRETE -->
@@ -431,7 +439,9 @@
           <div class="total-box" [class.total-box--calculando]="calculando()" [attr.aria-busy]="calculando()">
             <small>INVESTIMENTO TOTAL</small>
             <div class="total-value" aria-live="polite">{{ reais(valorTotal) }}</div>
-            @if (erroOrcamento()) {
+            @if (faltaEscolher() && catalogo.estado() === 'ok') {
+              <span class="orcamento-dica">{{ textoFaltaEscolher() }}</span>
+            } @else if (erroOrcamento()) {
               <span class="orcamento-erro" role="alert">{{ erroOrcamento() }}</span>
             } @else {
               <span>Ou em {{ parcelasMax ?? '—' }}x de {{ reais(valorParcela) }} no cartão</span>
