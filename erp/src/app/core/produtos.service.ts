@@ -21,7 +21,8 @@ export interface Orcamento {
   areaM2: number;
   materiaPrima: number;
   acessorios: number;
-  frete: { valor: number };
+  /** Na retirada, valor 0 e os demais campos nulos */
+  frete: { valor: number; distanciaKm?: number | null; combustivel?: number | null; pedagios?: number | null };
   descontoPct: number;
   desconto: number;
   total: number;

@@ -1,0 +1,254 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="kicker">Comercial</p>
+      <h1 class="page-title">Novo orçamento</h1>
+      <p class="page-sub">Monte o orçamento para o cliente com os mesmos preços do site e salve em PDF.</p>
+    </div>
+  </header>
+
+  <div class="grade">
+    <div class="etapas">
+      <!-- 1. Cliente -->
+      <section class="card card-pad" aria-labelledby="t-cliente">
+        <div class="bloco-head">
+          <span class="passo">1</span>
+          <h2 class="card-title" id="t-cliente">Cliente</h2>
+        </div>
+
+        <div class="segmented" role="group" aria-label="Como identificar o cliente">
+          <button type="button" [attr.aria-pressed]="modo() === 'cpf'" (click)="trocarModo('cpf')">
+            <app-icone nome="busca" [tamanho]="15" /> Buscar por CPF
+          </button>
+          <button type="button" [attr.aria-pressed]="modo() === 'novo'" (click)="trocarModo('novo')">
+            <app-icone nome="mais" [tamanho]="15" /> Novo cliente
+          </button>
+          <button type="button" [attr.aria-pressed]="modo() === 'avulso'" (click)="trocarModo('avulso')">
+            <app-icone nome="documento" [tamanho]="15" /> Sem cadastro
+          </button>
+        </div>
+
+        @if (cliente(); as c) {
+          <!-- Cliente escolhido -->
+          <div class="cliente-card">
+            <span class="avatar" aria-hidden="true"><app-icone nome="usuario" [tamanho]="18" /></span>
+            <div class="cliente-dados">
+              <strong>{{ c.nome }}</strong>
+              <span class="mono">CPF {{ mascaraCpf(c.cpf) }}</span>
+              <span>{{ c.telefone ? mascaraTelefone(c.telefone) : 'Sem telefone' }} · {{ c.email || 'Sem e-mail' }}</span>
+              @if (c.temConta) {
+                <span class="tag tag--ok tag--dot">Tem conta no site</span>
+              } @else {
+                <span class="tag tag--accent">Sem conta no site</span>
+              }
+            </div>
+            <div class="cliente-acoes">
+              @if (!c.temConta) {
+                <button type="button" class="btn btn--sm" (click)="criarContaParaEncontrado()">Criar conta</button>
+              }
+              <button type="button" class="btn btn--sm btn--ghost" (click)="trocarCliente()">Trocar</button>
+            </div>
+          </div>
+        } @else if (modo() === 'cpf') {
+          <form class="busca-cpf" (submit)="$event.preventDefault(); buscar()" novalidate>
+            <div class="field">
+              <label for="b-cpf">CPF do cliente</label>
+              <div class="linha">
+                <input id="b-cpf" class="input mono" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"
+                  [value]="bCpf()" (input)="bCpf.set(mascarar($event, mascaraCpf))" />
+                <button type="submit" class="btn btn--dark btn--lg" [disabled]="buscando()">
+                  {{ buscando() ? 'Buscando…' : 'Buscar' }}
+                </button>
+              </div>
+              @if (erroBusca()) { <span class="error-text" role="alert">{{ erroBusca() }}</span> }
+            </div>
+          </form>
+          @if (naoEncontrado()) {
+            <div class="aviso" role="status">
+              <p>Nenhum cliente com o CPF <span class="mono">{{ naoEncontrado() }}</span>.</p>
+              <button type="button" class="btn btn--sm btn--accent" (click)="criarParaCpf()">Cadastrar este cliente</button>
+            </div>
+          }
+        } @else if (modo() === 'novo') {
+          <form (submit)="$event.preventDefault(); criarConta()" novalidate>
+            <p class="card-sub dica">Os mesmos dados do cadastro do site. Com eles o cliente entra no site e acompanha os pedidos.</p>
+            <div class="field">
+              <label for="n-nome">Nome completo</label>
+              <input id="n-nome" class="input" autocomplete="off" [value]="nNome()" (input)="nNome.set(texto($event))"
+                [attr.aria-invalid]="tentouCriar() && erros().nome" />
+              @if (tentouCriar() && erros().nome) { <span class="error-text">Informe o nome (mínimo 3 letras).</span> }
+            </div>
+            <div class="duas">
+              <div class="field">
+                <label for="n-cpf">CPF</label>
+                <input id="n-cpf" class="input mono" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"
+                  [value]="nCpf()" (input)="nCpf.set(mascarar($event, mascaraCpf))" [attr.aria-invalid]="tentouCriar() && erros().cpf" />
+                @if (tentouCriar() && erros().cpf) { <span class="error-text">CPF inválido.</span> }
+              </div>
+              <div class="field">
+                <label for="n-tel">Telefone</label>
+                <input id="n-tel" class="input" type="tel" autocomplete="off" placeholder="(00) 00000-0000"
+                  [value]="nTelefone()" (input)="nTelefone.set(mascarar($event, mascaraTelefone))"
+                  [attr.aria-invalid]="tentouCriar() && erros().telefone" />
+                @if (tentouCriar() && erros().telefone) { <span class="error-text">Telefone inválido.</span> }
+              </div>
+            </div>
+            <div class="field">
+              <label for="n-email">E-mail</label>
+              <input id="n-email" class="input" type="email" autocomplete="off" placeholder="cliente@empresa.com"
+                [value]="nEmail()" (input)="nEmail.set(texto($event))" [attr.aria-invalid]="tentouCriar() && erros().email" />
+              @if (tentouCriar() && erros().email) { <span class="error-text">Informe um e-mail válido.</span> }
+            </div>
+            <div class="field">
+              <label for="n-senha">Senha de acesso do cliente</label>
+              <div class="input-group">
+                <input id="n-senha" class="input" [type]="verSenha() ? 'text' : 'password'" autocomplete="new-password"
+                  placeholder="Mínimo de 8 caracteres" [value]="nSenha()" (input)="nSenha.set(texto($event))"
+                  [attr.aria-invalid]="tentouCriar() && erros().senha" />
+                <button type="button" class="btn-icon" (click)="verSenha.set(!verSenha())"
+                  [attr.aria-label]="verSenha() ? 'Ocultar senha' : 'Mostrar senha'">
+                  <app-icone [nome]="verSenha() ? 'olhoFechado' : 'olho'" [tamanho]="16" />
+                </button>
+              </div>
+              @if (tentouCriar() && erros().senha) { <span class="error-text">A senha precisa ter de 8 a 72 caracteres.</span> }
+            </div>
+            @if (erroConta()) { <p class="error-text" role="alert">{{ erroConta() }}</p> }
+            <button type="submit" class="btn btn--dark btn--lg" [disabled]="criando()">
+              <app-icone nome="checkCirculo" [tamanho]="16" /> {{ criando() ? 'Criando conta…' : 'Criar conta do cliente' }}
+            </button>
+          </form>
+        } @else {
+          <p class="card-sub dica">O orçamento sai sem dados de cliente e nada é cadastrado.</p>
+        }
+      </section>
+
+      <!-- 2. Especificação -->
+      <section class="card card-pad" aria-labelledby="t-espec">
+        <div class="bloco-head">
+          <span class="passo">2</span>
+          <h2 class="card-title" id="t-espec">Especificação da tela</h2>
+        </div>
+        @if (svc.estado() === 'erro') {
+          <p class="error-text" role="alert">Não foi possível carregar a tabela de preços. Recarregue a página.</p>
+        }
+        <div class="tres">
+          <div class="field">
+            <label for="e-arame">Arame</label>
+            <select id="e-arame" class="select" (change)="arame.set(texto($event))">
+              @for (p of arames(); track p.id) { <option [value]="p.chave" [selected]="p.chave === arame()">{{ p.nome }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label for="e-malha">Malha</label>
+            <select id="e-malha" class="select" (change)="malha.set(texto($event))">
+              @for (p of malhas(); track p.id) { <option [value]="p.chave" [selected]="p.chave === malha()">{{ p.nome }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label for="e-trat">Tratamento</label>
+            <select id="e-trat" class="select" (change)="tratamento.set(texto($event))">
+              @for (p of tratamentos(); track p.id) { <option [value]="p.chave" [selected]="p.chave === tratamento()">{{ p.nome }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="duas">
+          <div class="field">
+            <label for="e-comp">Comprimento</label>
+            <div class="input-group">
+              <input id="e-comp" class="input num" type="number" min="1" step="1" [value]="comprimento()"
+                (input)="comprimento.set(numeroDe($event))" />
+              <span class="addon">metros</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="e-alt">Altura</label>
+            <div class="input-group">
+              <input id="e-alt" class="input num" type="number" min="0.1" max="10" step="0.1" [value]="altura()"
+                (input)="altura.set(numeroDe($event))" />
+              <span class="addon">metros</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Entrega -->
+      <section class="card card-pad" aria-labelledby="t-entrega">
+        <div class="bloco-head">
+          <span class="passo">3</span>
+          <h2 class="card-title" id="t-entrega">Entrega</h2>
+        </div>
+        <div class="segmented" role="group" aria-label="Forma de entrega">
+          <button type="button" [attr.aria-pressed]="!entrega()" (click)="entrega.set(false)">
+            <app-icone nome="fabrica" [tamanho]="15" /> Retirada na fábrica
+          </button>
+          <button type="button" [attr.aria-pressed]="entrega()" (click)="entrega.set(true)">
+            <app-icone nome="caminhao" [tamanho]="15" /> Entrega técnica
+          </button>
+        </div>
+        @if (entrega()) {
+          <div class="tres entrega-campos">
+            <div class="field">
+              <label for="c-cep">CEP da obra</label>
+              <input id="c-cep" class="input mono" inputmode="numeric" placeholder="00000-000" [value]="cep()"
+                (input)="cep.set(mascarar($event, mascaraCepFn))" />
+            </div>
+            <div class="field">
+              <label for="c-num">Número</label>
+              <input id="c-num" class="input" [value]="numero()" (input)="numero.set(texto($event))" />
+            </div>
+            <div class="field">
+              <label for="c-comp">Complemento <span class="opcional">(opcional)</span></label>
+              <input id="c-comp" class="input" [value]="complemento()" (input)="complemento.set(texto($event))" />
+            </div>
+          </div>
+          @if (endereco(); as e) {
+            <p class="endereco"><app-icone nome="pino" [tamanho]="15" /> {{ textoEndereco(e) }}</p>
+          }
+          @if (erroCep()) { <p class="error-text">{{ erroCep() }}</p> }
+        }
+      </section>
+    </div>
+
+    <!-- Resumo -->
+    <aside class="card card-pad resumo" aria-labelledby="t-resumo">
+      <div class="bloco-head">
+        <app-icone nome="documento" />
+        <h2 class="card-title" id="t-resumo">Resumo</h2>
+        @if (calculando()) { <span class="tag">Calculando…</span> }
+      </div>
+
+      <p class="resumo-cliente">
+        @if (modo() === 'avulso') { Orçamento avulso }
+        @else if (cliente(); as c) { <strong>{{ c.nome }}</strong> }
+        @else { <span class="card-sub">Nenhum cliente escolhido</span> }
+      </p>
+      <p class="card-sub">
+        {{ nomeProduto(arame()) }} · {{ nomeProduto(malha()) }} · {{ nomeProduto(tratamento()) }}<br />
+        {{ num(comprimento() || 0, 0) }} m × {{ num(altura() || 0, 1) }} m
+        @if (valores(); as v) { ({{ num(v.areaM2, 2) }} m²) }
+      </p>
+
+      @if (valores(); as v) {
+        <dl class="linhas">
+          <div><dt>Matéria-prima</dt><dd class="num">{{ moeda(v.materiaPrima) }}</dd></div>
+          <div><dt>Acessórios</dt><dd class="num">{{ moeda(v.acessorios) }}</dd></div>
+          <div><dt>{{ entrega() ? 'Frete técnico' : 'Retirada' }}</dt><dd class="num">{{ moeda(v.frete.valor) }}</dd></div>
+          <div class="desc"><dt>Desconto à vista</dt><dd class="num">- {{ moeda(v.desconto) }}</dd></div>
+        </dl>
+        <div class="total">
+          <p class="kpi-label">Total à vista</p>
+          <strong class="num">{{ moeda(v.total) }}</strong>
+          <span>ou {{ v.parcelas }}x de {{ moeda(v.valorParcela) }} no cartão</span>
+        </div>
+      } @else if (erroValores()) {
+        <p class="error-text" role="alert">{{ erroValores() }}</p>
+      }
+
+      <button type="button" class="btn btn--accent btn--lg largo" [disabled]="!!pendencia()" (click)="salvarPdf()">
+        <app-icone nome="download" [tamanho]="16" /> Salvar orçamento em PDF
+      </button>
+      @if (pendencia(); as p) { <p class="card-sub pendencia">{{ p }}</p> }
+      @else { <p class="card-sub pendencia">Na janela de impressão, escolha <strong>Salvar como PDF</strong>.</p> }
+    </aside>
+  </div>
+</section>

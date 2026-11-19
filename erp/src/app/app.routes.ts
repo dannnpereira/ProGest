@@ -30,6 +30,12 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/producao/producao').then(m => m.Producao),
       },
       {
+        path: 'orcamento',
+        canActivate: [somenteAdmin],
+        title: 'Novo Orçamento | ProGest',
+        loadComponent: () => import('./paginas/orcamento/orcamento').then(m => m.Orcamento),
+      },
+      {
         path: 'produtos',
         canActivate: [somenteAdmin],
         title: 'Produtos e Valores | ProGest',
