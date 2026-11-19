@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
+
 @Service
 public class ClienteService {
 
@@ -44,6 +46,27 @@ public class ClienteService {
     // Cadastro pela tela de login: cria o cliente com a senha guardada como hash BCrypt
     @Transactional
     public Cliente cadastrar(CadastroRequest req) {
+        return cadastrar(req, false);
+    }
+
+    // Cadastro feito pelo administrador na tela de orcamento do ERP.
+    // Mesmas regras do site; muda so a mensagem quando o CPF/e-mail ja tem conta.
+    @Transactional
+    public Cliente cadastrarPeloErp(CadastroRequest req) {
+        return cadastrar(req, true);
+    }
+
+    // Busca do ERP pelo CPF (com ou sem pontuacao). Encontra tambem quem
+    // so fez pedido e ainda nao criou conta.
+    public Optional<Cliente> buscarPorCpf(String cpfInformado) {
+        String cpf = somenteDigitos(cpfInformado);
+        if (!cpfValido(cpf)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF inválido.");
+        }
+        return repository.findByCpf(cpf);
+    }
+
+    private Cliente cadastrar(CadastroRequest req, boolean peloErp) {
         String cpf = somenteDigitos(req.cpf());
         String email = normalizarEmail(req.email());
 
@@ -54,7 +77,8 @@ public class ClienteService {
         Cliente cliente = repository.findByCpf(cpf).orElse(null);
         DisponibilidadeResponse uso = verificarUso(cpf, email);
         if (uso.cpfEmUso() || uso.emailEmUso()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, mensagemDeConflito(uso));
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    peloErp ? mensagemDeConflitoErp(uso) : mensagemDeConflito(uso));
         }
 
         // Cliente ja registrado sem senha (ex.: cadastrado junto com um pedido): ativa a conta
@@ -99,6 +123,15 @@ public class ClienteService {
         return uso.cpfEmUso()
                 ? "Já existe uma conta com este CPF. Use a aba Entrar."
                 : "Já existe uma conta com este e-mail. Use a aba Entrar.";
+    }
+
+    private static String mensagemDeConflitoErp(DisponibilidadeResponse uso) {
+        if (uso.cpfEmUso() && uso.emailEmUso()) {
+            return "Este CPF e este e-mail já têm conta. Use a busca por CPF.";
+        }
+        return uso.cpfEmUso()
+                ? "Este CPF já tem conta. Use a busca por CPF."
+                : "Este e-mail já é usado por outra conta.";
     }
 
     // Login: confere e-mail e senha
