@@ -30,6 +30,7 @@ export class Layout {
   private readonly menuCompleto: (ItemMenu & { soAdmin: boolean })[] = [
     { rota: '/aprovacao', rotulo: 'Aprovação de Pedidos', icone: 'aprovacao', soAdmin: true },
     { rota: '/producao', rotulo: 'Produção e Entregas', icone: 'producao', soAdmin: false },
+    { rota: '/orcamento', rotulo: 'Novo Orçamento', icone: 'documento', soAdmin: true },
     { rota: '/produtos', rotulo: 'Produtos e Valores', icone: 'produtos', soAdmin: true },
     { rota: '/financeiro', rotulo: 'Financeiro', icone: 'financeiro', soAdmin: true },
     { rota: '/configuracoes', rotulo: 'Configurações', icone: 'config', soAdmin: true },
