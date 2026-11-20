@@ -1,15 +1,3 @@
-<!-- BANNER SUPERIOR DE AVISO -->
-<div class="top-bar">
-  <div class="top-bar-left">
-  </div>
-  <div class="top-bar-right">
-    <span>📞 (15) 3231-4537</span>
-    <span>🚚 Entrega Técnica Própria</span>
-    <span>💬 Mensagem no Whats</span>
-  </div>
-</div>
-
-
 <!-- HEADER / NAVEGAÇÃO PRINCIPAL -->
 <header class="main-header">
   <div class="header-container">
@@ -261,8 +249,9 @@
             <div class="input-group">
               <label>ALTURA DA TELA (METROS)</label>
               <div class="input-number">
-                <input type="number" [value]="alturaMetros" (input)="atualizarAltura($event)" step="0.5" min="1"
-                  max="6" />
+                <input type="number" inputmode="decimal" [value]="alturaMetros" (input)="atualizarAltura($event)"
+                  (change)="confirmarAltura($event)" (keydown)="bloquearSinais($event)"
+                  step="0.5" [min]="ALTURA_MIN" [max]="ALTURA_MAX" />
                 <span class="unit">METROS</span>
               </div>
             </div>
@@ -271,8 +260,9 @@
               <label>METRAGEM LINEAR (COMPRIMENTO)</label>
               <div class="input-counter">
                 <button type="button" (click)="alterarComprimento(-10)">-</button>
-                <input type="number" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)" step="5"
-                  min="10" />
+                <input type="number" inputmode="numeric" [value]="comprimentoMetros" (input)="atualizarComprimentoInput($event)"
+                  (change)="confirmarComprimento($event)" (keydown)="bloquearSinais($event)"
+                  step="5" [min]="COMPRIMENTO_MIN" [max]="COMPRIMENTO_MAX" />
                 <span class="unit">M.L.</span>
                 <button type="button" (click)="alterarComprimento(10)">+</button>
               </div>
