@@ -29,6 +29,12 @@ const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' 
 /** Configuração guardada ao ir para o login, para o cliente não refazer tudo */
 const CHAVE_RASCUNHO = 'progest_rascunho_orcamento';
 
+// Limites das medidas do projeto (a API aceita até 10 m de altura e 10.000 m de comprimento)
+const ALTURA_MIN = 1;
+const ALTURA_MAX = 6;
+const COMPRIMENTO_MIN = 10;
+const COMPRIMENTO_MAX = 10000;
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -286,8 +292,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       // Chaves dos produtos: se alguma não existir mais, o catálogo troca pela primeira opção
       if (typeof r.arame === 'string') this.sArame.set(r.arame);
       if (typeof r.malha === 'string') this.sMalha.set(r.malha);
-      this.sAltura.set(Number(r.altura) || 2);
-      this.sComprimento.set(Number(r.comprimento) || 50);
+      this.sAltura.set(limitar(Number(r.altura) || 2, ALTURA_MIN, ALTURA_MAX));
+      this.sComprimento.set(limitar(Number(r.comprimento) || 50, COMPRIMENTO_MIN, COMPRIMENTO_MAX));
       if (typeof r.tratamento === 'string') this.sTratamento.set(r.tratamento);
       this.sTipoFrete.set(r.tipoFrete === 'entrega' ? 'entrega' : 'retirada');
       this.cep = r.cep ?? '';
@@ -384,16 +390,37 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   // Métodos de Ação
-  atualizarAltura(event: any) {
-    this.alturaMetros = parseFloat(event.target.value) || 0;
+
+  // Medidas: nunca negativas. Enquanto digita aceita valores abaixo do mínimo
+  // (para dar para apagar e digitar "15"); ao sair do campo, ajusta aos limites.
+  readonly ALTURA_MIN = ALTURA_MIN;
+  readonly ALTURA_MAX = ALTURA_MAX;
+  readonly COMPRIMENTO_MIN = COMPRIMENTO_MIN;
+  readonly COMPRIMENTO_MAX = COMPRIMENTO_MAX;
+
+  /** Bloqueia "-", "+" e "e" (notação científica) nos campos de medida */
+  bloquearSinais(event: KeyboardEvent) {
+    if (['-', '+', 'e', 'E'].includes(event.key)) event.preventDefault();
   }
 
-  atualizarComprimentoInput(event: any) {
-    this.comprimentoMetros = parseFloat(event.target.value) || 0;
+  atualizarAltura(event: Event) {
+    this.alturaMetros = lerPositivo(event);
+  }
+
+  confirmarAltura(event: Event) {
+    this.alturaMetros = ajustarCampo(event, ALTURA_MIN, ALTURA_MAX);
+  }
+
+  atualizarComprimentoInput(event: Event) {
+    this.comprimentoMetros = lerPositivo(event);
+  }
+
+  confirmarComprimento(event: Event) {
+    this.comprimentoMetros = ajustarCampo(event, COMPRIMENTO_MIN, COMPRIMENTO_MAX);
   }
 
   alterarComprimento(valor: number) {
-    this.comprimentoMetros = Math.max(10, this.comprimentoMetros + valor);
+    this.comprimentoMetros = limitar(this.comprimentoMetros + valor, COMPRIMENTO_MIN, COMPRIMENTO_MAX);
   }
 
   atualizarCep(event: any) {
@@ -474,6 +501,30 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.erroPedido.set('O navegador bloqueou a janela da ficha técnica. Permita pop-ups para este site e tente de novo.');
     }
   }
+}
+
+/** Coloca o valor entre o mínimo e o máximo */
+export function limitar(valor: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, valor));
+}
+
+/** Lê o campo sem aceitar negativo (ex.: "-5" colado vira 5). Vazio vale 0. */
+function lerPositivo(event: Event): number {
+  const input = event.target as HTMLInputElement;
+  const valor = parseFloat(input.value.replace(',', '.'));
+  if (valor < 0) {
+    input.value = String(Math.abs(valor));
+    return Math.abs(valor);
+  }
+  return valor || 0;
+}
+
+/** Ao sair do campo: ajusta aos limites e mostra o valor ajustado */
+function ajustarCampo(event: Event, min: number, max: number): number {
+  const input = event.target as HTMLInputElement;
+  const valor = limitar(lerPositivo(event) || min, min, max);
+  input.value = String(valor);
+  return valor;
 }
 
 /** Mantém a opção escolhida se ela ainda existe; senão, fica sem escolha. */
