@@ -84,13 +84,13 @@ public class DadosDemo implements ApplicationRunner {
     private record ClienteDemo(String cpf, String nome, String email, String telefone) {}
 
     private static final List<ClienteDemo> CLIENTES = List.of(
-            new ClienteDemo("12345678062", "Construtora Horizonte Ltda", "compras@horizonte.exemplo.com.br", "(15) 3221-4580"),
+            new ClienteDemo("12345678062", "Roberto Almeida", "roberto.almeida@exemplo.com.br", "(15) 99221-4580"),
             new ClienteDemo("23456789173", "Carlos Eduardo Mendes", "carlos.mendes@exemplo.com.br", "(15) 99812-3344"),
-            new ClienteDemo("34567891228", "Fazenda Santa Rita", "contato@santarita.exemplo.com.br", "(15) 99701-2290"),
+            new ClienteDemo("34567891228", "Sebastião Ribeiro", "sebastiao.ribeiro@exemplo.com.br", "(15) 99701-2290"),
             new ClienteDemo("45678912364", "Ana Paula Rodrigues", "anapaula.r@exemplo.com.br", "(11) 98456-7720"),
-            new ClienteDemo("56789123482", "Clube Atlético Votorantim", "secretaria@cav.exemplo.com.br", "(15) 3243-1100"),
+            new ClienteDemo("56789123482", "Fernanda Costa", "fernanda.costa@exemplo.com.br", "(15) 99243-1100"),
             new ClienteDemo("67891234582", "Marcos Vinícius Oliveira", "marcos.oliveira@exemplo.com.br", "(15) 99633-8811"),
-            new ClienteDemo("78912345664", "Escola Estadual Prof. Lima", "diretoria@eeplima.exemplo.com.br", "(15) 3271-0099"),
+            new ClienteDemo("78912345664", "Patrícia Nogueira", "patricia.nogueira@exemplo.com.br", "(15) 99271-0099"),
             new ClienteDemo("89123456728", "Juliana Ferreira Santos", "ju.ferreira@exemplo.com.br", "(15) 99124-5567")
     );
 
@@ -115,7 +115,7 @@ public class DadosDemo implements ApplicationRunner {
 
     private static final List<PedidoDemo> PEDIDOS = List.of(
             // Entregues (historico)
-            new PedidoDemo(0, "FIO_12", "MALHA_2", "GALVANIZADA", "2.00", "180", obra("18045-000", "Av. Itavuvu, nº 3200 (Obra Residencial Parque) - Jardim Itanguá", "Sorocaba"), ENTREGUE, d(34), -22, null),
+            new PedidoDemo(0, "FIO_12", "MALHA_2", "GALVANIZADA", "2.00", "180", obra("18045-000", "Av. Itavuvu, nº 3200 - Jardim Itanguá", "Sorocaba"), ENTREGUE, d(34), -22, null),
             new PedidoDemo(4, "FIO_12", "MALHA_2", "PVC", "4.00", "120", obra("18110-000", "Rua Moraes Barros, nº 455 - Centro", "Votorantim"), ENTREGUE, d(26), -15, null),
             new PedidoDemo(2, "FIO_14", "MALHA_3", "GALVANIZADA", "1.80", "450", obra("18200-000", "Estrada Municipal do Turvo, km 7 - Zona Rural", "Itapetininga"), ENTREGUE, d(19), -9, null),
             new PedidoDemo(5, "FIO_14", "MALHA_2_5", "GALVANIZADA", "1.50", "40", null, ENTREGUE, d(12), -4, null),
