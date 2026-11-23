@@ -17,6 +17,9 @@ services:
       FUNCIONARIO_EMAIL: ${FUNCIONARIO_EMAIL:-}
       FUNCIONARIO_NOME: ${FUNCIONARIO_NOME:-Funcionário}
       FUNCIONARIO_SENHA: ${FUNCIONARIO_SENHA:-}
+      # Dados ficticios para apresentacao (opcional; roda uma vez so por banco)
+      DEMO_DADOS: ${DEMO_DADOS:-false}
+      DEMO_SENHA: ${DEMO_SENHA:-}
       # Limita a memoria do Java para caber em uma instancia pequena
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
     volumes:
