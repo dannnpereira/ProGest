@@ -229,10 +229,12 @@ public class DadosDemo implements ApplicationRunner {
                     p.setEntregueEm(fim);
                 }
                 Duration janela = Duration.between(criado, fim);
-                p.setAprovadoEm(criado.plus(janela.multipliedBy(15).dividedBy(100)));
+                Instant producao = criado.plus(janela.multipliedBy(45).dividedBy(100));
                 if (d.status() != A_FAZER) {
-                    p.setProducaoIniciadaEm(criado.plus(janela.multipliedBy(45).dividedBy(100)));
+                    p.setProducaoIniciadaEm(horarioComercial(producao, fim));
                 }
+                p.setAprovadoEm(horarioComercial(criado.plus(janela.multipliedBy(15).dividedBy(100)),
+                        d.status() == A_FAZER ? fim : producao));
             }
             default -> { }
         }
@@ -240,6 +242,21 @@ public class DadosDemo implements ApplicationRunner {
         p = pedidos.save(p);
         p.setCodigo("AM-" + (1000 + p.getId()));
         return p;
+    }
+
+    /**
+     * Empurra um horario de madrugada/noite para as 8h seguintes (a fabrica nao aprova
+     * nem produz de madrugada). So adianta para frente e nunca passa do limite, entao a
+     * ordem das etapas se mantem; se nao couber, fica o horario original.
+     */
+    private static Instant horarioComercial(Instant t, Instant limite) {
+        var local = t.atZone(FUSO);
+        if (local.getHour() >= 8 && local.getHour() < 18) {
+            return t;
+        }
+        var dia = local.getHour() < 8 ? local.toLocalDate() : local.toLocalDate().plusDays(1);
+        Instant ajustado = dia.atTime(8, local.getMinute()).atZone(FUSO).toInstant();
+        return ajustado.isAfter(limite) ? t : ajustado;
     }
 
     private String nome(String chave) {
