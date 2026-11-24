@@ -6,3 +6,8 @@ progest.admin.senha=troque-esta-senha
 progest.funcionario.email=funcionario@exemplo.com
 progest.funcionario.nome=Funcionário
 progest.funcionario.senha=troque-esta-senha
+
+# Opcional: dados ficticios para apresentacao (clientes e pedidos em todas as etapas).
+# Roda uma vez so por banco. Com a senha, os clientes de exemplo entram no site.
+#progest.demo.ativo=true
+#progest.demo.senha=troque-esta-senha
