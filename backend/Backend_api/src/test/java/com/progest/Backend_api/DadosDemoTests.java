@@ -42,6 +42,14 @@ class DadosDemoTests {
             assertTrue(p.getCodigo().startsWith("AM-"));
             assertTrue(p.getValorTotal().signum() > 0);
             assertFalse(p.getCriadoEm().isAfter(Instant.now()));
+            // Linha do tempo em ordem: pedido -> aprovacao -> producao -> entrega
+            Instant anterior = p.getCriadoEm();
+            for (Instant marco : new Instant[]{p.getAprovadoEm(), p.getProducaoIniciadaEm(), p.getEntregueEm()}) {
+                if (marco != null) {
+                    assertFalse(marco.isBefore(anterior), p.getCodigo() + ": etapa fora de ordem");
+                    anterior = marco;
+                }
+            }
         }
         assertTrue(clientes.findAll().stream().allMatch(c -> c.getSenhaHash() != null));
 

@@ -215,21 +215,23 @@ public class DadosDemo implements ApplicationRunner {
         // Linha do tempo coerente com a etapa: pedido -> aprovacao -> producao -> entrega
         Instant criado = agora.minus(d.criadoHa());
         p.setCriadoEm(criado);
-        Duration total = d.criadoHa();
         switch (d.status()) {
             case RECUSADO -> {
                 p.setRecusadoEm(criado.plus(h(5)));
                 p.setMotivoRecusa(d.motivoRecusa());
             }
             case A_FAZER, EM_PROCESSO, ENTREGUE -> {
-                Instant aprovado = criado.plus(total.dividedBy(6));
-                p.setAprovadoEm(aprovado);
                 p.setPrevisaoEntrega(hoje.plusDays(d.previsaoDias()));
-                if (d.status() != A_FAZER) {
-                    p.setProducaoIniciadaEm(aprovado.plus(total.dividedBy(4)));
-                }
+                // Ultimo marco da linha do tempo: a entrega (entregue) ou agora (ainda na fabrica)
+                Instant fim = agora;
                 if (d.status() == ENTREGUE) {
-                    p.setEntregueEm(hoje.plusDays(d.previsaoDias()).atTime(15, 30).atZone(FUSO).toInstant());
+                    fim = hoje.plusDays(d.previsaoDias()).atTime(15, 30).atZone(FUSO).toInstant();
+                    p.setEntregueEm(fim);
+                }
+                Duration janela = Duration.between(criado, fim);
+                p.setAprovadoEm(criado.plus(janela.multipliedBy(15).dividedBy(100)));
+                if (d.status() != A_FAZER) {
+                    p.setProducaoIniciadaEm(criado.plus(janela.multipliedBy(45).dividedBy(100)));
                 }
             }
             default -> { }
