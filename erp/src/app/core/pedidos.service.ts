@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { Pedido, StatusPedido } from './modelos';
+import { Observable, firstValueFrom } from 'rxjs';
+import { FormaPagamento, Pedido, StatusPedido } from './modelos';
 import { SessaoService } from './sessao.service';
 import { AvisosService } from './avisos.service';
 
@@ -134,6 +134,20 @@ export class PedidosService {
     }
   }
 
+  // ---------- Contas a receber (Financeiro) ----------
+
+  /** O cliente pagou: a conta sai de "a receber" e o valor vai para as entradas. */
+  registrarPagamento(id: number, data: string, forma: FormaPagamento): void {
+    this.atualizarLocal([id], p => ({ ...p, pagoEm: data, formaPagamento: forma }));
+    this.enviar(this.http.post<Pedido>(`/api/erp/pedidos/${id}/pagamento`, { data, forma }), 'registrar o pagamento');
+  }
+
+  /** Estorno: a conta volta para pendente (ou vencida). */
+  estornarPagamento(id: number): void {
+    this.atualizarLocal([id], p => ({ ...p, pagoEm: undefined, formaPagamento: undefined }));
+    this.enviar(this.http.delete<Pedido>(`/api/erp/pedidos/${id}/pagamento`), 'estornar o pagamento');
+  }
+
   copia(ids: number[]): Pedido[] {
     return this.pedidos().filter(p => ids.includes(p.id)).map(p => ({ ...p }));
   }
@@ -163,7 +177,7 @@ export class PedidosService {
   }
 
   /** Manda a ação ao servidor; a resposta (ou um erro) atualiza a lista com os dados oficiais. */
-  private async enviar(req: ReturnType<HttpClient['post']>, acao: string): Promise<void> {
+  private async enviar(req: Observable<unknown>, acao: string): Promise<void> {
     try {
       const resp = (await firstValueFrom(req)) as Pedido | Pedido[];
       const atualizados = (Array.isArray(resp) ? resp : [resp]).map(normalizar);
@@ -191,5 +205,7 @@ function normalizar(p: Pedido): Pedido {
     producaoIniciadaEm: p.producaoIniciadaEm ?? undefined,
     entregueEm: p.entregueEm ?? undefined,
     previsaoEntrega: p.previsaoEntrega ?? undefined,
+    pagoEm: p.pagoEm ?? undefined,
+    formaPagamento: p.formaPagamento ?? undefined,
   };
 }

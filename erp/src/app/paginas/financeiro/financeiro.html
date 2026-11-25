@@ -41,6 +41,14 @@
     </button>
   </nav>
 
+  @if (svc.estado() === 'erro') {
+    <div class="card card-pad aviso-erro" role="alert">
+      <app-icone nome="alerta" [tamanho]="18" />
+      <span>Não foi possível carregar as compras e saídas do banco de dados.</span>
+      <button type="button" class="btn btn--sm" (click)="svc.carregar()">Tentar de novo</button>
+    </div>
+  }
+
   @switch (aba()) {
   @case ('geral') {
   @let r = svc.resumo();
@@ -143,7 +151,9 @@
 
       <div class="rodape-grafico">
         <span>Média mensal de saídas operacionais: <strong class="num">{{ moeda(mediaSaidas()) }}</strong></span>
-        <span class="cobertura">Cobertura de caixa: <strong class="num">{{ num(cobertura(), 2) }}x</strong></span>
+        @if (cobertura() !== null) {
+          <span class="cobertura">Cobertura de caixa: <strong class="num">{{ num(cobertura()!, 2) }}x</strong></span>
+        }
       </div>
     </section>
 

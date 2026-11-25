@@ -36,6 +36,11 @@ export class Financeiro {
   protected svc = inject(FinanceiroService);
   private avisos = inject(AvisosService);
 
+  constructor() {
+    // Compras, saídas e vendas diretas vêm do banco; os pedidos já são carregados pelo Layout
+    this.svc.carregar();
+  }
+
   protected readonly moeda = moeda;
   protected readonly nomeMes = nomeMes;
   protected readonly diaMes = diaMes;
@@ -61,14 +66,18 @@ export class Financeiro {
   // ---------- Indicadores ----------
   protected variacaoVendas = computed(() => {
     const ant = this.svc.resumoAnterior();
-    return ant ? ((this.svc.resumo().vendas - ant.vendas) / ant.vendas) * 100 : null;
+    return ant && ant.vendas > 0 ? ((this.svc.resumo().vendas - ant.vendas) / ant.vendas) * 100 : null;
   });
   protected saldo = computed(() => this.svc.resumo().entradas - this.svc.resumo().saidas);
   protected mediaSaidas = computed(() => {
     const r = this.svc.resumos();
     return r.reduce((s, x) => s + x.saidas, 0) / r.length;
   });
-  protected cobertura = computed(() => this.svc.resumo().entradas / this.svc.resumo().saidas);
+  /** Quantas vezes as entradas cobrem as saídas (null sem saídas no mês) */
+  protected cobertura = computed(() => {
+    const r = this.svc.resumo();
+    return r.saidas > 0 ? r.entradas / r.saidas : null;
+  });
 
   // ---------- Gráfico ----------
   protected visaoGrafico = signal<'grafico' | 'tabela'>('grafico');
@@ -77,7 +86,7 @@ export class Financeiro {
   protected escala = computed(() => {
     const max = Math.max(...this.svc.resumos().flatMap(r => [r.entradas, r.saidas]));
     const passo = max > 150000 ? 50000 : 25000;
-    const topo = Math.ceil(max / passo) * passo;
+    const topo = Math.max(passo, Math.ceil(max / passo) * passo);
     const ticks: number[] = [];
     for (let v = 0; v <= topo; v += passo) ticks.push(v);
     return { topo, ticks };
@@ -185,7 +194,7 @@ export class Financeiro {
   protected modal = signal<Modal | null>(null);
   protected tentou = signal(false);
   /** Id do lançamento em edição (null = novo) */
-  protected editandoId = signal<string | null>(null);
+  protected editandoId = signal<number | null>(null);
   /** Valor inicial do campo "Valor": só muda ao abrir o modal, para não atrapalhar a digitação */
   protected valorInicial = signal('');
 

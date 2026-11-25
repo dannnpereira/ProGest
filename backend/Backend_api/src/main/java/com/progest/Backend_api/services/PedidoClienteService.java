@@ -3,6 +3,7 @@ package com.progest.Backend_api.services;
 import com.progest.Backend_api.dto.OrcamentoResponse;
 import com.progest.Backend_api.dto.PedidoClienteRequest;
 import com.progest.Backend_api.model.Cliente;
+import com.progest.Backend_api.model.FormaPagamento;
 import com.progest.Backend_api.model.PedidoCliente;
 import com.progest.Backend_api.model.StatusPedidoCliente;
 import com.progest.Backend_api.model.Produto;
@@ -127,6 +128,10 @@ public class PedidoClienteService {
     public PedidoCliente voltarParaFila(Long id) {
         PedidoCliente p = buscar(id);
         exigir(p, A_FAZER, RECUSADO);
+        if (p.getPagoEm() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "O pedido " + p.getCodigo() + " já foi pago. Estorne o pagamento no Financeiro antes.");
+        }
         p.setStatus(AGUARDANDO_APROVACAO);
         p.setAprovadoEm(null);
         p.setRecusadoEm(null);
@@ -164,6 +169,35 @@ public class PedidoClienteService {
             default -> throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Este pedido não pode voltar a partir de " + p.getStatus() + ".");
         }
+        return pedidos.save(p);
+    }
+
+    // ---------- ERP: contas a receber (administrador) ----------
+
+    /** O cliente pagou um pedido aprovado: a conta sai de "a receber" e vira entrada. */
+    @Transactional
+    public PedidoCliente registrarPagamento(Long id, LocalDate data, FormaPagamento forma) {
+        PedidoCliente p = buscar(id);
+        if (!PRODUCAO.contains(p.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Só pedidos aprovados podem receber pagamento.");
+        }
+        if (data == null || forma == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe a data e a forma de pagamento.");
+        }
+        if (data.isAfter(LocalDate.now(FUSO))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data do pagamento não pode ser no futuro.");
+        }
+        p.setPagoEm(data);
+        p.setFormaPagamento(forma);
+        return pedidos.save(p);
+    }
+
+    /** Estorno: a conta volta para pendente (ou vencida). */
+    @Transactional
+    public PedidoCliente estornarPagamento(Long id) {
+        PedidoCliente p = buscar(id);
+        p.setPagoEm(null);
+        p.setFormaPagamento(null);
         return pedidos.save(p);
     }
 

@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { FinanceiroService, diasEntre, somarDias } from './financeiro.service';
 import { PedidosService } from './pedidos.service';
-import { Pedido, StatusPedido } from './modelos';
+import { FormaPagamento, Lancamento, Pedido, StatusPedido } from './modelos';
 import { isoDia } from './formato';
+
+const URL = '/api/erp/financeiro/lancamentos';
 
 const diasAtras = (n: number) => {
   const d = new Date();
@@ -21,31 +25,65 @@ const pedido = (id: number, status: StatusPedido, aprovadoHaDias?: number): Pedi
   frete: { tipo: 'RETIRADA', descricao: '' }, valorMaterial: 1000, valorFrete: 200, observacao: '', status,
 });
 
+const hoje = isoDia();
+const lanc = (id: number, l: Partial<Lancamento>): Lancamento => ({
+  id, tipo: 'COMPRA', data: hoje, categoria: null, descricao: 'Arame Fio 12', favorecido: 'Siderúrgica',
+  quantidade: '3 bobinas', valor: 1000, status: 'A_PAGAR', ...l,
+});
+
+/** PedidosService de mentira: os pagamentos só mudam a lista */
+class PedidosFalso {
+  pedidos = signal<Pedido[]>([
+    pedido(1, 'A_FAZER', 3),
+    pedido(2, 'ENTREGUE', 20),
+    pedido(3, 'AGUARDANDO_APROVACAO'),
+    pedido(4, 'RECUSADO'),
+  ]);
+  registrarPagamento(id: number, data: string, forma: FormaPagamento) {
+    this.pedidos.update(l => l.map(p => (p.id === id ? { ...p, pagoEm: data, formaPagamento: forma } : p)));
+  }
+  estornarPagamento(id: number) {
+    this.pedidos.update(l => l.map(p => (p.id === id ? { ...p, pagoEm: undefined, formaPagamento: undefined } : p)));
+  }
+}
+
 describe('FinanceiroService', () => {
   let svc: FinanceiroService;
+  let http: HttpTestingController;
 
-  beforeEach(() => {
-    localStorage.clear();
+  beforeEach(async () => {
     TestBed.configureTestingModule({
-      providers: [{
-        provide: PedidosService,
-        useValue: {
-          pedidos: signal<Pedido[]>([
-            pedido(1, 'A_FAZER', 3),
-            pedido(2, 'ENTREGUE', 20),
-            pedido(3, 'AGUARDANDO_APROVACAO'),
-            pedido(4, 'RECUSADO'),
-          ]),
-        },
-      }],
+      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: PedidosService, useClass: PedidosFalso }],
     });
     svc = TestBed.inject(FinanceiroService);
+    http = TestBed.inject(HttpTestingController);
+
+    const carga = svc.carregar();
+    http.expectOne(r => r.url === URL && r.params.has('de') && r.params.has('ate')).flush([
+      lanc(10, { tipo: 'COMPRA', valor: 2000, status: 'A_PAGAR' }),
+      lanc(11, { tipo: 'DESPESA', categoria: 'ALUGUEL', descricao: 'Aluguel do galpão', valor: '9500' as unknown as number, status: 'PAGO' }),
+      lanc(12, { tipo: 'ENTRADA', descricao: 'Venda direta', favorecido: 'PIX', valor: 5000, status: 'PAGO' }),
+    ]);
+    await carga;
   });
+
+  afterEach(() => http.verify());
 
   it('soma e conta dias entre datas', () => {
     expect(somarDias('2026-11-20', 15)).toBe('2026-12-05');
     expect(diasEntre('2026-11-25', '2026-12-05')).toBe(10);
     expect(diasEntre('2026-12-05', '2026-11-25')).toBe(-10);
+  });
+
+  it('carrega do banco e calcula o resumo do mês', () => {
+    expect(svc.estado()).toBe('ok');
+    expect(svc.compras().map(c => c.id)).toEqual([10]);
+    expect(svc.despesas()[0].valor).toBe(9500);
+    const r = svc.resumo();
+    expect(r.saidas).toBe(11500);
+    expect(r.entradas).toBe(5000);
+    // pedido 1 foi aprovado este mês (ou no anterior, se hoje for dia 1 a 3)
+    expect(r.vendas).toBeGreaterThanOrEqual(5000);
   });
 
   it('só pedidos aprovados viram contas, com 15 dias de prazo', () => {
@@ -62,50 +100,53 @@ describe('FinanceiroService', () => {
 
   it('pagamento move a conta para as entradas e o estorno desfaz', () => {
     const antes = svc.resumo().entradas;
-    svc.registrarRecebimento(1, { data: isoDia(), forma: 'PIX' });
-
+    svc.registrarRecebimento(1, { data: hoje, forma: 'PIX' });
     expect(svc.contas().find(c => c.pedidoId === 1)!.status).toBe('PAGO');
     expect(svc.resumo().entradas).toBe(antes + 1200);
     expect(svc.movimentacoes().some(m => m.id === 'r:1' && m.tipo === 'ENTRADA')).toBe(true);
 
-    svc.estornarRecebimento(1);
+    expect(svc.estornarRecebimento(1)).toEqual({ data: hoje, forma: 'PIX' });
     expect(svc.contas().find(c => c.pedidoId === 1)!.status).toBe('PENDENTE');
     expect(svc.resumo().entradas).toBe(antes);
   });
 
-  it('gera saídas de exemplo (salários, aluguel, energia, IPVA...)', () => {
-    const cats = new Set(svc.despesas().map(d => d.categoria));
-    for (const c of ['SALARIOS', 'ALUGUEL', 'ENERGIA', 'VEICULOS', 'IMPOSTOS'] as const) expect(cats.has(c)).toBe(true);
+  it('muda o status de uma compra e grava no banco', () => {
+    const c = svc.compras()[0];
+    svc.salvarCompra({ ...c, status: 'PAGO' });
+    expect(svc.compras()[0].status).toBe('PAGO');
+    expect(svc.movimentacoes().some(m => m.id === 'l:10')).toBe(true);
+
+    const req = http.expectOne(`${URL}/10`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toMatchObject({ tipo: 'COMPRA', descricao: 'Arame Fio 12', favorecido: 'Siderúrgica', status: 'PAGO' });
+    req.flush(lanc(10, { valor: 2000, status: 'PAGO' }));
   });
 
-  it('edita o status de uma compra de exemplo e recalcula as saídas', () => {
-    const c = svc.compras().find(x => x.status !== 'PAGO')!;
-    const saidas = svc.resumo().saidas;
-    expect(svc.movimentacoes().some(m => m.id === c.id)).toBe(false);
-
-    svc.salvarCompra({ ...c, status: 'PAGO', valor: c.valor + 100 });
-    expect(svc.compras().find(x => x.id === c.id)!.status).toBe('PAGO');
-    expect(svc.resumo().saidas).toBe(saidas + 100);
-    expect(svc.movimentacoes().some(m => m.id === c.id)).toBe(true);
-  });
-
-  it('exclui uma despesa e desfaz a exclusão', () => {
-    const d = svc.despesas()[0];
-    const saidas = svc.resumo().saidas;
-    const desfazer = svc.excluirDespesa(d.id);
-    expect(svc.despesas().some(x => x.id === d.id)).toBe(false);
-    expect(svc.resumo().saidas).toBe(saidas - d.valor);
-    desfazer();
-    expect(svc.despesas().some(x => x.id === d.id)).toBe(true);
-  });
-
-  it('registra uma saída nova no mês', () => {
-    const saidas = svc.resumo().saidas;
+  it('registra uma saída nova e troca o id provisório pelo do banco', async () => {
     svc.salvarDespesa({
-      data: `${svc.mes()}-01`, categoria: 'OUTROS', descricao: 'Material de escritório',
-      favorecido: 'Papelaria', valor: 150, status: 'A_PAGAR',
+      data: hoje, categoria: 'ENERGIA', descricao: 'Energia elétrica', favorecido: 'Distribuidora', valor: 800, status: 'A_PAGAR',
     });
-    expect(svc.despesas().some(d => d.descricao === 'Material de escritório')).toBe(true);
-    expect(svc.resumo().saidas).toBe(saidas + 150);
+    expect(svc.despesas().some(d => d.id < 0 && d.descricao === 'Energia elétrica')).toBe(true);
+    expect(svc.resumo().saidas).toBe(12300);
+
+    const req = http.expectOne(r => r.url === URL && r.method === 'POST');
+    expect(req.request.body).toMatchObject({ id: null, tipo: 'DESPESA', categoria: 'ENERGIA', quantidade: null });
+    req.flush(lanc(99, { tipo: 'DESPESA', categoria: 'ENERGIA', descricao: 'Energia elétrica', valor: 800 }));
+    await Promise.resolve();
+    expect(svc.despesas().some(d => d.id === 99)).toBe(true);
+  });
+
+  it('exclui no banco e o desfazer grava de novo', () => {
+    const desfazer = svc.excluirDespesa(11);
+    expect(svc.despesas().length).toBe(0);
+    const del = http.expectOne(`${URL}/11`);
+    expect(del.request.method).toBe('DELETE');
+    del.flush(null);
+
+    desfazer();
+    expect(svc.despesas().length).toBe(1);
+    const post = http.expectOne(r => r.url === URL && r.method === 'POST');
+    expect(post.request.body).toMatchObject({ descricao: 'Aluguel do galpão', categoria: 'ALUGUEL' });
+    post.flush(lanc(12, { tipo: 'DESPESA', categoria: 'ALUGUEL', descricao: 'Aluguel do galpão', valor: 9500 }));
   });
 });

@@ -1,6 +1,7 @@
 package com.progest.Backend_api.dto;
 
 import com.progest.Backend_api.model.Cliente;
+import com.progest.Backend_api.model.FormaPagamento;
 import com.progest.Backend_api.model.PedidoCliente;
 import com.progest.Backend_api.model.StatusPedidoCliente;
 
@@ -41,7 +42,9 @@ public record PedidoErpResponse(
         String motivoRecusa,
         Instant producaoIniciadaEm,
         Instant entregueEm,
-        LocalDate previsaoEntrega
+        LocalDate previsaoEntrega,
+        LocalDate pagoEm,
+        FormaPagamento formaPagamento
 ) {
     public record ClienteErp(String nome, String tipo, String documento, String cidade, String uf,
                              String telefone, String email) {
@@ -73,7 +76,8 @@ public record PedidoErpResponse(
                 "Pedido feito pelo site • " + p.getParcelas() + "x de "
                         + NumberFormat.getCurrencyInstance(Locale.of("pt", "BR")).format(p.getValorParcela()),
                 p.getStatus(), p.getAprovadoEm(), p.getRecusadoEm(), p.getMotivoRecusa(),
-                p.getProducaoIniciadaEm(), p.getEntregueEm(), p.getPrevisaoEntrega());
+                p.getProducaoIniciadaEm(), p.getEntregueEm(), p.getPrevisaoEntrega(),
+                p.getPagoEm(), p.getFormaPagamento());
     }
 
     private static String formatarCpf(String cpf) {

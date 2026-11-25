@@ -69,6 +69,11 @@ public class PedidoCliente {
     @Column(name = "entregue_em") private Instant entregueEm;
     @Column(name = "previsao_entrega") private LocalDate previsaoEntrega;
 
+    // Contas a receber: pagamento do cliente (vazio = em aberto)
+    @Column(name = "pago_em") private LocalDate pagoEm;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "forma_pagamento", length = 10) private FormaPagamento formaPagamento;
+
     public Long getId() { return id; }
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
@@ -133,4 +138,8 @@ public class PedidoCliente {
     public void setEntregueEm(Instant v) { this.entregueEm = v; }
     public LocalDate getPrevisaoEntrega() { return previsaoEntrega; }
     public void setPrevisaoEntrega(LocalDate v) { this.previsaoEntrega = v; }
+    public LocalDate getPagoEm() { return pagoEm; }
+    public void setPagoEm(LocalDate v) { this.pagoEm = v; }
+    public FormaPagamento getFormaPagamento() { return formaPagamento; }
+    public void setFormaPagamento(FormaPagamento v) { this.formaPagamento = v; }
 }

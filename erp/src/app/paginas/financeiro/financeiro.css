@@ -95,6 +95,9 @@
 }
 .badge--bad { background: var(--bad); border-color: var(--bad); color: #fff; }
 
+.aviso-erro { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; color: var(--bad); font-size: 13px; font-weight: 500; }
+.aviso-erro .btn { margin-left: auto; }
+
 /* Filtros e ações das tabelas */
 .filtros { margin: -4px 0 12px; }
 .acoes { white-space: nowrap; }

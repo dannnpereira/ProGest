@@ -28,6 +28,8 @@ class DadosDemoTests {
     @Autowired ClienteRepository clientes;
     @Autowired PedidoClienteRepository pedidos;
     @Autowired com.progest.Backend_api.config.DadosDemo demo;
+    @Autowired com.progest.Backend_api.config.DadosDemoFinanceiro financeiro;
+    @Autowired com.progest.Backend_api.repository.LancamentoFinanceiroRepository lancamentos;
 
     @Test
     void criaClientesEPedidosEmTodasAsEtapasSemDuplicar() {
@@ -57,5 +59,25 @@ class DadosDemoTests {
         demo.popular();
         assertEquals(8, clientes.count());
         assertEquals(15, pedidos.count());
+    }
+
+    @Test
+    void criaOFinanceiroDeSeisMesesEPagaSoOsPedidosAntigos() {
+        var todos = lancamentos.findAll();
+        long meses = todos.stream().map(l -> java.time.YearMonth.from(l.getData())).distinct().count();
+        assertEquals(6, meses);
+        for (var tipo : com.progest.Backend_api.model.TipoLancamento.values()) {
+            assertTrue(todos.stream().anyMatch(l -> l.getTipo() == tipo), "sem lancamentos do tipo " + tipo);
+        }
+        assertTrue(todos.stream().noneMatch(l -> l.getData().isAfter(java.time.LocalDate.now())));
+
+        // Os dois entregues mais antigos ja foram pagos; os demais seguem em aberto
+        var pagos = pedidos.findAll().stream().filter(p -> p.getPagoEm() != null).toList();
+        assertEquals(2, pagos.size());
+        assertTrue(pagos.stream().allMatch(p -> p.getStatus() == StatusPedidoCliente.ENTREGUE));
+
+        int total = todos.size();
+        financeiro.popular();
+        assertEquals(total, lancamentos.count());
     }
 }

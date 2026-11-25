@@ -52,6 +52,9 @@ export interface Pedido {
   producaoIniciadaEm?: string;
   entregueEm?: string;
   previsaoEntrega?: string; // yyyy-mm-dd
+  /** Contas a receber: data em que o cliente pagou (vazio = em aberto) */
+  pagoEm?: string; // yyyy-mm-dd
+  formaPagamento?: FormaPagamento;
 }
 
 export type Categoria = 'ARAME' | 'MALHA' | 'TRATAMENTO' | 'ACESSORIOS';
@@ -94,9 +97,26 @@ export interface RegrasOrcamento {
 
 export type StatusCompra = 'PAGO' | 'A_PAGAR' | 'ATRASADO';
 
-/** Lançamentos editáveis do Financeiro. Ids: "c:/d:<mês>:<n>" = exemplo, "u:<n>" = lançado na tela. */
+export type TipoLancamento = 'COMPRA' | 'DESPESA' | 'ENTRADA';
+
+/** Lançamento do Financeiro como a API grava (tabela lancamentos_financeiros). */
+export interface Lancamento {
+  id: number;
+  tipo: TipoLancamento;
+  data: string; // yyyy-mm-dd
+  categoria: CategoriaDespesa | null;
+  /** Material (compra) ou descrição */
+  descricao: string;
+  /** Fornecedor (compra), favorecido (despesa) ou origem (entrada) */
+  favorecido: string | null;
+  quantidade: string | null;
+  valor: number;
+  status: StatusCompra;
+}
+
+/** Compra de material (lançamento do tipo COMPRA, no formato da tela). */
 export interface Compra {
-  id: string;
+  id: number;
   data: string; // yyyy-mm-dd
   fornecedor: string;
   material: string;
@@ -111,7 +131,7 @@ export type CategoriaDespesa =
 
 /** Saídas que não são compra de material (folha, contas fixas, impostos...). */
 export interface Despesa {
-  id: string;
+  id: number;
   data: string; // yyyy-mm-dd
   categoria: CategoriaDespesa;
   descricao: string;
