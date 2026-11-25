@@ -9,8 +9,11 @@
 .marca > :not(.malha) { position: relative; }
 
 .marca-topo, .marca-mobile { display: flex; align-items: center; gap: 12px; }
-.marca-topo strong, .marca-mobile strong { display: block; font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+.marca-topo strong, .marca-mobile strong { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.marca-topo strong { color: #c9ced6; }
+.marca-mobile strong { color: #4a4f57; }
 .marca-topo small, .marca-mobile small { display: block; font-size: 12px; color: var(--side-ink); }
+.marca-pro { color: #f5862f; }
 
 .marca-texto { max-width: 460px; }
 .selo {
