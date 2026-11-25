@@ -2,7 +2,7 @@
 // Os horários são gerados em relação a "agora" para a tela parecer viva na apresentação.
 // Pedidos e produtos já vêm da API; aqui ficam os valores padrão de produtos e o Financeiro.
 
-import { Compra, Movimentacao, Produto, RegrasOrcamento, ResumoMes } from './modelos';
+import { Compra, Despesa, Movimentacao, Produto, RegrasOrcamento, ResumoMes } from './modelos';
 import { isoMes } from './formato';
 
 export const PRODUTOS_EXEMPLO = (): Produto[] => [
@@ -45,22 +45,20 @@ const dataNoMes = (mes: string, dia: number) => {
   return `${mes}-${String(Math.max(1, Math.min(d, ultimo))).padStart(2, '0')}`;
 };
 
-/** Movimentações de um mês (geradas a partir do modelo da Tela 6). */
+/**
+ * Recebimentos de exemplo de um mês (modelo da Tela 6). As saídas do extrato
+ * vêm das compras e despesas pagas, e os pedidos do site entram pelas Contas a receber.
+ */
 export function movimentacoesDoMes(mes: string, fator: number): Movimentacao[] {
   const r = (v: number) => Math.round((v * fator) / 10) * 10;
-  const itens: [number, string, string, Movimentacao['tipo'], number][] = [
-    [24, 'Pedido #AM-7820 recebido', 'Transferência TED', 'ENTRADA', 38920],
-    [23, 'Compra arame Fio 12 (Nova Era)', 'Boleto bancário', 'SAIDA', 42500],
-    [22, 'Pedido #AM-7815 recebido', 'PIX industrial', 'ENTRADA', 68400],
-    [21, 'Frete técnico - Caminhão Munck', 'Logística de entrega', 'SAIDA', 4500],
-    [20, 'Pedido #AM-7809 (Construtora)', 'Faturamento direto', 'ENTRADA', 14650],
-    [19, 'Mourões Sorocaba - 120 unidades', 'Lote de mourões', 'SAIDA', 18200],
-    [15, 'Folha de pagamento - produção', 'Salários', 'SAIDA', 24800],
-    [10, 'DAS / ICMS do mês', 'Impostos', 'SAIDA', 11300],
-    [6, 'Pedido #AM-7790 recebido', 'Boleto compensado', 'ENTRADA', 22350],
+  const itens: [number, string, string, number][] = [
+    [24, 'Pedido #AM-7820 recebido', 'Transferência TED', 38920],
+    [22, 'Pedido #AM-7815 recebido', 'PIX industrial', 68400],
+    [20, 'Pedido #AM-7809 (Construtora)', 'Faturamento direto', 14650],
+    [6, 'Pedido #AM-7790 recebido', 'Boleto compensado', 22350],
   ];
-  return itens.map(([dia, descricao, detalhe, tipo, valor], i) => ({
-    id: i + 1, data: dataNoMes(mes, dia), descricao, detalhe, tipo, valor: r(valor),
+  return itens.map(([dia, descricao, detalhe, valor], i) => ({
+    id: `m:${mes}:${i}`, data: dataNoMes(mes, dia), descricao, detalhe, tipo: 'ENTRADA', valor: r(valor),
   }));
 }
 
@@ -75,7 +73,44 @@ export function comprasDoMes(mes: string, fator: number, mesAtual: boolean): Com
     [8, 'Arames Brasil Sul', 'Arame revestido PVC verde', '5 bobinas (1,2 ton)', 14100, 'ATRASADO'],
   ];
   return itens.map(([dia, fornecedor, material, quantidade, valor, status], i) => ({
-    id: i + 1, data: dataNoMes(mes, dia), fornecedor, material, quantidade,
+    id: `c:${mes}:${i}`, data: dataNoMes(mes, dia), fornecedor, material, quantidade,
     valor: r(valor), status: mesAtual ? status : 'PAGO',
   }));
+}
+
+/**
+ * Despesas fixas e operacionais de um mês: folha, encargos, contas de consumo,
+ * impostos e frota. Só os gastos que acompanham o movimento da fábrica (energia,
+ * DAS, frete, diesel) variam com o mês; os fixos ficam iguais.
+ */
+export function despesasDoMes(mes: string, fator: number, mesAtual: boolean): Despesa[] {
+  const m = Number(mes.slice(5, 7));
+  // IPTU parcelado em 10 vezes, de fevereiro a novembro
+  const iptu = m >= 2 && m <= 11 ? `IPTU do galpão (parcela ${m - 1}/10)` : null;
+  // [dia, categoria, descrição, favorecido, valor, varia com o movimento, status no mês atual]
+  const itens: [number, Despesa['categoria'], string | null, string, number, boolean, Despesa['status']][] = [
+    [5, 'SALARIOS', 'Salários – equipe de produção (8 funcionários)', 'Folha de pagamento', 24800, false, 'PAGO'],
+    [5, 'SALARIOS', 'Salários – administrativo e vendas (3 funcionários)', 'Folha de pagamento', 11400, false, 'PAGO'],
+    [7, 'ENCARGOS', 'FGTS dos funcionários', 'Caixa Econômica Federal', 2900, false, 'PAGO'],
+    [10, 'ALUGUEL', 'Aluguel do galpão industrial', 'Imobiliária Horizonte', 9500, false, 'PAGO'],
+    [12, 'ENERGIA', 'Energia elétrica – teares e solda (trifásica)', 'Distribuidora de energia', 6800, true, 'A_PAGAR'],
+    [12, 'AGUA', 'Água e esgoto', 'Saneamento municipal', 520, false, 'PAGO'],
+    [15, 'IMPOSTOS', iptu, 'Prefeitura Municipal', 1180, false, 'ATRASADO'],
+    [18, 'VEICULOS', 'IPVA da frota – Toco e Truck (provisão mensal)', 'Secretaria da Fazenda', 1650, false, 'PAGO'],
+    [20, 'ENCARGOS', 'INSS sobre a folha', 'Receita Federal', 4300, false, 'A_PAGAR'],
+    [20, 'IMPOSTOS', 'DAS / ICMS do mês', 'Receita Federal', 11300, true, 'A_PAGAR'],
+    [21, 'FRETE', 'Frete técnico – Caminhão Munck', 'Transportes Rodoserra', 4500, true, 'PAGO'],
+    [24, 'VEICULOS', 'Diesel da frota', 'Posto Rota 270', 3600, true, 'PAGO'],
+    [26, 'OUTROS', 'Internet e telefonia', 'Provedor local', 390, false, 'PAGO'],
+  ];
+  const despesas: Despesa[] = [];
+  itens.forEach(([dia, categoria, descricao, favorecido, valor, varia, status], i) => {
+    if (!descricao) return;
+    despesas.push({
+      id: `d:${mes}:${i}`, data: dataNoMes(mes, dia), categoria, descricao, favorecido,
+      valor: varia ? Math.round((valor * fator) / 10) * 10 : valor,
+      status: mesAtual ? status : 'PAGO',
+    });
+  });
+  return despesas;
 }
