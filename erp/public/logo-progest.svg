@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 485 450" role="img" aria-label="ProGest">
+  <defs>
+    <!-- Recorta o P e as barras em volta do G, deixando o vão entre eles -->
+    <mask id="vao-g" maskUnits="userSpaceOnUse" x="0" y="0" width="485" height="450">
+      <rect width="485" height="450" fill="#fff"/>
+      <circle cx="350" cy="312" r="144" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#vao-g)">
+    <rect x="95" y="119" width="90" height="56" fill="#d4540a"/>
+    <rect x="216" y="61" width="89" height="141" fill="#de6c1f"/>
+    <path fill="#d4540a" fill-rule="evenodd" d="M3 194H140a97.5 97.5 0 0 1 0 195H84v58H3Z M84 248H140a43 43 0 0 1 0 86H84Z"/>
+  </g>
+  <rect x="336" y="2" width="89" height="150" fill="#f5862f"/>
+  <path fill="#78808a" d="M433.6 212.4A130 130 0 1 0 480 312V277H356L321 312H422A72 72 0 1 1 396.3 256.8Z"/>
+</svg>
