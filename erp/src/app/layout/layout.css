@@ -38,11 +38,8 @@
   background: rgb(255 255 255 / 92%); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
 }
 .top-menu { display: none; }
-.top-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-/* O símbolo já aparece no menu lateral; no topo ele só aparece quando o menu está escondido */
-.top-logo img { display: none; }
-.top-logo strong { display: block; font-size: 14px; font-weight: 800; line-height: 1.1; color: #4a4f57; }
-.top-logo small { display: block; font-size: 8px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-2); }
+/* O logo já aparece no menu lateral; no topo ele só aparece quando o menu está escondido */
+.top-logo { display: none; align-items: center; text-decoration: none; }
 .top-search { width: min(360px, 100%); }
 .top-espaco { display: block; }
 .top-search kbd {
@@ -79,8 +76,8 @@
   .shell--menu .scrim { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgb(0 0 0 / 40%); }
   .top-menu { display: inline-grid; }
   .top { padding: 0 16px; gap: 10px; }
-  .top-logo span, .user-text, .top-search kbd { display: none; }
-  .top-logo img { display: block; }
+  .user-text, .top-search kbd { display: none; }
+  .top-logo { display: flex; }
   .user { padding-left: 0; border-left: 0; }
 }
 @media (max-width: 560px) {
