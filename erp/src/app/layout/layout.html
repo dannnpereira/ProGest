@@ -1,12 +1,10 @@
 <div class="shell" [class.shell--menu]="menuAberto()">
   <aside class="side" aria-label="Menu principal">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="30" height="30"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#f5b23d" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
-      </span>
+      <img class="brand-mark" src="logo-progest.svg" alt="" width="46" height="43">
       <span>
-        <strong>PROGEST</strong>
-        <small>Amaral Alambrados</small>
+        <strong><span class="brand-pro">Pro</span>Gest</strong>
+        <small>Gestão Empresarial</small>
       </span>
     </div>
 
@@ -38,9 +36,9 @@
         <app-icone nome="menu" [tamanho]="22" />
       </button>
 
-      <a [routerLink]="inicio()" class="top-logo" aria-label="Amaral Alambrados - início">
-        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 2 30 16 16 30 2 16Z" fill="none" stroke="#111418" stroke-width="2.4"/><path d="M16 9 23 16 16 23 9 16Z" fill="#f5b23d"/></svg>
-        <span><strong>AMARAL</strong><small>alambrados</small></span>
+      <a [routerLink]="inicio()" class="top-logo" aria-label="ProGest - início">
+        <img src="logo-progest.svg" alt="" width="30" height="28">
+        <span><strong><span class="brand-pro">Pro</span>Gest</strong><small>gestão empresarial</small></span>
       </a>
 
       <!-- Busca e avisos de pedidos novos são da Aprovação: só para o administrador -->
