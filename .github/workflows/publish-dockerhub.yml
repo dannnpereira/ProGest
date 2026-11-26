@@ -26,9 +26,9 @@ jobs:
           file: deploy/web.Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-frontend:v${{ github.run_number }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-frontend:v${{ github.run_number }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-frontend:${{ github.sha }}
 
       - name: Publicar API
         uses: docker/build-push-action@v6
@@ -36,6 +36,6 @@ jobs:
           context: ./backend/Backend_api
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-api:v${{ github.run_number }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/tetris-api:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-api:v${{ github.run_number }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/progest-api:${{ github.sha }}
