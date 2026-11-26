@@ -1,14 +1,37 @@
+# A cada merge na main, gera e publica as imagens que a EC2 baixa (ver docker-compose.yml):
+#   <conta>/progest-frontend  Nginx com o site (/), o ERP (/erp/) e o proxy da API
+#   <conta>/progest-api       backend Spring Boot
+# Tags: latest, v<numero da execucao> (para voltar atras com VERSAO no .env) e o SHA do commit.
+#
+# Precisa dos secrets (Settings > Secrets and variables > Actions):
+#   DOCKERHUB_USERNAME  nome da conta do Docker Hub do ProGest
+#   DOCKERHUB_TOKEN     Access Token da conta (Account settings > Personal access tokens),
+#                       com permissao Read & Write. Nunca a senha da conta.
 name: Publicar imagens no Docker Hub
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch: # botão "Run workflow" para publicar na hora
+
+concurrency:
+  group: publicar-docker-hub
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Conferir os secrets do Docker Hub
+        env:
+          USUARIO: ${{ secrets.DOCKERHUB_USERNAME }}
+          TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$USUARIO" ] || [ -z "$TOKEN" ]; then
+            echo "::error::Cadastre os secrets DOCKERHUB_USERNAME e DOCKERHUB_TOKEN (Settings > Secrets and variables > Actions). Sem eles as imagens não são publicadas e a EC2 não recebe a versão nova."
+            exit 1
+          fi
+
       - name: Baixar o código
         uses: actions/checkout@v4
 

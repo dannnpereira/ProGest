@@ -16,6 +16,33 @@ e a novos deploys. Para trocar por Postgres/RDS no futuro, basta mudar `DB_URL`,
 `DB_USER` e `DB_PASSWORD` (veja `backend/Backend_api/src/main/resources/application-prod.properties`)
 e adicionar o driver do Postgres no `pom.xml`.
 
+As imagens **não** são geradas na EC2: a cada merge na `main`, a Action
+*Publicar imagens no Docker Hub* gera e publica `progest-frontend` e `progest-api`,
+e a EC2 só baixa as imagens prontas. Assim o deploy leva segundos e a instância pequena
+não precisa compilar Java nem Angular.
+
+```
+merge na main ─► Action ─► Docker Hub (<conta>/progest-frontend, <conta>/progest-api)
+                                 └─► EC2: docker compose pull && docker compose up -d
+```
+
+## 0. Docker Hub (uma vez só)
+
+1. Crie (ou use) a conta do Docker Hub do ProGest em https://hub.docker.com.
+2. **Account settings → Personal access tokens → Generate new token**, com permissão
+   **Read & Write**. Copie o token (ele só aparece uma vez). Use o token, nunca a senha da conta.
+3. No GitHub, em **Settings → Secrets and variables → Actions** do repositório
+   (precisa ser administrador do repositório), crie:
+   | Secret | Valor |
+   |---|---|
+   | `DOCKERHUB_USERNAME` | nome da conta do Docker Hub |
+   | `DOCKERHUB_TOKEN` | o token do passo 2 |
+4. Em **Actions → Publicar imagens no Docker Hub → Run workflow**, rode na `main`.
+   Ao terminar, a conta terá os repositórios `progest-frontend` e `progest-api`.
+5. Os repositórios ficam **públicos** (padrão do Docker Hub), e a EC2 baixa sem login.
+   As imagens não levam senhas: elas vêm do `.env` da EC2. Se preferir deixá-los privados,
+   rode uma vez na EC2 `docker login -u CONTA` (com um token só de leitura).
+
 ## 1. Criar a EC2 (console da AWS)
 
 1. **EC2 → Launch instance**
@@ -57,11 +84,16 @@ exit                       # saia e entre de novo no SSH
 ```bash
 cd ProGest
 cp .env.example .env
-nano .env                  # troque DB_PASSWORD e ADMIN_SENHA por senhas fortes e salve (Ctrl+O, Enter, Ctrl+X)
-docker compose up -d --build
+nano .env                  # preencha DOCKERHUB_USUARIO e troque DB_PASSWORD e ADMIN_SENHA por senhas fortes
+                           # (salvar: Ctrl+O, Enter, Ctrl+X)
+docker compose pull        # baixa as imagens do Docker Hub
+docker compose up -d
 ```
 
-O primeiro build demora (de 5 a 15 minutos). Depois, acesse:
+Para a apresentação, coloque `DEMO_DADOS=true` no `.env` antes do `up`: o banco começa com
+clientes, pedidos e o financeiro de exemplo (só na primeira vez de cada banco).
+
+Em um ou dois minutos o backend termina de iniciar. Depois, acesse:
 
 - Site: `http://SEU_ELASTIC_IP/`
 - Login do cliente: `http://SEU_ELASTIC_IP/login`
@@ -79,11 +111,22 @@ docker compose logs -f backend        # logs do backend (Ctrl+C para sair)
 
 ## 4. Atualizar depois de um merge na main
 
+Espere a Action *Publicar imagens no Docker Hub* do merge ficar verde (aba **Actions** do GitHub). Então:
+
 ```bash
 cd ProGest
-git pull
-docker compose up -d --build
+git pull                   # traz mudanças do docker-compose.yml e deste guia
+docker compose pull        # baixa as imagens novas
+docker compose up -d       # recria só o que mudou
+docker image prune -f      # apaga as imagens antigas (libera disco)
 ```
+
+**Voltar para uma versão anterior:** cada execução da Action publica também a tag `v<número>`
+(o número aparece na lista da aba Actions). Ponha, por exemplo, `VERSAO=v42` no `.env` e rode
+`docker compose pull && docker compose up -d`. Para voltar à última, `VERSAO=latest`.
+
+**Sem Docker Hub** (Action com problema, ou para testar uma mudança que não está na `main`):
+`docker compose up -d --build` gera as imagens na própria EC2, como antes (de 5 a 15 minutos).
 
 Os dados do banco **não** são apagados. Nunca rode `docker compose down -v`: o `-v` apaga o volume do banco.
 
@@ -122,7 +165,7 @@ Se a conta for do **Learner Lab**:
 - Senhas guardadas com hash BCrypt; a API nunca devolve senha nem CPF.
 - Login e cadastro limitados a ~10 tentativas por minuto por IP (resposta 429), contra quem tenta adivinhar senhas.
 - Cabeçalhos de segurança básicos no Nginx (`nosniff`, proteção contra o site ser embutido em outro, etc.).
-- **Pendente:** as rotas `/api/clientes`, `/api/pedidos`, `/api/financeiro` e `/api/workflow` ainda são abertas
-  (qualquer pessoa com o endereço consegue consultar). Antes de usar com dados reais, é preciso um token de login (JWT).
+- O ERP (`/api/erp/*`) e as rotas antigas `/api/clientes`, `/api/pedidos`, `/api/financeiro` e
+  `/api/workflow` exigem login do administrador do ERP. Sem login respondem 401; o funcionário recebe 403.
 - Sem um domínio, o site roda em **HTTP**, e a senha do login trafega sem criptografia.
   Para a apresentação isso funciona, mas com um domínio dá para ativar HTTPS gratuito com o Certbot (Let's Encrypt).
