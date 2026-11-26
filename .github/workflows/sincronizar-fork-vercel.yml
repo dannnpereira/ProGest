@@ -5,7 +5,7 @@
 # Precisa do secret FORK_SYNC_TOKEN neste repositório (Settings > Secrets and
 # variables > Actions): token "fine-grained" da dona do fork com acesso só ao
 # repositório liviaghirardi/ProGest e permissão "Contents: Read and write".
-# Sem o secret, o workflow só avisa e não falha.
+# Sem o secret, ou com um token sem permissão, o workflow só avisa e não falha.
 name: Sincronizar fork da Vercel
 
 on:
@@ -34,5 +34,12 @@ jobs:
             echo "::warning::Secret FORK_SYNC_TOKEN não configurado: o fork $FORK não foi sincronizado."
             exit 0
           fi
-          gh api -X POST "repos/$FORK/merge-upstream" -f branch=main \
-            --jq '"Resultado: \(.merge_type) - \(.message)"'
+          # Token sem permissão no fork ou vencido: só avisa. A main e a EC2 não dependem
+          # disto, e o fork também sincroniza sozinho pelo agendamento dele.
+          if ! saida=$(gh api -X POST "repos/$FORK/merge-upstream" -f branch=main \
+              --jq '"Resultado: \(.merge_type) - \(.message)"' 2>&1); then
+            echo "$saida"
+            echo "::warning::Não foi possível sincronizar $FORK. Gere um token fine-grained da dona do fork, com acesso a $FORK e permissão Contents: Read and write, e atualize o secret FORK_SYNC_TOKEN."
+            exit 0
+          fi
+          echo "$saida"

@@ -80,6 +80,53 @@
 .rodape-tabela { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
 .rodape-tabela strong { color: var(--ink); }
 
+/* Abas */
+.abas-fin { display: flex; flex-wrap: wrap; gap: 4px; margin: -4px 0 18px; padding-bottom: 0; border-bottom: 1px solid var(--line); }
+.aba-fin {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: -1px; padding: 10px 14px;
+  border: 0; border-bottom: 2px solid transparent; background: transparent;
+  font-weight: 600; font-size: 14px; color: var(--ink-2); cursor: pointer;
+}
+.aba-fin:hover { color: var(--ink); }
+.aba-fin[aria-pressed='true'] { color: var(--ink); border-bottom-color: var(--ink); }
+.badge {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--line); font-size: 11px; font-weight: 700; color: var(--ink-2);
+}
+.badge--bad { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+.aviso-erro { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; color: var(--bad); font-size: 13px; font-weight: 500; }
+.aviso-erro .btn { margin-left: auto; }
+
+/* Filtros e ações das tabelas */
+.filtros { margin: -4px 0 12px; }
+.acoes { white-space: nowrap; }
+.btn-icon--perigo:hover { background: var(--bad-soft); color: var(--bad); }
+.vazio { padding: 28px 8px; text-align: center; color: var(--ink-2); font-size: 13px; }
+
+/* Status editável direto na tabela */
+.status-sel {
+  height: 26px; padding: 0 22px 0 8px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer;
+  font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  appearance: none; background-repeat: no-repeat; background-position: right 6px center; background-size: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23666' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+.status-sel:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.status-sel--PAGO { background-color: var(--ok-soft); color: var(--ok-ink); border-color: #c4e7d3; }
+.status-sel--A_PAGAR { background-color: var(--accent-soft); color: var(--accent-ink); border-color: #f8dfa6; }
+.status-sel--ATRASADO { background-color: var(--bad-soft); color: var(--bad); border-color: #f6caca; }
+
+/* Contas a receber */
+.contas .data { font-size: 12px; white-space: nowrap; }
+.prazo { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+.prazo--bad { color: var(--bad); font-weight: 600; }
+.prazo--ok { color: var(--ok-ink); }
+.total-forn--junto { margin-top: 8px; }
+.resumo-conta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 0 0 16px; padding: 14px; border-radius: 8px; background: var(--surface-2); }
+.resumo-conta dt { font-size: 11.5px; color: var(--ink-2); }
+.resumo-conta dd { margin: 2px 0 0; font-size: 14px; font-weight: 500; }
+.nota { margin: 0 0 8px; font-size: 12.5px; color: var(--ink-2); }
+
 /* Fornecedores */
 .fornecedores { display: flex; flex-direction: column; }
 .ranking { list-style: none; margin: 18px 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }

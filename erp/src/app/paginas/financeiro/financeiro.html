@@ -2,23 +2,55 @@
   <header class="page-head">
     <div>
       <h1 class="page-title">Financeiro</h1>
-      <p class="page-sub">Vendas, caixa e compras do mês</p>
+      <p class="page-sub">Vendas, caixa, contas a receber, compras e saídas</p>
     </div>
     <div class="page-actions">
-      <label class="mes">
-        <app-icone nome="calendario" [tamanho]="16" />
-        <span class="sr-only">Mês</span>
-        <select [value]="svc.mes()" (change)="svc.mes.set($any($event.target).value)">
-          @for (m of svc.meses; track m) { <option [value]="m" [selected]="m === svc.mes()">{{ nomeMes(m) }}</option> }
-        </select>
-        <app-icone nome="setaBaixo" [tamanho]="16" />
-      </label>
+      @if (abaMensal()) {
+        <label class="mes">
+          <app-icone nome="calendario" [tamanho]="16" />
+          <span class="sr-only">Mês</span>
+          <select [value]="svc.mes()" (change)="svc.mes.set($any($event.target).value)">
+            @for (m of svc.meses; track m) { <option [value]="m" [selected]="m === svc.mes()">{{ nomeMes(m) }}</option> }
+          </select>
+          <app-icone nome="setaBaixo" [tamanho]="16" />
+        </label>
+      }
       <button type="button" class="btn btn--dark btn--lg" (click)="exportar()">
         <app-icone nome="download" [tamanho]="16" /> Exportar relatório
       </button>
     </div>
   </header>
 
+  <nav class="abas-fin" aria-label="Seções do financeiro">
+    <button type="button" class="aba-fin" [attr.aria-pressed]="aba() === 'geral'" (click)="aba.set('geral')">
+      <app-icone nome="financeiro" [tamanho]="16" /> Visão geral
+    </button>
+    <button type="button" class="aba-fin" [attr.aria-pressed]="aba() === 'receber'" (click)="aba.set('receber')">
+      <app-icone nome="desce" [tamanho]="16" /> Contas a receber
+      @if (contasResumo().qtdVencido) {
+        <span class="badge badge--bad" [attr.aria-label]="contasResumo().qtdVencido + ' vencidas'">{{ contasResumo().qtdVencido }}</span>
+      } @else if (contasResumo().qtdAberto) {
+        <span class="badge" [attr.aria-label]="contasResumo().qtdAberto + ' em aberto'">{{ contasResumo().qtdAberto }}</span>
+      }
+    </button>
+    <button type="button" class="aba-fin" [attr.aria-pressed]="aba() === 'compras'" (click)="aba.set('compras')">
+      <app-icone nome="pacote" [tamanho]="16" /> Compras de material
+    </button>
+    <button type="button" class="aba-fin" [attr.aria-pressed]="aba() === 'saidas'" (click)="aba.set('saidas')">
+      <app-icone nome="sobe" [tamanho]="16" /> Saídas
+    </button>
+  </nav>
+
+  @if (svc.estado() === 'erro') {
+    <div class="card card-pad aviso-erro" role="alert">
+      <app-icone nome="alerta" [tamanho]="18" />
+      <span>Não foi possível carregar as compras e saídas do banco de dados.</span>
+      <button type="button" class="btn btn--sm" (click)="svc.carregar()">Tentar de novo</button>
+    </div>
+  }
+
+  @switch (aba()) {
+  @case ('geral') {
   @let r = svc.resumo();
   <div class="kpis">
     <article class="card kpi">
@@ -119,7 +151,9 @@
 
       <div class="rodape-grafico">
         <span>Média mensal de saídas operacionais: <strong class="num">{{ moeda(mediaSaidas()) }}</strong></span>
-        <span class="cobertura">Cobertura de caixa: <strong class="num">{{ num(cobertura(), 2) }}x</strong></span>
+        @if (cobertura() !== null) {
+          <span class="cobertura">Cobertura de caixa: <strong class="num">{{ num(cobertura()!, 2) }}x</strong></span>
+        }
       </div>
     </section>
 
@@ -154,34 +188,81 @@
     </section>
   </div>
 
-  <div class="linha linha--b">
-    <!-- Compras de material -->
-    <section class="card card-pad" aria-labelledby="compras-titulo">
-      <div class="bloco-topo">
-        <div>
-          <h2 class="card-title" id="compras-titulo">Compras de Material</h2>
-          <p class="card-sub">Insumos metálicos, concreto e acessórios industriais</p>
-        </div>
-        <button type="button" class="btn btn--dark btn--lg" (click)="abrirModal()"><app-icone nome="mais" /> Registrar compra</button>
+  }
+
+  <!-- ==================== Contas a receber ==================== -->
+  @case ('receber') {
+  @let cr = contasResumo();
+  <div class="kpis">
+    <article class="card kpi">
+      <p class="kpi-label">Em aberto <app-icone nome="relogio" [tamanho]="16" /></p>
+      <p class="kpi-value num">{{ moeda(cr.aberto) }}</p>
+      <p class="kpi-foot">{{ cr.qtdAberto }} pedido{{ cr.qtdAberto === 1 ? '' : 's' }} aguardando pagamento</p>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Vencido <span class="ico-bad"><app-icone nome="alerta" [tamanho]="16" /></span></p>
+      <p class="kpi-value num" [class.valor-saida]="cr.vencido > 0">{{ moeda(cr.vencido) }}</p>
+      <p class="kpi-foot">{{ cr.qtdVencido }} conta{{ cr.qtdVencido === 1 ? '' : 's' }} além do prazo de {{ PRAZO }} dias</p>
+    </article>
+    <article class="card kpi">
+      <p class="kpi-label">Vence em 7 dias <app-icone nome="calendario" [tamanho]="16" /></p>
+      <p class="kpi-value num">{{ moeda(cr.semana) }}</p>
+      <p class="kpi-foot">{{ cr.qtdSemana }} conta{{ cr.qtdSemana === 1 ? '' : 's' }} para acompanhar</p>
+    </article>
+    <article class="card kpi kpi--dark">
+      <p class="kpi-label">Recebido no mês <app-icone nome="checkCirculo" [tamanho]="16" /></p>
+      <p class="kpi-value num">{{ moeda(cr.recebido) }}</p>
+      <p class="kpi-foot">{{ cr.qtdRecebido }} pagamento{{ cr.qtdRecebido === 1 ? '' : 's' }} lançado{{ cr.qtdRecebido === 1 ? '' : 's' }} nas entradas</p>
+    </article>
+  </div>
+
+  <section class="card card-pad" aria-labelledby="receber-titulo">
+    <div class="bloco-topo">
+      <div>
+        <h2 class="card-title" id="receber-titulo">Contas a Receber</h2>
+        <p class="card-sub">Cada pedido aprovado fica pendente e o cliente tem {{ PRAZO }} dias para pagar. Pago, o valor vai para as entradas.</p>
       </div>
+      <div class="chips" role="group" aria-label="Filtrar contas">
+        <button type="button" class="chip" [attr.aria-pressed]="filtroContas() === 'ABERTO'" (click)="filtroContas.set('ABERTO')">Em aberto</button>
+        <button type="button" class="chip" [attr.aria-pressed]="filtroContas() === 'PENDENTE'" (click)="filtroContas.set('PENDENTE')">Pendentes</button>
+        <button type="button" class="chip" [attr.aria-pressed]="filtroContas() === 'VENCIDO'" (click)="filtroContas.set('VENCIDO')">Vencidas</button>
+        <button type="button" class="chip" [attr.aria-pressed]="filtroContas() === 'PAGO'" (click)="filtroContas.set('PAGO')">Recebidas</button>
+        <button type="button" class="chip" [attr.aria-pressed]="filtroContas() === 'TODOS'" (click)="filtroContas.set('TODOS')">Todas</button>
+      </div>
+    </div>
+
+    @if (contasVisiveis().length) {
       <div class="table-wrap">
-        <table class="table compras">
+        <table class="table contas">
           <thead>
             <tr>
-              <th scope="col">Data</th><th scope="col">Fornecedor</th><th scope="col">Material</th>
-              <th scope="col">Quantidade</th><th scope="col" class="right">Valor</th><th scope="col">Status</th>
+              <th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">Emissão</th>
+              <th scope="col">Vencimento</th><th scope="col" class="right">Valor</th><th scope="col">Status</th>
+              <th scope="col" class="right"><span class="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
-            @for (c of svc.compras(); track c.id) {
+            @for (c of contasVisiveis(); track c.pedidoId) {
               <tr>
-                <td class="mono data">{{ data(c.data) }}</td>
-                <td><strong>{{ c.fornecedor }}</strong></td>
-                <td class="material">{{ c.material }}</td>
-                <td>{{ c.quantidade }}</td>
+                <td class="mono"><strong>#{{ c.codigo }}</strong></td>
+                <td><strong>{{ c.cliente }}</strong></td>
+                <td class="mono data">{{ data(c.emissao) }}</td>
+                <td>
+                  <span class="mono data">{{ data(c.vencimento) }}</span>
+                  <small class="prazo" [class.prazo--bad]="c.status === 'VENCIDO'" [class.prazo--ok]="c.status === 'PAGO'">{{ prazoTexto(c) }}</small>
+                </td>
                 <td class="right num"><strong>{{ moeda(c.valor) }}</strong></td>
                 <td>
-                  <span class="tag" [class.tag--ok-dark]="c.status === 'PAGO'" [class.tag--accent]="c.status === 'A_PAGAR'" [class.tag--bad]="c.status === 'ATRASADO'">{{ rotuloStatus[c.status] }}</span>
+                  <span class="tag" [class.tag--ok-dark]="c.status === 'PAGO'" [class.tag--accent]="c.status === 'PENDENTE'" [class.tag--bad]="c.status === 'VENCIDO'">{{ rotuloConta[c.status] }}</span>
+                </td>
+                <td class="right">
+                  @if (c.status === 'PAGO') {
+                    <button type="button" class="btn btn--sm btn--ghost" (click)="estornar(c)">Estornar</button>
+                  } @else {
+                    <button type="button" class="btn btn--sm btn--dark" (click)="abrirRecebimento(c)">
+                      <app-icone nome="check" [tamanho]="14" /> Registrar pagamento
+                    </button>
+                  }
                 </td>
               </tr>
             }
@@ -189,12 +270,79 @@
         </table>
       </div>
       <p class="rodape-tabela">
-        <span>Exibindo {{ svc.compras().length }} ordens de compra em {{ nomeMes(svc.mes()) }}</span>
+        <span>{{ contasVisiveis().length }} conta{{ contasVisiveis().length === 1 ? '' : 's' }}</span>
+        <strong class="num">Total: {{ moeda(totalContasVisiveis()) }}</strong>
+      </p>
+    } @else {
+      <p class="vazio">
+        @switch (filtroContas()) {
+          @case ('VENCIDO') { Nenhuma conta vencida. }
+          @case ('PAGO') { Nenhum pagamento registrado ainda. }
+          @default { Nenhuma conta a receber. Os pedidos aparecem aqui assim que são aprovados. }
+        }
+      </p>
+    }
+  </section>
+  }
+
+  <!-- ==================== Compras de material ==================== -->
+  @case ('compras') {
+  <div class="linha linha--b">
+    <section class="card card-pad" aria-labelledby="compras-titulo">
+      <div class="bloco-topo">
+        <div>
+          <h2 class="card-title" id="compras-titulo">Compras de Material</h2>
+          <p class="card-sub">Insumos metálicos, concreto e acessórios industriais</p>
+        </div>
+        <button type="button" class="btn btn--dark btn--lg" (click)="abrirCompra()"><app-icone nome="mais" /> Registrar compra</button>
+      </div>
+      <div class="chips filtros" role="group" aria-label="Filtrar por status">
+        <button type="button" class="chip" [attr.aria-pressed]="!filtroCompras()" (click)="filtroCompras.set(null)">Todas</button>
+        @for (s of statusLista; track s) {
+          <button type="button" class="chip" [attr.aria-pressed]="filtroCompras() === s" (click)="filtroCompras.set(s)">{{ rotuloStatus[s] }}</button>
+        }
+      </div>
+      <div class="table-wrap">
+        <table class="table compras">
+          <thead>
+            <tr>
+              <th scope="col">Data</th><th scope="col">Fornecedor</th><th scope="col">Material</th>
+              <th scope="col">Quantidade</th><th scope="col" class="right">Valor</th><th scope="col">Status</th>
+              <th scope="col" class="right"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of comprasVisiveis(); track c.id) {
+              <tr>
+                <td class="mono data">{{ data(c.data) }}</td>
+                <td><strong>{{ c.fornecedor }}</strong></td>
+                <td class="material">{{ c.material }}</td>
+                <td>{{ c.quantidade }}</td>
+                <td class="right num"><strong>{{ moeda(c.valor) }}</strong></td>
+                <td>
+                  <select class="status-sel" [class]="'status-sel status-sel--' + c.status"
+                    [attr.aria-label]="'Status da compra ' + c.material"
+                    (change)="mudarStatusCompra(c, $any($event.target).value)">
+                    @for (s of statusLista; track s) { <option [value]="s" [selected]="s === c.status">{{ rotuloStatus[s] }}</option> }
+                  </select>
+                </td>
+                <td class="right acoes">
+                  <button type="button" class="btn-icon" (click)="abrirCompra(c)" [attr.aria-label]="'Editar compra ' + c.material"><app-icone nome="lapis" [tamanho]="16" /></button>
+                  <button type="button" class="btn-icon btn-icon--perigo" (click)="excluirCompra(c)" [attr.aria-label]="'Excluir compra ' + c.material"><app-icone nome="lixeira" [tamanho]="16" /></button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="vazio">Nenhuma compra {{ filtroCompras() ? 'com esse status ' : '' }}em {{ nomeMes(svc.mes()) }}.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="rodape-tabela">
+        <span>Exibindo {{ comprasVisiveis().length }} ordens de compra em {{ nomeMes(svc.mes()) }}</span>
         <strong class="num">Total: {{ moeda(totalCompras()) }}</strong>
       </p>
     </section>
 
-    <!-- Maiores fornecedores -->
     <section class="card card-pad fornecedores" aria-labelledby="forn-titulo">
       <h2 class="card-title" id="forn-titulo">Maiores Fornecedores</h2>
       <p class="card-sub">Volume acumulado em compras em {{ nomeMes(svc.mes()) }}</p>
@@ -212,15 +360,100 @@
       </div>
     </section>
   </div>
+  }
+
+  <!-- ==================== Saídas ==================== -->
+  @case ('saidas') {
+  <div class="linha linha--b">
+    <section class="card card-pad" aria-labelledby="saidas-titulo">
+      <div class="bloco-topo">
+        <div>
+          <h2 class="card-title" id="saidas-titulo">Saídas</h2>
+          <p class="card-sub">Folha de pagamento, contas fixas, impostos e frota</p>
+        </div>
+        <button type="button" class="btn btn--dark btn--lg" (click)="abrirDespesa()"><app-icone nome="mais" /> Registrar saída</button>
+      </div>
+      <div class="chips filtros" role="group" aria-label="Filtrar por status">
+        <button type="button" class="chip" [attr.aria-pressed]="!filtroSaidas()" (click)="filtroSaidas.set(null)">Todas</button>
+        @for (s of statusLista; track s) {
+          <button type="button" class="chip" [attr.aria-pressed]="filtroSaidas() === s" (click)="filtroSaidas.set(s)">{{ rotuloStatus[s] }}</button>
+        }
+      </div>
+      <div class="table-wrap">
+        <table class="table compras">
+          <thead>
+            <tr>
+              <th scope="col">Data</th><th scope="col">Categoria</th><th scope="col">Descrição</th>
+              <th scope="col">Favorecido</th><th scope="col" class="right">Valor</th><th scope="col">Status</th>
+              <th scope="col" class="right"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of despesasVisiveis(); track d.id) {
+              <tr>
+                <td class="mono data">{{ data(d.data) }}</td>
+                <td><span class="tag">{{ rotuloCategoria[d.categoria] }}</span></td>
+                <td class="material"><strong>{{ d.descricao }}</strong></td>
+                <td>{{ d.favorecido }}</td>
+                <td class="right num"><strong>{{ moeda(d.valor) }}</strong></td>
+                <td>
+                  <select class="status-sel" [class]="'status-sel status-sel--' + d.status"
+                    [attr.aria-label]="'Status de ' + d.descricao"
+                    (change)="mudarStatusDespesa(d, $any($event.target).value)">
+                    @for (s of statusLista; track s) { <option [value]="s" [selected]="s === d.status">{{ rotuloStatus[s] }}</option> }
+                  </select>
+                </td>
+                <td class="right acoes">
+                  <button type="button" class="btn-icon" (click)="abrirDespesa(d)" [attr.aria-label]="'Editar ' + d.descricao"><app-icone nome="lapis" [tamanho]="16" /></button>
+                  <button type="button" class="btn-icon btn-icon--perigo" (click)="excluirDespesa(d)" [attr.aria-label]="'Excluir ' + d.descricao"><app-icone nome="lixeira" [tamanho]="16" /></button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="vazio">Nenhuma saída {{ filtroSaidas() ? 'com esse status ' : '' }}em {{ nomeMes(svc.mes()) }}.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="rodape-tabela">
+        <span>Exibindo {{ despesasVisiveis().length }} saídas em {{ nomeMes(svc.mes()) }}</span>
+        <strong class="num">Total: {{ moeda(totalDespesas()) }}</strong>
+      </p>
+    </section>
+
+    <section class="card card-pad fornecedores" aria-labelledby="cat-titulo">
+      <h2 class="card-title" id="cat-titulo">Saídas por Categoria</h2>
+      <p class="card-sub">Para onde foi o dinheiro em {{ nomeMes(svc.mes()) }}</p>
+      <ol class="ranking">
+        @for (f of svc.despesasPorCategoria(); track f.nome) {
+          <li>
+            <div class="ranking-txt"><span>{{ f.nome }}</span><strong class="num">{{ moeda(f.total) }}</strong></div>
+            <div class="trilho" aria-hidden="true"><div class="preenchido" [style.width.%]="(f.total / maiorCategoria()) * 100"></div></div>
+          </li>
+        }
+      </ol>
+      <div class="total-forn">
+        <span class="kpi-label">Ainda a pagar</span>
+        <strong class="num" [class.valor-saida]="despesasEmAberto() > 0">{{ moeda(despesasEmAberto()) }}</strong>
+      </div>
+      <div class="total-forn total-forn--junto">
+        <span class="kpi-label">Total do mês</span>
+        <strong class="num">{{ moeda(totalCategorias()) }}</strong>
+      </div>
+    </section>
+  </div>
+  }
+  }
 </section>
 
-@if (modalAberto()) {
-  <div class="modal-wrap" (click)="modalAberto.set(false)">
+<!-- ==================== Modais ==================== -->
+@switch (modal()) {
+@case ('compra') {
+  <div class="modal-wrap" (click)="modal.set(null)">
     <form class="card card-pad modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
-      (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); registrar()" novalidate>
+      (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); salvarCompra()" novalidate>
       <div class="modal-head">
-        <h2 class="card-title" id="modal-titulo">Registrar compra de material</h2>
-        <button type="button" class="btn-icon" aria-label="Fechar" (click)="modalAberto.set(false)"><app-icone nome="x" /></button>
+        <h2 class="card-title" id="modal-titulo">{{ editandoId() ? 'Editar compra de material' : 'Registrar compra de material' }}</h2>
+        <button type="button" class="btn-icon" aria-label="Fechar" (click)="modal.set(null)"><app-icone nome="x" /></button>
       </div>
 
       <div class="modal-grid">
@@ -231,10 +464,8 @@
         </div>
         <div class="field">
           <label for="c-status">Status</label>
-          <select id="c-status" class="select" [value]="cStatus()" (change)="cStatus.set($any($event.target).value)">
-            <option value="A_PAGAR">A pagar</option>
-            <option value="PAGO">Pago</option>
-            <option value="ATRASADO">Atrasado</option>
+          <select id="c-status" class="select" (change)="cStatus.set($any($event.target).value)">
+            @for (s of statusLista; track s) { <option [value]="s" [selected]="s === cStatus()">{{ rotuloStatus[s] }}</option> }
           </select>
         </div>
       </div>
@@ -262,16 +493,117 @@
           <div class="input-group">
             <span class="addon">R$</span>
             <input id="c-valor" class="input num" type="number" min="0" step="0.01" inputmode="decimal"
-              (input)="cValor.set(valorNumero($event))" />
+              [value]="valorInicial()" (input)="cValor.set(valorNumero($event))" />
           </div>
           @if (tentou() && erros().valor) { <span class="error-text">Informe um valor maior que zero.</span> }
         </div>
       </div>
 
       <div class="modal-acoes">
-        <button type="button" class="btn btn--lg" (click)="modalAberto.set(false)">Cancelar</button>
-        <button type="submit" class="btn btn--dark btn--lg">Registrar compra</button>
+        <button type="button" class="btn btn--lg" (click)="modal.set(null)">Cancelar</button>
+        <button type="submit" class="btn btn--dark btn--lg">{{ editandoId() ? 'Salvar alterações' : 'Registrar compra' }}</button>
       </div>
     </form>
   </div>
+}
+@case ('despesa') {
+  <div class="modal-wrap" (click)="modal.set(null)">
+    <form class="card card-pad modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
+      (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); salvarDespesa()" novalidate>
+      <div class="modal-head">
+        <h2 class="card-title" id="modal-titulo">{{ editandoId() ? 'Editar saída' : 'Registrar saída' }}</h2>
+        <button type="button" class="btn-icon" aria-label="Fechar" (click)="modal.set(null)"><app-icone nome="x" /></button>
+      </div>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label for="d-data">Data</label>
+          <input id="d-data" class="input" type="date" [value]="dData()" (input)="dData.set($any($event.target).value)" />
+          @if (tentou() && errosDespesa().data) { <span class="error-text">Informe a data.</span> }
+        </div>
+        <div class="field">
+          <label for="d-status">Status</label>
+          <select id="d-status" class="select" (change)="dStatus.set($any($event.target).value)">
+            @for (s of statusLista; track s) { <option [value]="s" [selected]="s === dStatus()">{{ rotuloStatus[s] }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="d-cat">Categoria</label>
+        <select id="d-cat" class="select" (change)="dCategoria.set($any($event.target).value)">
+          @for (c of categorias; track c) { <option [value]="c" [selected]="c === dCategoria()">{{ rotuloCategoria[c] }}</option> }
+        </select>
+      </div>
+      <div class="field">
+        <label for="d-desc">Descrição</label>
+        <input id="d-desc" class="input" placeholder="Ex: Energia elétrica do galpão" [value]="dDescricao()" (input)="dDescricao.set($any($event.target).value)" />
+        @if (tentou() && errosDespesa().descricao) { <span class="error-text">Informe a descrição.</span> }
+      </div>
+      <div class="modal-grid">
+        <div class="field">
+          <label for="d-fav">Favorecido</label>
+          <input id="d-fav" class="input" list="lista-favorecidos" placeholder="Ex: Imobiliária Horizonte"
+            [value]="dFavorecido()" (input)="dFavorecido.set($any($event.target).value)" />
+          <datalist id="lista-favorecidos">
+            @for (f of favorecidosConhecidos(); track f) { <option [value]="f"></option> }
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="d-valor">Valor</label>
+          <div class="input-group">
+            <span class="addon">R$</span>
+            <input id="d-valor" class="input num" type="number" min="0" step="0.01" inputmode="decimal"
+              [value]="valorInicial()" (input)="dValor.set(valorNumero($event))" />
+          </div>
+          @if (tentou() && errosDespesa().valor) { <span class="error-text">Informe um valor maior que zero.</span> }
+        </div>
+      </div>
+
+      <div class="modal-acoes">
+        <button type="button" class="btn btn--lg" (click)="modal.set(null)">Cancelar</button>
+        <button type="submit" class="btn btn--dark btn--lg">{{ editandoId() ? 'Salvar alterações' : 'Registrar saída' }}</button>
+      </div>
+    </form>
+  </div>
+}
+@case ('recebimento') {
+  @if (rConta(); as c) {
+  <div class="modal-wrap" (click)="modal.set(null)">
+    <form class="card card-pad modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
+      (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); confirmarRecebimento()" novalidate>
+      <div class="modal-head">
+        <h2 class="card-title" id="modal-titulo">Registrar pagamento</h2>
+        <button type="button" class="btn-icon" aria-label="Fechar" (click)="modal.set(null)"><app-icone nome="x" /></button>
+      </div>
+
+      <dl class="resumo-conta">
+        <div><dt>Pedido</dt><dd class="mono">#{{ c.codigo }}</dd></div>
+        <div><dt>Cliente</dt><dd>{{ c.cliente }}</dd></div>
+        <div><dt>Vencimento</dt><dd>{{ data(c.vencimento) }} <small [class.prazo--bad]="c.status === 'VENCIDO'">({{ prazoTexto(c) }})</small></dd></div>
+        <div><dt>Valor</dt><dd class="num"><strong>{{ moeda(c.valor) }}</strong></dd></div>
+      </dl>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label for="r-data">Data do pagamento</label>
+          <input id="r-data" class="input" type="date" [max]="hoje" [value]="rData()" (input)="rData.set($any($event.target).value)" />
+          @if (tentou() && erroRecebimento()) { <span class="error-text">Informe uma data até hoje.</span> }
+        </div>
+        <div class="field">
+          <label for="r-forma">Forma de pagamento</label>
+          <select id="r-forma" class="select" (change)="rForma.set($any($event.target).value)">
+            @for (f of formas; track f) { <option [value]="f" [selected]="f === rForma()">{{ rotuloForma[f] }}</option> }
+          </select>
+        </div>
+      </div>
+      <p class="nota">O valor entra nas <strong>Entradas</strong> e no extrato do mês do pagamento.</p>
+
+      <div class="modal-acoes">
+        <button type="button" class="btn btn--lg" (click)="modal.set(null)">Cancelar</button>
+        <button type="submit" class="btn btn--dark btn--lg">Confirmar pagamento</button>
+      </div>
+    </form>
+  </div>
+  }
+}
 }

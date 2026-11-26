@@ -58,11 +58,13 @@ public class DadosDemo implements ApplicationRunner {
     private final PedidoClienteRepository pedidos;
     private final ProdutoRepository produtos;
     private final OrcamentoService orcamentos;
+    private final DadosDemoFinanceiro financeiro;
 
     public DadosDemo(@Value("${progest.demo.ativo:false}") boolean ativo,
                      @Value("${progest.demo.senha:}") String senha,
                      JdbcTemplate jdbc, ClienteRepository clientes, PedidoClienteRepository pedidos,
-                     ProdutoRepository produtos, OrcamentoService orcamentos) {
+                     ProdutoRepository produtos, OrcamentoService orcamentos,
+                     DadosDemoFinanceiro financeiro) {
         this.ativo = ativo;
         this.senha = senha;
         this.jdbc = jdbc;
@@ -70,12 +72,15 @@ public class DadosDemo implements ApplicationRunner {
         this.pedidos = pedidos;
         this.produtos = produtos;
         this.orcamentos = orcamentos;
+        this.financeiro = financeiro;
     }
 
     @Override
     public void run(ApplicationArguments args) {
         if (ativo) {
             popular();
+            // Depois dos pedidos: paga os mais antigos
+            financeiro.popular();
         }
     }
 
