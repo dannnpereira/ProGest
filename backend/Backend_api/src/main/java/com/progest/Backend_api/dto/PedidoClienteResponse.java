@@ -38,7 +38,9 @@ public record PedidoClienteResponse(
         Instant aprovadoEm,
         Instant producaoIniciadaEm,
         Instant entregueEm,
-        LocalDate previsaoEntrega
+        LocalDate previsaoEntrega,
+        // Pagamento registrado pela fábrica no Financeiro do ERP (vazio = ainda não pago)
+        LocalDate pagoEm
 ) {
     public static PedidoClienteResponse de(PedidoCliente p) {
         BigDecimal base = p.getValorMateriaPrima().add(p.getValorAcessorios());
@@ -51,6 +53,6 @@ public record PedidoClienteResponse(
                 p.getValorMateriaPrima(), p.getValorAcessorios(), p.getValorFrete(), pct, p.getValorDesconto(),
                 p.getValorTotal(), p.getParcelas(), p.getValorParcela(),
                 p.getMotivoRecusa(), p.getAprovadoEm(), p.getProducaoIniciadaEm(), p.getEntregueEm(),
-                p.getPrevisaoEntrega());
+                p.getPrevisaoEntrega(), p.getPagoEm());
     }
 }

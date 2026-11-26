@@ -40,8 +40,8 @@ function paraTela(p: PedidoApi): Pedido {
     tipoFrete: p.entrega ? 'entrega' : 'retirada',
     enderecoEntrega: p.endereco ?? undefined,
     valorTotal: Number(p.valorTotal),
-    // As condições de pagamento são combinadas na aprovação do pedido
-    pagamentoConfirmado: !!p.aprovadoEm,
+    // A fábrica confirma o pagamento no Financeiro do ERP
+    pagamentoConfirmado: !!p.pagoEm,
     motivoRecusa: p.motivoRecusa ?? undefined,
     valores: {
       materiaPrima: Number(p.valorMateriaPrima),
@@ -55,7 +55,8 @@ function paraTela(p: PedidoApi): Pedido {
     },
     datas: {
       aprovacao: aprovado,
-      pagamento: aprovado,
+      // Só a data (sem horário): meio-dia local para não mudar de dia com o fuso
+      pagamento: p.pagoEm ? `${p.pagoEm}T12:00:00` : undefined,
       producao: p.producaoIniciadaEm ?? undefined,
       expedicao: p.entregueEm ?? undefined,
       finalizado: p.entregueEm ?? undefined,

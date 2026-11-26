@@ -97,7 +97,7 @@
                   <strong>{{ etapa.titulo }}</strong>
                   <p>{{ etapa.descricao }}</p>
                   @if (etapa.data) {
-                    <small>{{ etapa.data | date: 'dd/MM/yyyy HH:mm' }}</small>
+                    <small>{{ etapa.data | date: (etapa.chave === 'pagamento' ? 'dd/MM/yyyy' : 'dd/MM/yyyy HH:mm') }}</small>
                   } @else if (etapa.estado === 'atual') {
                     <small>Etapa em andamento</small>
                   } @else if (etapa.estado === 'pendente') {
