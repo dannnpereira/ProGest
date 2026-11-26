@@ -22,20 +22,34 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      # Enquanto a EC2 não estiver no ar, os secrets podem não existir: no merge a publicação
+      # é pulada com um aviso (a execução fica verde). No "Run workflow" manual, falha,
+      # porque quem clicou queria publicar. Com os secrets cadastrados, publica normalmente.
       - name: Conferir os secrets do Docker Hub
+        id: secrets
         env:
           USUARIO: ${{ secrets.DOCKERHUB_USERNAME }}
           TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          if [ -z "$USUARIO" ] || [ -z "$TOKEN" ]; then
-            echo "::error::Cadastre os secrets DOCKERHUB_USERNAME e DOCKERHUB_TOKEN (Settings > Secrets and variables > Actions). Sem eles as imagens não são publicadas e a EC2 não recebe a versão nova."
+          if [ -n "$USUARIO" ] && [ -n "$TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+          msg="Secrets DOCKERHUB_USERNAME e DOCKERHUB_TOKEN não cadastrados (Settings > Secrets and variables > Actions): imagens não publicadas. Necessário só para o deploy na EC2."
+          if [ "$MANUAL" = "true" ]; then
+            echo "::error::$msg"
             exit 1
           fi
+          echo "::warning::$msg"
 
       - name: Baixar o código
+        if: steps.secrets.outputs.ok == 'true'
         uses: actions/checkout@v4
 
       - name: Entrar no Docker Hub
+        if: steps.secrets.outputs.ok == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -43,6 +57,7 @@ jobs:
 
       # Mesmo Nginx da EC2: site do cliente (/), ERP (/erp/) e proxy da API (ver docker-compose.yml)
       - name: Publicar frontend
+        if: steps.secrets.outputs.ok == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -54,6 +69,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/progest-frontend:${{ github.sha }}
 
       - name: Publicar API
+        if: steps.secrets.outputs.ok == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./backend/Backend_api
