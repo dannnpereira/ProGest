@@ -10,6 +10,12 @@ Site (cliente) ──┐
 ERP (fábrica) ───┘
 ```
 
+| Site da Amaral | Painel ProGest (ERP) |
+|---|---|
+| ![Página inicial do site](docs/prints/site-01-inicio.png) | ![Aprovação no ERP](docs/prints/erp-02-aprovacao.png) |
+
+Veja [todas as telas](docs/prints/README.md).
+
 ## O que o sistema faz
 
 **Site da Amaral** ([`progest/`](progest/))
@@ -33,6 +39,7 @@ ERP (fábrica) ───┘
 
 | Documento | Conteúdo |
 |---|---|
+| [Prints do sistema](docs/prints/README.md) | Todas as telas do site e do ERP com os dados de demonstração |
 | [Diagrama de casos de uso](docs/diagrama-casos-de-uso.md) | Atores, casos de uso e regras (Mermaid e PlantUML) |
 | [Diagrama do banco de dados](docs/diagrama-banco-de-dados.md) | DER das tabelas atuais, ciclo de vida do pedido e tabelas antigas |
 | [Prototipação no Stitch](docs/prototipacao-stitch.md) | Prompts de todas as telas (atuais e novas) |
