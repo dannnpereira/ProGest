@@ -18,10 +18,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Mesmo Nginx da EC2: site do cliente (/), ERP (/erp/) e proxy da API (ver docker-compose.yml)
       - name: Publicar frontend
         uses: docker/build-push-action@v6
         with:
-          context: ./progest
+          context: .
+          file: deploy/web.Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tetris-frontend:latest
@@ -31,7 +33,7 @@ jobs:
       - name: Publicar API
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
+          context: ./backend/Backend_api
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tetris-api:latest
