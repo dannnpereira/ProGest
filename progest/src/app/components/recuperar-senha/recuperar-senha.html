@@ -1,0 +1,148 @@
+<main class="auth">
+  <div class="auth__inner">
+
+    <section class="auth__intro">
+      <p class="kicker">Portal do cliente</p>
+      <h1>Recupere o acesso à sua conta</h1>
+      <p class="lead">
+        Enviamos um link para o e-mail do seu cadastro. Com ele você cria uma senha nova
+        e volta a acompanhar seus pedidos e orçamentos.
+      </p>
+    </section>
+
+    <section class="auth__card" aria-labelledby="rs-titulo" aria-live="polite">
+      @switch (etapa()) {
+
+        @case ('pedir') {
+          <h2 id="rs-titulo" class="auth__title">Esqueceu a senha?</h2>
+          <p class="rs-texto">Informe o e-mail do cadastro e enviaremos um link para criar uma nova senha.</p>
+
+          <form novalidate (submit)="$event.preventDefault(); pedirLink()">
+            <div class="field">
+              <label for="rs-email">E-mail</label>
+              <div class="input">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+                <input id="rs-email" type="email" inputmode="email" autocomplete="email"
+                  placeholder="contato@suaempresa.com" [value]="email()" (input)="campo(email, $event)"
+                  [attr.aria-invalid]="tentou() && emailInvalido()"
+                  [attr.aria-describedby]="tentou() && emailInvalido() ? 'rs-erro-email' : null" />
+              </div>
+              @if (tentou() && emailInvalido()) {
+                <small id="rs-erro-email" class="error">Informe um e-mail válido (ex.: nome&#64;gmail.com).</small>
+              }
+            </div>
+
+            @if (erro()) { <p class="form-error" role="alert">{{ erro() }}</p> }
+
+            <button type="submit" class="btn-primary" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+              {{ enviando() ? 'Enviando…' : 'Enviar link' }}
+            </button>
+          </form>
+
+          <p class="home-link"><a routerLink="/login" class="link">← Voltar para o login</a></p>
+        }
+
+        @case ('enviado') {
+          <div class="rs-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+          </div>
+          <h2 id="rs-titulo" class="auth__title">Verifique seu e-mail</h2>
+          <p class="rs-texto">
+            Se existir uma conta com <strong>{{ emailMascarado() }}</strong>, você vai receber em alguns minutos
+            um link para criar a nova senha. O link vale por 30 minutos e só pode ser usado uma vez.
+          </p>
+          <p class="rs-dica">
+            Não chegou? Confira a caixa de spam ou peça de novo. Se preferir, ligue para
+            <a href="tel:+551532314537" class="link">(15) 3231-4537</a> e a fábrica envia o link para você.
+          </p>
+          <button type="button" class="btn-primary rs-secundario" (click)="pedirDeNovo()">Pedir de novo</button>
+          <p class="home-link"><a routerLink="/login" class="link">← Voltar para o login</a></p>
+        }
+
+        @case ('validando') {
+          <h2 id="rs-titulo" class="auth__title">Conferindo o link…</h2>
+          <p class="rs-texto" role="status">Só um instante.</p>
+        }
+
+        @case ('nova') {
+          <h2 id="rs-titulo" class="auth__title">Crie uma nova senha</h2>
+          <p class="rs-texto">Depois de salvar, você entra no site com a senha nova.</p>
+
+          <form novalidate (submit)="$event.preventDefault(); salvarSenha()">
+            <div class="field">
+              <label for="rs-senha">Nova senha</label>
+              <div class="input">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                <input id="rs-senha" [type]="mostrarSenha() ? 'text' : 'password'" autocomplete="new-password"
+                  placeholder="Mínimo de {{ SENHA_MIN }} caracteres" [value]="senha()" (input)="campo(senha, $event)"
+                  [attr.aria-invalid]="tentou() && senhaInvalida()"
+                  aria-describedby="rs-forca" />
+                <button type="button" class="eye" (click)="mostrarSenha.set(!mostrarSenha())"
+                  [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'" [attr.aria-pressed]="mostrarSenha()">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                </button>
+              </div>
+              <div class="rs-forca" id="rs-forca" [attr.data-nivel]="forca()">
+                <span></span><span></span><span></span>
+                <small>
+                  @switch (forca()) {
+                    @case (0) { Use pelo menos {{ SENHA_MIN }} caracteres }
+                    @case (1) { Senha fraca: misture letras, números e símbolos }
+                    @case (2) { Senha razoável }
+                    @default { Senha forte }
+                  }
+                </small>
+              </div>
+              @if (tentou() && senhaInvalida()) {
+                <small class="error">A senha precisa ter de 8 a 72 caracteres.</small>
+              }
+            </div>
+
+            <div class="field">
+              <label for="rs-confirma">Confirmar nova senha</label>
+              <div class="input">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                <input id="rs-confirma" [type]="mostrarSenha() ? 'text' : 'password'" autocomplete="new-password"
+                  placeholder="Digite a senha de novo" [value]="confirmacao()" (input)="campo(confirmacao, $event)"
+                  [attr.aria-invalid]="tentou() && senhasDiferentes()" />
+              </div>
+              @if (tentou() && senhasDiferentes()) {
+                <small class="error">As senhas não são iguais.</small>
+              }
+            </div>
+
+            @if (erro()) { <p class="form-error" role="alert">{{ erro() }}</p> }
+
+            <button type="submit" class="btn-primary" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+              {{ enviando() ? 'Salvando…' : 'Salvar nova senha' }}
+            </button>
+          </form>
+        }
+
+        @case ('invalido') {
+          <h2 id="rs-titulo" class="auth__title">Este link não vale mais</h2>
+          <p class="rs-texto">
+            O link já foi usado, venceu ou foi substituído por um mais novo.
+            Peça outro para criar a senha.
+          </p>
+          <button type="button" class="btn-primary" (click)="pedirDeNovo()">Pedir um novo link</button>
+          <p class="home-link"><a routerLink="/login" class="link">← Voltar para o login</a></p>
+        }
+
+        @case ('concluido') {
+          <div class="rs-icone rs-icone--ok" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg>
+          </div>
+          <h2 id="rs-titulo" class="auth__title">Senha alterada</h2>
+          <p class="rs-texto">Pronto! Use a nova senha para entrar. Por segurança, saímos da sua conta nos outros aparelhos.</p>
+          <a routerLink="/login" class="btn-primary rs-botao-link">Entrar</a>
+        }
+      }
+
+      <p class="lgpd">Seus dados são protegidos conforme a LGPD (Lei nº 13.709/2018).</p>
+    </section>
+  </div>
+</main>

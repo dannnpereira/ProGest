@@ -3,7 +3,9 @@ package com.progest.Backend_api.controller;
 import com.progest.Backend_api.dto.BuscaCpfRequest;
 import com.progest.Backend_api.dto.CadastroRequest;
 import com.progest.Backend_api.dto.ClienteErpResponse;
+import com.progest.Backend_api.dto.LinkSenhaResponse;
 import com.progest.Backend_api.services.ClienteService;
+import com.progest.Backend_api.services.RedefinicaoSenhaService;
 
 import jakarta.validation.Valid;
 
@@ -18,9 +20,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class ErpClientesController {
 
     private final ClienteService clienteService;
+    private final RedefinicaoSenhaService redefinicao;
 
-    public ErpClientesController(ClienteService clienteService) {
+    public ErpClientesController(ClienteService clienteService, RedefinicaoSenhaService redefinicao) {
         this.clienteService = clienteService;
+        this.redefinicao = redefinicao;
     }
 
     // Puxa os dados do cliente pelo CPF. 404 quando nao ha cadastro.
@@ -38,5 +42,14 @@ public class ErpClientesController {
     @ResponseStatus(HttpStatus.CREATED)
     public ClienteErpResponse cadastrar(@Valid @RequestBody CadastroRequest req) {
         return ClienteErpResponse.de(clienteService.cadastrarPeloErp(req));
+    }
+
+    // Link de nova senha para o administrador mandar ao cliente (vale 24 h, uso unico).
+    // Cancela links anteriores. 409 se o cliente ainda nao tem conta no site.
+    @PostMapping("/{id}/link-senha")
+    @ResponseStatus(HttpStatus.CREATED)
+    public LinkSenhaResponse gerarLinkDeSenha(@PathVariable Long id) {
+        var gerado = redefinicao.gerarPeloErp(id);
+        return new LinkSenhaResponse(gerado.link(), gerado.expiraEm());
     }
 }

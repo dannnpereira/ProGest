@@ -26,6 +26,14 @@ services:
       # Dados ficticios para apresentacao (opcional; roda uma vez so por banco)
       DEMO_DADOS: ${DEMO_DADOS:-false}
       DEMO_SENHA: ${DEMO_SENHA:-}
+      # Recuperacao de senha do cliente: endereco do site (vai no link) e SMTP (opcional;
+      # sem MAIL_HOST o e-mail nao sai, mas o ERP gera o link para mandar pelo WhatsApp)
+      SITE_URL: ${SITE_URL:-}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       # Limita a memoria do Java para caber em uma instancia pequena
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
     volumes:

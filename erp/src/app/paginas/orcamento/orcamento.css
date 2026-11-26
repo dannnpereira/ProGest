@@ -35,6 +35,15 @@
 .cliente-dados .tag { align-self: flex-start; margin-top: 4px; }
 .cliente-acoes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 
+.link-senha {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding: 12px 14px;
+  border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface);
+}
+.link-senha-titulo { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; color: var(--ink); }
+.link-senha .input { font-size: 12px; }
+.link-senha .card-sub { margin: 0; }
+.link-senha-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .entrega-campos { margin-top: 2px; }
 .endereco { display: flex; align-items: center; gap: 6px; color: var(--ink-2); }
 

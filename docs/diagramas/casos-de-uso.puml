@@ -25,7 +25,7 @@ rectangle "Site da Amaral Alambrados" {
   usecase "UC06 Fazer pedido" as UC06
   usecase "UC07 Acompanhar pedidos" as UC07
   usecase "UC08 Consultar perfil" as UC08
-  usecase "UC09 Recuperar senha" as UC09 <<proposto>>
+  usecase "UC09 Recuperar senha" as UC09
 }
 
 rectangle "Painel ProGest (ERP)" {
@@ -48,6 +48,7 @@ rectangle "Painel ProGest (ERP)" {
   usecase "UC26 Controlar estoque de arames" as UC26 <<proposto>>
   usecase "UC27 Gerenciar usuários do painel" as UC27 <<proposto>>
   usecase "UC28 Consultar clientes" as UC28 <<proposto>>
+  usecase "UC29 Gerar link de nova senha" as UC29
 }
 
 Visitante --> UC01
@@ -74,6 +75,7 @@ Administrador --> UC25
 Administrador --> UC26
 Administrador --> UC27
 Administrador --> UC28
+Administrador --> UC29
 
 UC01 ..> UC02 : <<include>>
 UC06 ..> UC01 : <<include>>

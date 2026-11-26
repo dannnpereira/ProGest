@@ -37,3 +37,17 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      # Recuperação de senha do cliente (deploy/RENDER.md). SITE_URL = endereço do site na Vercel,
+      # usado no link de nova senha. MAIL_*: SMTP do e-mail (opcional; sem ele o ERP gera o link).
+      - key: SITE_URL
+        sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false

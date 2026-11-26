@@ -26,7 +26,7 @@ rectangle "Site da Amaral Alambrados" {
   usecase "UC06 Fazer pedido" as UC06
   usecase "UC07 Acompanhar pedidos" as UC07
   usecase "UC08 Consultar perfil" as UC08
-  usecase "UC09 Recuperar senha" as UC09 <<proposto>>
+  usecase "UC09 Recuperar senha" as UC09
 }
 
 Visitante --> UC01

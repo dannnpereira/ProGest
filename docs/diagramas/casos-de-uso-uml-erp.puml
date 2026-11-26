@@ -35,6 +35,7 @@ rectangle "Painel ProGest (ERP)" {
     usecase "UC20 Gerenciar tabela\nde preços" as UC20
     usecase "UC21 Definir regras\ndo orçamento" as UC21
     usecase "UC28 Consultar clientes" as UC28 <<proposto>>
+    usecase "UC29 Gerar link de\nnova senha do cliente" as UC29
   }
   rectangle "Financeiro e administração" {
     usecase "UC22 Registrar ou\nestornar pagamento" as UC22
@@ -55,6 +56,7 @@ Administrador --> UC19
 Administrador --> UC20
 Administrador --> UC21
 Administrador --> UC28
+Administrador --> UC29
 Administrador --> UC22
 Administrador --> UC23
 Administrador --> UC24

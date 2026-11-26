@@ -1,0 +1,76 @@
+/* Usa o visual da tela de login (login.component.css); aqui só o que é desta tela */
+
+.rs-texto {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.rs-dica {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.rs-icone {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff7ed;
+  color: var(--accent);
+}
+.rs-icone svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rs-icone--ok { background: #ecfdf5; color: #047857; }
+
+/* Barra de força da senha */
+.rs-forca {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.rs-forca span {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  transition: background .2s;
+}
+.rs-forca small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+}
+.rs-forca[data-nivel="1"] span:nth-child(1) { background: #dc2626; }
+.rs-forca[data-nivel="2"] span:nth-child(-n+2) { background: var(--accent); }
+.rs-forca[data-nivel="3"] span { background: #047857; }
+
+.rs-secundario {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+.rs-secundario:hover { background: var(--bg); }
+
+/* Link com cara de botão */
+.rs-botao-link {
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}

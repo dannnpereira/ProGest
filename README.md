@@ -17,11 +17,12 @@ ERP (fábrica) ───┘
 - Frete pela distância do CEP (endereço pelo ViaCEP) ou retirada na fábrica
 - Ficha técnica e orçamento em PDF
 - Cadastro por CPF, login, pedido e acompanhamento das etapas (aprovação, pagamento, produção e entrega)
+- "Esqueceu a senha?": link de uso único por e-mail para criar uma senha nova
 
 **Painel ProGest** ([`erp/`](erp/))
 - **Aprovação:** fila dos pedidos do site, aprovação em lote, recusa com motivo e prévia técnica
 - **Produção e Entregas:** quadro A fazer → Em produção → Entregue, com alerta de atraso
-- **Novo orçamento:** orçamento pelo ERP com cliente por CPF e PDF
+- **Novo orçamento:** orçamento pelo ERP com cliente por CPF e PDF; gera o link de nova senha para o cliente que esqueceu a senha
 - **Produtos e Valores:** produtos do site, tabela de preços por combinação e regras de desconto/parcelas
 - **Financeiro:** contas a receber, compras de material, saídas, fluxo de caixa e comparativo mensal
 - Perfis **Administrador** (tudo) e **Funcionário** (só Produção e Entregas)
@@ -56,6 +57,8 @@ Para entrar no ERP, crie `backend/Backend_api/src/main/resources/local.propertie
 progest.admin.senha=uma-senha-com-8-ou-mais
 # opcional: dados de exemplo para a apresentação
 progest.demo.ativo=true
+# opcional: sem SMTP, escreve no console o link do "Esqueceu a senha?" (só no seu computador)
+progest.senha.logar-link=true
 ```
 
 O administrador padrão é `amaralalambrados109@gmail.com` (troque com `progest.admin.email`).
@@ -71,6 +74,8 @@ Os dois encaminham `/api` para `http://localhost:8081` (`proxy.conf.json`).
 
 ## Testes
 
+A Action **Testes** roda as três suítes em cada pull request e em cada merge na `main`. Para rodar no computador:
+
 ```bash
 cd backend/Backend_api && ./mvnw test   # API
 cd progest && npm test                  # site
@@ -85,6 +90,8 @@ cd erp && npm test                      # ERP
 | `FUNCIONARIO_EMAIL`, `FUNCIONARIO_NOME`, `FUNCIONARIO_SENHA` | Funcionário do ERP (opcional) |
 | `DEMO_DADOS`, `DEMO_SENHA` | Dados fictícios para a apresentação (uma vez por banco) |
 | `CORS_ORIGENS` | Endereços dos sites que podem chamar a API |
+| `SITE_URL` | Endereço público do site, usado no link de nova senha |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP do e-mail de nova senha (opcional: sem ele, o administrador gera o link pelo ERP) |
 | `DB_PASSWORD`, `DOCKERHUB_USUARIO`, `VERSAO` | Deploy com Docker na EC2 (ver [`.env.example`](.env.example)) |
 
 ## Como contribuir
