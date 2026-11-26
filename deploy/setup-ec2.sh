@@ -21,5 +21,5 @@ sudo usermod -aG docker "$USER"
 
 echo
 echo "Pronto. Saia e entre de novo no SSH (para o grupo docker valer) e rode:"
-echo "  cp .env.example .env && nano .env      # defina DB_PASSWORD"
-echo "  docker compose up -d --build"
+echo "  cp .env.example .env && nano .env      # DOCKERHUB_USUARIO, DB_PASSWORD e ADMIN_SENHA"
+echo "  docker compose pull && docker compose up -d"

@@ -1,9 +1,15 @@
-# Sobe o projeto inteiro em uma maquina (EC2):
+# Sobe o projeto inteiro em uma maquina (EC2). Antes, copie .env.example para .env
+# e preencha as senhas e o DOCKERHUB_USUARIO.
+#
+# Normal: baixa as imagens prontas que a Action publica no Docker Hub a cada merge na main
+#   docker compose pull && docker compose up -d
+# Sem Docker Hub (ou para testar uma mudanca local): gera as imagens na propria maquina
 #   docker compose up -d --build
-# Antes, copie .env.example para .env e defina DB_PASSWORD.
 
 services:
   backend:
+    # VERSAO=latest (padrao) ou uma versao publicada (ex.: v42) para voltar atras
+    image: ${DOCKERHUB_USUARIO:?Defina DOCKERHUB_USUARIO no arquivo .env}/progest-api:${VERSAO:-latest}
     build: ./backend/Backend_api
     restart: unless-stopped
     environment:
@@ -27,6 +33,7 @@ services:
     # Sem "ports": o backend so e acessivel pelo Nginx
 
   web:
+    image: ${DOCKERHUB_USUARIO:?Defina DOCKERHUB_USUARIO no arquivo .env}/progest-frontend:${VERSAO:-latest}
     build:
       context: .
       dockerfile: deploy/web.Dockerfile
