@@ -1,0 +1,40 @@
+erDiagram
+    CLIENTES ||--o{ ENDERECOS : "possui"
+    PEDIDOS ||--o| WORKFLOW_PEDIDOS : "situação atual"
+    PEDIDOS ||--o{ HISTORICO_WORKFLOW : "histórico"
+    PEDIDOS |o--o{ TRANSACOES_FINANCEIRAS : "vincula"
+
+    ENDERECOS {
+        BIGINT id PK
+        BIGINT cliente_id FK
+        VARCHAR cep
+        VARCHAR numero
+    }
+    PEDIDOS {
+        BIGINT op PK
+        DECIMAL fio
+        DECIMAL malha
+        DATE dataentrega
+        DECIMAL preco
+    }
+    WORKFLOW_PEDIDOS {
+        BIGINT op PK,FK
+        VARCHAR status "A_FAZER | EM_PROCESSO | ENTREGUE"
+        TIMESTAMP data_atualizacao
+    }
+    HISTORICO_WORKFLOW {
+        BIGINT id PK
+        BIGINT op FK
+        VARCHAR status
+        TIMESTAMP data_alteracao
+    }
+    TRANSACOES_FINANCEIRAS {
+        BIGINT id PK
+        BIGINT op FK
+        VARCHAR tipo "ENTRADA | SAIDA"
+        VARCHAR tipo_despesa "IMPOSTOS | SALARIOS | INSUMOS | CONTAS_FIXAS"
+        VARCHAR descricao
+        VARCHAR fornecedores
+        DECIMAL valor
+        DATE data_movimentacao
+    }

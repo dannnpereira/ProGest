@@ -17,7 +17,7 @@ Os casos marcados como **(proposto)** ainda não existem e têm issue aberta no 
 
 ## Diagrama
 
-> O GitHub desenha o diagrama abaixo (Mermaid). Para a documentação ABNT, use a versão em PlantUML no fim da página, que segue a notação UML.
+> O GitHub desenha o diagrama abaixo (Mermaid). Imagens prontas (PNG/SVG), separadas em site e ERP, ficam em [`docs/diagramas/`](diagramas/). Para a notação UML completa, use a versão em PlantUML no fim da página.
 
 ```mermaid
 flowchart LR

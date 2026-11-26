@@ -4,6 +4,8 @@ Modelo do banco usado pela API (`backend/Backend_api`). O mesmo `schema.sql` cri
 
 Fonte: [`backend/Backend_api/src/main/resources/schema.sql`](../backend/Backend_api/src/main/resources/schema.sql).
 
+Imagens prontas (PNG/SVG) em [`docs/diagramas/`](diagramas/).
+
 ## Visão geral
 
 | Módulo | Tabelas em uso | Para que serve |

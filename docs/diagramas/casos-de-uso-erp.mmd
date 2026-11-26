@@ -1,0 +1,51 @@
+flowchart LR
+    Funcionario(["👤 Funcionário"])
+    Admin(["👤 Administrador"])
+    ViaCEP[["ViaCEP<br/>(sistema externo)"]]
+    WhatsApp[["WhatsApp<br/>(sistema externo)"]]
+
+    Admin -. herda .-> Funcionario
+    Funcionario --> UC10 & UC11
+
+    subgraph ERP["Painel ProGest (ERP)"]
+        direction TB
+        subgraph OPER["Operação"]
+            UC10([UC10 Entrar no painel])
+            UC11([UC11 Avançar ou voltar etapa da produção])
+            UC12([UC12 Aprovar pedido - individual ou em lote])
+            UC13([UC13 Recusar pedido com motivo])
+            UC14([UC14 Ver prévia técnica e memorial])
+            UC15([UC15 Conversar com o cliente])
+        end
+        subgraph COM["Comercial e cadastros"]
+            UC16([UC16 Criar orçamento no ERP])
+            UC17([UC17 Buscar cliente por CPF])
+            UC18([UC18 Cadastrar conta do cliente])
+            UC19([UC19 Gerenciar produtos])
+            UC20([UC20 Gerenciar tabela de preços])
+            UC21([UC21 Definir regras do orçamento])
+            UC28([UC28 Consultar clientes - proposto])
+        end
+        subgraph FIN["Financeiro e administração"]
+            UC22([UC22 Registrar ou estornar pagamento])
+            UC23([UC23 Registrar compras e saídas])
+            UC24([UC24 Consultar caixa e comparativo mensal])
+            UC25([UC25 Configurar dados da empresa])
+            UC26([UC26 Controlar estoque de arames - proposto])
+            UC27([UC27 Gerenciar usuários do painel - proposto])
+        end
+    end
+
+    Admin --> UC12 & UC13
+    Admin --> UC16 & UC19 & UC20 & UC21 & UC28
+    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27
+
+    UC14 -. extend .-> UC12
+    UC15 -. extend .-> UC12
+    UC17 -. extend .-> UC16
+    UC18 -. extend .-> UC17
+    UC15 --- WhatsApp
+    UC16 --- ViaCEP
+
+    classDef proposto stroke-dasharray: 5 5,fill:#fff8e6,stroke:#d97706
+    class UC26,UC27,UC28 proposto
