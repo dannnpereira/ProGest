@@ -7,6 +7,20 @@ export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   {
+    // "Esqueceu a senha?": pede o link por e-mail
+    path: 'recuperar-senha',
+    title: 'Recuperar senha | Amaral Alambrados',
+    loadComponent: () =>
+      import('./components/recuperar-senha/recuperar-senha').then(m => m.RecuperarSenhaComponent),
+  },
+  {
+    // Link do e-mail (ou enviado pela fábrica): cria a senha nova
+    path: 'redefinir-senha',
+    title: 'Nova senha | Amaral Alambrados',
+    loadComponent: () =>
+      import('./components/recuperar-senha/recuperar-senha').then(m => m.RecuperarSenhaComponent),
+  },
+  {
     // "Acompanhar pedido" (antes "Rastrear pedido": não há rastreio por GPS)
     path: 'acompanhar',
     title: 'Acompanhar pedido | Amaral Alambrados',

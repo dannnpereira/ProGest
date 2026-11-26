@@ -71,4 +71,9 @@ public class SessaoClienteService {
             sessoes.remove(token);
         }
     }
+
+    /** Encerra todas as sessões do cliente (ex.: depois de trocar a senha). */
+    public void sairDoCliente(Long clienteId) {
+        sessoes.values().removeIf(s -> s.clienteId().equals(clienteId));
+    }
 }

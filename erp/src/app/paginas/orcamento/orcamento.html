@@ -45,10 +45,36 @@
             <div class="cliente-acoes">
               @if (!c.temConta) {
                 <button type="button" class="btn btn--sm" (click)="criarContaParaEncontrado()">Criar conta</button>
+              } @else if (!linkSenha()) {
+                <button type="button" class="btn btn--sm" [disabled]="gerandoLink()" (click)="gerarLinkSenha()"
+                  title="O cliente esqueceu a senha do site">
+                  <app-icone nome="cadeado" [tamanho]="14" /> {{ gerandoLink() ? 'Gerando…' : 'Link de nova senha' }}
+                </button>
               }
               <button type="button" class="btn btn--sm btn--ghost" (click)="trocarCliente()">Trocar</button>
             </div>
           </div>
+          @if (linkSenha(); as l) {
+            <div class="link-senha" role="status">
+              <p class="link-senha-titulo">
+                <app-icone nome="cadeado" [tamanho]="15" /> Link para o cliente criar uma nova senha
+              </p>
+              <input class="input mono" readonly [value]="l.link" aria-label="Link de nova senha"
+                (focus)="$any($event.target).select()" />
+              <p class="card-sub">
+                Vale até {{ dataHora(l.expiraEm) }} e só pode ser usado uma vez. Gerar outro cancela este.
+              </p>
+              <div class="link-senha-acoes">
+                <button type="button" class="btn btn--sm btn--dark" (click)="copiarLinkSenha()">Copiar link</button>
+                @if (whatsappLinkSenha(); as w) {
+                  <a class="btn btn--sm" [href]="w" target="_blank" rel="noopener">
+                    <app-icone nome="conversa" [tamanho]="14" /> Enviar pelo WhatsApp
+                  </a>
+                }
+              </div>
+            </div>
+          }
+          @if (erroLink()) { <p class="error-text" role="alert">{{ erroLink() }}</p> }
         } @else if (modo() === 'cpf') {
           <form class="busca-cpf" (submit)="$event.preventDefault(); buscar()" novalidate>
             <div class="field">

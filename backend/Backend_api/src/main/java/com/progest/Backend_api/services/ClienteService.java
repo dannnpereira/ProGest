@@ -134,6 +134,15 @@ public class ClienteService {
                 : "Este e-mail já é usado por outra conta.";
     }
 
+    // Nova senha pela recuperacao de senha (mesma regra do cadastro: 8 a 72 caracteres)
+    public void definirSenha(Cliente cliente, String novaSenha) {
+        if (novaSenha == null || novaSenha.length() < 8 || novaSenha.length() > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha precisa ter de 8 a 72 caracteres.");
+        }
+        cliente.setSenhaHash(passwordEncoder.encode(novaSenha));
+        repository.save(cliente);
+    }
+
     // Login: confere e-mail e senha
     public Cliente autenticar(LoginRequest req) {
         return repository.findByEmailIgnoreCase(normalizarEmail(req.email()))

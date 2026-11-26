@@ -40,7 +40,7 @@ flowchart LR
         UC06([UC06 Fazer pedido])
         UC07([UC07 Acompanhar pedidos])
         UC08([UC08 Consultar perfil])
-        UC09([UC09 Recuperar senha - proposto])
+        UC09([UC09 Recuperar senha])
     end
 
     subgraph ERP["Painel ProGest (ERP)"]
@@ -63,13 +63,14 @@ flowchart LR
         UC26([UC26 Controlar estoque de arames - proposto])
         UC27([UC27 Gerenciar usuários do painel - proposto])
         UC28([UC28 Consultar clientes - proposto])
+        UC29([UC29 Gerar link de nova senha do cliente])
     end
 
     Visitante --> UC01 & UC03 & UC04 & UC05
     Cliente --> UC06 & UC07 & UC08 & UC09
     Funcionario --> UC10 & UC11
     Admin --> UC12 & UC13 & UC14 & UC16 & UC19 & UC20 & UC21
-    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27 & UC28
+    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27 & UC28 & UC29
 
     UC01 -. include .-> UC02
     UC06 -. include .-> UC01
@@ -82,7 +83,7 @@ flowchart LR
     UC15 --- WhatsApp
 
     classDef proposto stroke-dasharray: 5 5,fill:#fff8e6,stroke:#d97706
-    class UC09,UC26,UC27,UC28 proposto
+    class UC26,UC27,UC28 proposto
 ```
 
 ## Descrição resumida dos casos de uso
@@ -97,6 +98,7 @@ flowchart LR
 | UC06 | Fazer pedido | Cliente | Só com login. Grava o pedido como **Aguardando aprovação**, com os valores recalculados no backend e o nome dos produtos no momento do pedido. |
 | UC07 | Acompanhar pedidos | Cliente | Linha do tempo: Aprovação → Pagamento → Produção → Aguardando entrega/retirada → Finalizado. Pedido recusado mostra o motivo. |
 | UC08 | Consultar perfil | Cliente | Mostra os dados do cadastro com o CPF parcialmente oculto. |
+| UC09 | Recuperar senha | Cliente | "Esqueceu a senha?": link de uso único por e-mail, válido por 30 minutos. A resposta é igual com ou sem conta, no máximo 3 e-mails a cada 15 minutos, e trocar a senha encerra as sessões abertas. |
 | UC10 | Entrar no painel | Funcionário | Usuários separados dos clientes (`usuarios_erp`). Admin abre em Aprovação; funcionário em Produção. |
 | UC11 | Avançar ou voltar etapa | Funcionário | A fazer → Em produção → Entregue. Não pula etapas (validação no backend). |
 | UC12 | Aprovar pedido | Administrador | Individual ou em lote. O pedido vai para **A fazer** e abre uma conta a receber de 15 dias. |
@@ -112,7 +114,8 @@ flowchart LR
 | UC23 | Registrar compras e saídas | Administrador | Compras de material (fornecedor) e saídas por categoria, com status Pago, A pagar ou Atrasado. |
 | UC24 | Consultar caixa e comparativo | Administrador | Vendas, entradas, saídas e saldo do mês; comparativo dos últimos 6 meses. |
 | UC25 | Configurar dados da empresa | Administrador | Razão social, CNPJ, WhatsApp e origem do frete (hoje ficam só no navegador). |
-| UC09, UC26–UC28 | Propostos | — | Ver as issues abertas no GitHub. |
+| UC29 | Gerar link de nova senha do cliente | Administrador | No Novo orçamento, depois de buscar o cliente: link válido por 24 horas para copiar ou enviar pelo WhatsApp. Funciona sem e-mail configurado. |
+| UC26–UC28 | Propostos | — | Ver as issues abertas no GitHub. |
 
 ## Versão PlantUML (notação UML para a documentação)
 
@@ -146,7 +149,7 @@ rectangle "Site da Amaral Alambrados" {
   usecase "UC06 Fazer pedido" as UC06
   usecase "UC07 Acompanhar pedidos" as UC07
   usecase "UC08 Consultar perfil" as UC08
-  usecase "UC09 Recuperar senha" as UC09 <<proposto>>
+  usecase "UC09 Recuperar senha" as UC09
 }
 
 rectangle "Painel ProGest (ERP)" {
@@ -169,6 +172,7 @@ rectangle "Painel ProGest (ERP)" {
   usecase "UC26 Controlar estoque de arames" as UC26 <<proposto>>
   usecase "UC27 Gerenciar usuários do painel" as UC27 <<proposto>>
   usecase "UC28 Consultar clientes" as UC28 <<proposto>>
+  usecase "UC29 Gerar link de nova senha" as UC29
 }
 
 Visitante --> UC01
@@ -195,6 +199,7 @@ Administrador --> UC25
 Administrador --> UC26
 Administrador --> UC27
 Administrador --> UC28
+Administrador --> UC29
 
 UC01 ..> UC02 : <<include>>
 UC06 ..> UC01 : <<include>>

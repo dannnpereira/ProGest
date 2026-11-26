@@ -25,6 +25,7 @@ flowchart LR
             UC20([UC20 Gerenciar tabela de preços])
             UC21([UC21 Definir regras do orçamento])
             UC28([UC28 Consultar clientes - proposto])
+            UC29([UC29 Gerar link de nova senha do cliente])
         end
         subgraph FIN["Financeiro e administração"]
             UC22([UC22 Registrar ou estornar pagamento])
@@ -37,7 +38,7 @@ flowchart LR
     end
 
     Admin --> UC12 & UC13
-    Admin --> UC16 & UC19 & UC20 & UC21 & UC28
+    Admin --> UC16 & UC19 & UC20 & UC21 & UC28 & UC29
     Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27
 
     UC14 -. extend .-> UC12

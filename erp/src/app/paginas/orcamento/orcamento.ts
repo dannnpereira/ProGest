@@ -4,7 +4,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, map, of, switchMap } from 'rxjs';
 import { Icone } from '../../shared/icone';
 import { Orcamento as ValoresOrcamento, PedidoOrcamento, ProdutosService } from '../../core/produtos.service';
-import { ClienteErp, ClientesService, mensagemDeErro } from '../../core/clientes.service';
+import { ClienteErp, ClientesService, LinkSenha, mensagemDeErro } from '../../core/clientes.service';
 import { AvisosService } from '../../core/avisos.service';
 import { SessaoService } from '../../core/sessao.service';
 import { Categoria, Produto } from '../../core/modelos';
@@ -67,6 +67,11 @@ export class Orcamento {
   protected tentouCriar = signal(false);
   protected criando = signal(false);
   protected erroConta = signal('');
+
+  // Link de nova senha (cliente esqueceu a senha do site)
+  protected linkSenha = signal<LinkSenha | null>(null);
+  protected gerandoLink = signal(false);
+  protected erroLink = signal('');
 
   protected erros = computed(() => ({
     nome: this.nNome().trim().length < 3,
@@ -184,6 +189,7 @@ export class Orcamento {
   trocarModo(m: ModoCliente): void {
     this.modo.set(m);
     this.cliente.set(null);
+    this.limparLinkSenha();
     this.erroBusca.set('');
     this.erroConta.set('');
   }
@@ -247,9 +253,61 @@ export class Orcamento {
     }
   }
 
+  private limparLinkSenha(): void {
+    this.linkSenha.set(null);
+    this.erroLink.set('');
+  }
+
+  /** Cliente esqueceu a senha do site: gera o link para mandar a ele */
+  async gerarLinkSenha(): Promise<void> {
+    const c = this.cliente();
+    if (!c?.temConta || this.gerandoLink()) return;
+    this.erroLink.set('');
+    this.gerandoLink.set(true);
+    try {
+      this.linkSenha.set(await this.clientesSvc.gerarLinkSenha(c.id));
+    } catch (e) {
+      this.erroLink.set(mensagemDeErro(e, 'Não foi possível gerar o link agora.'));
+    } finally {
+      this.gerandoLink.set(false);
+    }
+  }
+
+  async copiarLinkSenha(): Promise<void> {
+    const l = this.linkSenha();
+    if (!l) return;
+    try {
+      await navigator.clipboard.writeText(l.link);
+      this.avisos.mostrar({ texto: 'Link copiado. Mande para o cliente; ele vale por 24 horas e só pode ser usado uma vez.' });
+    } catch {
+      this.erroLink.set('Não foi possível copiar. Selecione o link e copie com Ctrl+C.');
+    }
+  }
+
+  /** "27/11/2026 às 14:30" no horário do navegador */
+  protected dataHora(iso: string): string {
+    const d = new Date(iso);
+    const dia = d.toLocaleDateString('pt-BR');
+    const h = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${dia} às ${h}`;
+  }
+
+  /** WhatsApp do cliente com o link pronto na mensagem */
+  whatsappLinkSenha(): string | null {
+    const c = this.cliente();
+    const l = this.linkSenha();
+    const fone = c?.telefone?.replace(/\D/g, '');
+    if (!c || !l || !fone) return null;
+    const nome = c.nome.trim().split(/\s+/)[0];
+    const msg = `Olá, ${nome}! Aqui é da Amaral Alambrados. Para criar uma nova senha no nosso site, `
+      + `abra este link (vale por 24 horas e só pode ser usado uma vez): ${l.link}`;
+    return `https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`;
+  }
+
   /** Volta para escolher outro cliente, no mesmo modo */
   trocarCliente(): void {
     this.cliente.set(null);
+    this.limparLinkSenha();
     if (this.modo() === 'novo') {
       for (const s of [this.nNome, this.nCpf, this.nTelefone, this.nEmail, this.nSenha]) s.set('');
     }

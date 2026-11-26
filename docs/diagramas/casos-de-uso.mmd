@@ -18,7 +18,7 @@ flowchart LR
         UC06([UC06 Fazer pedido])
         UC07([UC07 Acompanhar pedidos])
         UC08([UC08 Consultar perfil])
-        UC09([UC09 Recuperar senha - proposto])
+        UC09([UC09 Recuperar senha])
     end
 
     subgraph ERP["Painel ProGest (ERP)"]
@@ -41,13 +41,14 @@ flowchart LR
         UC26([UC26 Controlar estoque de arames - proposto])
         UC27([UC27 Gerenciar usuários do painel - proposto])
         UC28([UC28 Consultar clientes - proposto])
+        UC29([UC29 Gerar link de nova senha do cliente])
     end
 
     Visitante --> UC01 & UC03 & UC04 & UC05
     Cliente --> UC06 & UC07 & UC08 & UC09
     Funcionario --> UC10 & UC11
     Admin --> UC12 & UC13 & UC14 & UC16 & UC19 & UC20 & UC21
-    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27 & UC28
+    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27 & UC28 & UC29
 
     UC01 -. include .-> UC02
     UC06 -. include .-> UC01
@@ -60,4 +61,4 @@ flowchart LR
     UC15 --- WhatsApp
 
     classDef proposto stroke-dasharray: 5 5,fill:#fff8e6,stroke:#d97706
-    class UC09,UC26,UC27,UC28 proposto
+    class UC26,UC27,UC28 proposto

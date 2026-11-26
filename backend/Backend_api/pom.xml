@@ -46,6 +46,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
+		<!-- E-mail de recuperacao de senha (SMTP configurado por variaveis MAIL_*) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<!-- Apenas o modulo de criptografia (BCrypt) para hash de senhas -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>

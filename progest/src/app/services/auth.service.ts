@@ -72,6 +72,24 @@ export class AuthService {
     return this.http.post<{ cpfEmUso: boolean; emailEmUso: boolean }>(`${this.api}/disponibilidade`, { cpf, email });
   }
 
+  /**
+   * "Esqueceu a senha?": o servidor manda o link por e-mail se houver conta.
+   * A resposta é a mesma com ou sem conta (não revela quem é cliente).
+   */
+  esqueciSenha(email: string): Observable<void> {
+    return this.http.post<void>(`${this.api}/esqueci-senha`, { email: email.trim() });
+  }
+
+  /** Confere se o link de nova senha ainda vale (erro 400 = usado, vencido ou substituído). */
+  validarLinkSenha(token: string): Observable<void> {
+    return this.http.post<void>(`${this.api}/redefinir-senha/validar`, { token });
+  }
+
+  /** Grava a senha nova. Depois disso as sessões abertas do cliente são encerradas. */
+  redefinirSenha(token: string, senha: string): Observable<void> {
+    return this.http.post<void>(`${this.api}/redefinir-senha`, { token, senha }).pipe(tap(() => this.limpar()));
+  }
+
   /** Sai no servidor (invalida o token) e no navegador. */
   sair(): void {
     if (this.token) {

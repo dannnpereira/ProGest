@@ -14,6 +14,12 @@ export interface ClienteErp {
   temConta: boolean;
 }
 
+/** Link de nova senha que o administrador manda ao cliente (vale 24 h, uso único). */
+export interface LinkSenha {
+  link: string;
+  expiraEm: string;
+}
+
 /** Mesmos dados da aba "Cadastrar" do site. */
 export interface NovaConta {
   nome: string;
@@ -42,6 +48,14 @@ export class ClientesService {
       if (e instanceof HttpErrorResponse && e.status === 404) return null;
       throw e;
     }
+  }
+
+  /**
+   * Gera o link para o cliente criar uma senha nova no site (ele esqueceu a senha).
+   * Cancela links anteriores do cliente.
+   */
+  gerarLinkSenha(clienteId: number): Promise<LinkSenha> {
+    return firstValueFrom(this.http.post<LinkSenha>(`/api/erp/clientes/${clienteId}/link-senha`, {}));
   }
 
   /** Cria a conta: o cliente passa a entrar no site com este e-mail e senha. */
