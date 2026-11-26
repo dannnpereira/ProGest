@@ -1,0 +1,44 @@
+@startuml casos-de-uso-uml-site
+!pragma layout elk
+left to right direction
+skinparam defaultFontName Arial
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F4F5F7
+  BorderColor #4B5563
+  BackgroundColor<<proposto>> #FFF8E6
+  BorderColor<<proposto>> #D97706
+}
+title Casos de uso — Site da Amaral Alambrados
+
+actor Visitante
+actor Cliente
+actor "ViaCEP" as ViaCEP <<sistema externo>>
+
+Cliente -|> Visitante
+
+rectangle "Site da Amaral Alambrados" {
+  usecase "UC01 Simular orçamento\nno configurador" as UC01
+  usecase "UC02 Calcular frete\npelo CEP" as UC02
+  usecase "UC03 Baixar ficha técnica\ne orçamento em PDF" as UC03
+  usecase "UC04 Cadastrar conta" as UC04
+  usecase "UC05 Entrar e sair" as UC05
+  usecase "UC06 Fazer pedido" as UC06
+  usecase "UC07 Acompanhar pedidos" as UC07
+  usecase "UC08 Consultar perfil" as UC08
+  usecase "UC09 Recuperar senha" as UC09 <<proposto>>
+}
+
+Visitante --> UC01
+Visitante --> UC03
+Visitante --> UC04
+Visitante --> UC05
+Cliente --> UC06
+Cliente --> UC07
+Cliente --> UC08
+Cliente --> UC09
+
+UC06 ..> UC01 : <<include>>
+UC01 ..> UC02 : <<include>>
+UC02 --> ViaCEP
+@enduml
