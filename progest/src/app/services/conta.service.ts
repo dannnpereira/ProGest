@@ -42,6 +42,8 @@ export interface PedidoApi {
   producaoIniciadaEm: string | null;
   entregueEm: string | null;
   previsaoEntrega: string | null;
+  /** Data (yyyy-mm-dd) em que a fábrica registrou o pagamento; null = ainda não pago */
+  pagoEm?: string | null;
 }
 
 export interface NovoPedido {
