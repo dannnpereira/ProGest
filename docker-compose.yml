@@ -29,6 +29,7 @@ services:
       # Recuperacao de senha do cliente: endereco do site (vai no link) e SMTP (opcional;
       # sem MAIL_HOST o e-mail nao sai, mas o ERP gera o link para mandar pelo WhatsApp)
       SITE_URL: ${SITE_URL:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
       MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}

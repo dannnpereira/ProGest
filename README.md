@@ -91,7 +91,8 @@ cd erp && npm test                      # ERP
 | `DEMO_DADOS`, `DEMO_SENHA` | Dados fictícios para a apresentação (uma vez por banco) |
 | `CORS_ORIGENS` | Endereços dos sites que podem chamar a API |
 | `SITE_URL` | Endereço público do site, usado no link de nova senha |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP do e-mail de nova senha (opcional: sem ele, o administrador gera o link pelo ERP) |
+| `BREVO_API_KEY`, `MAIL_FROM` | E-mail de nova senha pela API da Brevo, remetente confirmado na Brevo. **É o que funciona no Render gratuito**, que bloqueia SMTP |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | Alternativa por SMTP (computador, EC2 ou Render pago). Sem e-mail configurado, o administrador gera o link pelo ERP |
 | `DB_PASSWORD`, `DOCKERHUB_USUARIO`, `VERSAO` | Deploy com Docker na EC2 (ver [`.env.example`](.env.example)) |
 
 ## Como contribuir

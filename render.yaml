@@ -37,9 +37,12 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
-      # Recuperação de senha do cliente (deploy/RENDER.md). SITE_URL = endereço do site na Vercel,
-      # usado no link de nova senha. MAIL_*: SMTP do e-mail (opcional; sem ele o ERP gera o link).
+      # Recuperação de senha do cliente. SITE_URL = endereço do site na Vercel, usado no link.
+      # E-mail: o Render gratuito bloqueia SMTP, então use a API da Brevo (BREVO_API_KEY) com
+      # MAIL_FROM = remetente confirmado na Brevo. MAIL_HOST/PORT/USERNAME/PASSWORD só em plano pago.
       - key: SITE_URL
+        sync: false
+      - key: BREVO_API_KEY
         sync: false
       - key: MAIL_HOST
         sync: false
