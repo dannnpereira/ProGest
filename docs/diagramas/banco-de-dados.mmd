@@ -1,0 +1,105 @@
+erDiagram
+    CLIENTES ||--o{ PEDIDOS_CLIENTE : "faz"
+    PRODUTOS ||--o{ PRECOS_TELA : "arame / malha / tratamento (por chave)"
+    PRODUTOS ||--o{ PEDIDOS_CLIENTE : "arame / malha / tratamento (por chave)"
+
+    CLIENTES {
+        BIGINT id PK
+        VARCHAR cpf UK "11 dígitos"
+        VARCHAR nome
+        VARCHAR telefone
+        VARCHAR email UK
+        VARCHAR senha_hash "BCrypt; nulo = cliente sem conta no site"
+    }
+
+    USUARIOS_ERP {
+        BIGINT id PK
+        VARCHAR nome
+        VARCHAR email UK
+        VARCHAR senha_hash
+        BOOLEAN ativo
+        VARCHAR perfil "ADMIN | FUNCIONARIO"
+    }
+
+    PRODUTOS {
+        BIGINT id PK
+        VARCHAR chave UK "FIO_12, MALHA_2, PVC..."
+        VARCHAR categoria "ARAME | MALHA | TRATAMENTO | ACESSORIOS"
+        VARCHAR nome
+        VARCHAR descricao
+        VARCHAR unidade "M2 | METRO_LINEAR | UNIDADE"
+        DECIMAL valor "usado só em ACESSORIOS"
+        BOOLEAN ativo "aparece no site"
+        BOOLEAN excluido "exclusão lógica"
+    }
+
+    PRECOS_TELA {
+        BIGINT id PK
+        VARCHAR arame "chave do produto"
+        VARCHAR malha "chave do produto; nulo no arame avulso"
+        VARCHAR tratamento "chave do produto"
+        VARCHAR unidade "M2 | KG"
+        DECIMAL peso_kg_m2
+        DECIMAL valor_vista
+        DECIMAL valor_prazo
+        BOOLEAN excluido
+    }
+
+    REGRAS_ORCAMENTO {
+        INT id PK "sempre 1"
+        DECIMAL desconto_avista_pct
+        INT parcelas_max
+    }
+
+    PEDIDOS_CLIENTE {
+        BIGINT id PK
+        VARCHAR codigo UK "AM-1001..."
+        BIGINT cliente_id FK
+        TIMESTAMPTZ criado_em
+        VARCHAR status "AGUARDANDO_APROVACAO | RECUSADO | A_FAZER | EM_PROCESSO | ENTREGUE"
+        VARCHAR arame
+        VARCHAR malha
+        VARCHAR tratamento
+        VARCHAR arame_nome "nome no momento do pedido"
+        VARCHAR malha_nome
+        VARCHAR tratamento_nome
+        DECIMAL altura_m
+        DECIMAL comprimento_m
+        BOOLEAN entrega "false = retirada"
+        VARCHAR cep
+        VARCHAR endereco
+        VARCHAR cidade
+        VARCHAR uf
+        INT distancia_km
+        DECIMAL valor_materia_prima
+        DECIMAL valor_acessorios
+        DECIMAL valor_frete
+        DECIMAL valor_desconto
+        DECIMAL valor_total
+        INT parcelas
+        DECIMAL valor_parcela
+        TIMESTAMPTZ aprovado_em
+        TIMESTAMPTZ recusado_em
+        VARCHAR motivo_recusa
+        TIMESTAMPTZ producao_iniciada_em
+        TIMESTAMPTZ entregue_em
+        DATE previsao_entrega
+        DATE pago_em "nulo = conta a receber em aberto"
+        VARCHAR forma_pagamento "PIX | BOLETO | TED | CARTAO | DINHEIRO"
+    }
+
+    LANCAMENTOS_FINANCEIROS {
+        BIGINT id PK
+        VARCHAR tipo "COMPRA | DESPESA | ENTRADA"
+        DATE data_lancamento
+        VARCHAR categoria "SALARIOS | ENCARGOS | ALUGUEL | ENERGIA | AGUA | IMPOSTOS | VEICULOS | FRETE | OUTROS"
+        VARCHAR descricao "material, na compra"
+        VARCHAR favorecido "fornecedor, na compra"
+        VARCHAR quantidade
+        DECIMAL valor "maior que zero"
+        VARCHAR status "PAGO | A_PAGAR | ATRASADO"
+    }
+
+    MIGRACOES {
+        VARCHAR nome PK "tabela_precos_2024, dados_demo..."
+    }

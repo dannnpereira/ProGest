@@ -1,0 +1,27 @@
+flowchart LR
+    Visitante(["👤 Visitante"])
+    Cliente(["👤 Cliente"])
+    ViaCEP[["ViaCEP<br/>(sistema externo)"]]
+
+    subgraph SITE["Site da Amaral Alambrados"]
+        direction TB
+        UC01([UC01 Simular orçamento no configurador])
+        UC02([UC02 Calcular frete pelo CEP])
+        UC03([UC03 Baixar ficha técnica e orçamento em PDF])
+        UC04([UC04 Cadastrar conta])
+        UC05([UC05 Entrar e sair])
+        UC06([UC06 Fazer pedido])
+        UC07([UC07 Acompanhar pedidos])
+        UC08([UC08 Consultar perfil])
+        UC09([UC09 Recuperar senha - proposto])
+    end
+
+    Cliente -. herda .-> Visitante
+    Visitante --> UC01 & UC03 & UC04 & UC05
+    Cliente --> UC06 & UC07 & UC08 & UC09
+    UC01 -. include .-> UC02
+    UC06 -. include .-> UC01
+    UC02 --- ViaCEP
+
+    classDef proposto stroke-dasharray: 5 5,fill:#fff8e6,stroke:#d97706
+    class UC09 proposto

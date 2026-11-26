@@ -1,0 +1,12 @@
+stateDiagram-v2
+    [*] --> AGUARDANDO_APROVACAO : cliente faz o pedido no site
+    AGUARDANDO_APROVACAO --> A_FAZER : administrador aprova (aprovado_em)
+    AGUARDANDO_APROVACAO --> RECUSADO : administrador recusa (motivo_recusa)
+    A_FAZER --> AGUARDANDO_APROVACAO : desfazer aprovação (só se não estiver pago)
+    RECUSADO --> AGUARDANDO_APROVACAO : desfazer recusa
+    A_FAZER --> EM_PROCESSO : iniciar produção (producao_iniciada_em)
+    EM_PROCESSO --> A_FAZER : voltar etapa
+    EM_PROCESSO --> ENTREGUE : marcar entregue / retirado (entregue_em)
+    ENTREGUE --> EM_PROCESSO : voltar etapa
+    RECUSADO --> [*]
+    ENTREGUE --> [*]

@@ -1,0 +1,63 @@
+flowchart LR
+    Visitante(["👤 Visitante"])
+    Cliente(["👤 Cliente"])
+    Funcionario(["👤 Funcionário"])
+    Admin(["👤 Administrador"])
+    ViaCEP[["ViaCEP"]]
+    WhatsApp[["WhatsApp"]]
+
+    Cliente -. herda .-> Visitante
+    Admin -. herda .-> Funcionario
+
+    subgraph SITE["Site da Amaral Alambrados"]
+        UC01([UC01 Simular orçamento no configurador])
+        UC02([UC02 Calcular frete pelo CEP])
+        UC03([UC03 Baixar ficha técnica e orçamento em PDF])
+        UC04([UC04 Cadastrar conta])
+        UC05([UC05 Entrar e sair])
+        UC06([UC06 Fazer pedido])
+        UC07([UC07 Acompanhar pedidos])
+        UC08([UC08 Consultar perfil])
+        UC09([UC09 Recuperar senha - proposto])
+    end
+
+    subgraph ERP["Painel ProGest (ERP)"]
+        UC10([UC10 Entrar no painel])
+        UC11([UC11 Avançar ou voltar etapa da produção])
+        UC12([UC12 Aprovar pedido - individual ou em lote])
+        UC13([UC13 Recusar pedido com motivo])
+        UC14([UC14 Ver prévia técnica e memorial])
+        UC15([UC15 Conversar com o cliente])
+        UC16([UC16 Criar orçamento no ERP])
+        UC17([UC17 Buscar cliente por CPF])
+        UC18([UC18 Cadastrar conta do cliente])
+        UC19([UC19 Gerenciar produtos])
+        UC20([UC20 Gerenciar tabela de preços])
+        UC21([UC21 Definir regras do orçamento])
+        UC22([UC22 Registrar ou estornar pagamento])
+        UC23([UC23 Registrar compras e saídas])
+        UC24([UC24 Consultar caixa e comparativo mensal])
+        UC25([UC25 Configurar dados da empresa])
+        UC26([UC26 Controlar estoque de arames - proposto])
+        UC27([UC27 Gerenciar usuários do painel - proposto])
+        UC28([UC28 Consultar clientes - proposto])
+    end
+
+    Visitante --> UC01 & UC03 & UC04 & UC05
+    Cliente --> UC06 & UC07 & UC08 & UC09
+    Funcionario --> UC10 & UC11
+    Admin --> UC12 & UC13 & UC14 & UC16 & UC19 & UC20 & UC21
+    Admin --> UC22 & UC23 & UC24 & UC25 & UC26 & UC27 & UC28
+
+    UC01 -. include .-> UC02
+    UC06 -. include .-> UC01
+    UC02 --- ViaCEP
+    UC16 -. include .-> UC02
+    UC17 -. extend .-> UC16
+    UC18 -. extend .-> UC17
+    UC14 -. extend .-> UC12
+    UC15 -. extend .-> UC12
+    UC15 --- WhatsApp
+
+    classDef proposto stroke-dasharray: 5 5,fill:#fff8e6,stroke:#d97706
+    class UC09,UC26,UC27,UC28 proposto

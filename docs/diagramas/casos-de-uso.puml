@@ -1,0 +1,88 @@
+@startuml casos-de-uso-progest
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor<<proposto>> #FFF8E6
+  BorderColor<<proposto>> #D97706
+}
+
+actor Visitante
+actor Cliente
+actor "Funcionário" as Funcionario
+actor Administrador
+actor "ViaCEP" as ViaCEP <<sistema>>
+actor "WhatsApp" as WhatsApp <<sistema>>
+
+Cliente -|> Visitante
+Administrador -|> Funcionario
+
+rectangle "Site da Amaral Alambrados" {
+  usecase "UC01 Simular orçamento" as UC01
+  usecase "UC02 Calcular frete pelo CEP" as UC02
+  usecase "UC03 Baixar ficha técnica em PDF" as UC03
+  usecase "UC04 Cadastrar conta" as UC04
+  usecase "UC05 Entrar e sair" as UC05
+  usecase "UC06 Fazer pedido" as UC06
+  usecase "UC07 Acompanhar pedidos" as UC07
+  usecase "UC08 Consultar perfil" as UC08
+  usecase "UC09 Recuperar senha" as UC09 <<proposto>>
+}
+
+rectangle "Painel ProGest (ERP)" {
+  usecase "UC10 Entrar no painel" as UC10
+  usecase "UC11 Avançar ou voltar etapa da produção" as UC11
+  usecase "UC12 Aprovar pedido" as UC12
+  usecase "UC13 Recusar pedido" as UC13
+  usecase "UC14 Ver prévia técnica e memorial" as UC14
+  usecase "UC15 Conversar com o cliente" as UC15
+  usecase "UC16 Criar orçamento no ERP" as UC16
+  usecase "UC17 Buscar cliente por CPF" as UC17
+  usecase "UC18 Cadastrar conta do cliente" as UC18
+  usecase "UC19 Gerenciar produtos" as UC19
+  usecase "UC20 Gerenciar tabela de preços" as UC20
+  usecase "UC21 Definir regras do orçamento" as UC21
+  usecase "UC22 Registrar ou estornar pagamento" as UC22
+  usecase "UC23 Registrar compras e saídas" as UC23
+  usecase "UC24 Consultar caixa e comparativo" as UC24
+  usecase "UC25 Configurar dados da empresa" as UC25
+  usecase "UC26 Controlar estoque de arames" as UC26 <<proposto>>
+  usecase "UC27 Gerenciar usuários do painel" as UC27 <<proposto>>
+  usecase "UC28 Consultar clientes" as UC28 <<proposto>>
+}
+
+Visitante --> UC01
+Visitante --> UC03
+Visitante --> UC04
+Visitante --> UC05
+Cliente --> UC06
+Cliente --> UC07
+Cliente --> UC08
+Cliente --> UC09
+
+Funcionario --> UC10
+Funcionario --> UC11
+Administrador --> UC12
+Administrador --> UC13
+Administrador --> UC16
+Administrador --> UC19
+Administrador --> UC20
+Administrador --> UC21
+Administrador --> UC22
+Administrador --> UC23
+Administrador --> UC24
+Administrador --> UC25
+Administrador --> UC26
+Administrador --> UC27
+Administrador --> UC28
+
+UC01 ..> UC02 : <<include>>
+UC06 ..> UC01 : <<include>>
+UC16 ..> UC02 : <<include>>
+UC17 ..> UC16 : <<extend>>
+UC18 ..> UC17 : <<extend>>
+UC14 ..> UC12 : <<extend>>
+UC15 ..> UC12 : <<extend>>
+
+UC02 --> ViaCEP
+UC15 --> WhatsApp
+@enduml
